@@ -1,0 +1,25 @@
+# secrets / local
+.env
+.env.*
+*.pem
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+.claude/settings.local.json
+.claude/worktrees/
+
+# throwaways
+scratch_*
+
+# caches / build
+__pycache__/
+*.pyc
+node_modules/
+dist/
+build/
+.gradle/
+.dart_tool/
+Pods/
+*.log
+.DS_Store
