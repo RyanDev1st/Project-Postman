@@ -17,7 +17,7 @@ The Server team owns the API and the database. We call their API. We do not chan
 
 | In scope | Out of scope (unless the user says otherwise) |
 | --- | --- |
-| The phone app (Android and iOS) and the cabinet screen | Server code, database design, cabinet hardware |
+| The phone app (Android first) and the cabinet screen | Server code, database design, cabinet hardware |
 | Work against the real Server-team API | Fake servers in shipped code. Test fakes are allowed, and carry a label |
 | | Secrets in the repo, in a commit, or in chat |
 
@@ -55,7 +55,7 @@ What the Server team owns is listed in [architecture.md](docs/reference/architec
 
 ## Tech stack
 
-**Not chosen yet.** The decision sits in `docs/adr/0001-tech-stack.md`, status `proposed`. Task **P0-01** decides it. When that ADR is `accepted`, replace this section with the real stack and the version numbers.
+**Not chosen yet.** Two separate choices. The phone app stack is `docs/adr/0001-tech-stack.md`, decided by task **P0-03**. The cabinet screen stack is task **P0-14**. When ADR 0001 is `accepted`, replace this section with the real stack and the version numbers.
 
 ## Task tracking (agents: read this before you start any work)
 
