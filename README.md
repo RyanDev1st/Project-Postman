@@ -41,6 +41,3 @@ Do not start Phase 1 until every Phase 0 task is done. Phase 0 is the cheapest p
 
 **Next up:** pick the phone tech stack (**P0-03**) and list the test devices (**P0-09**). Neither needs an answer from another team.
 
-## For agents
-
-Read [`CLAUDE.md`](CLAUDE.md) first. It holds the folder rules, the file-size cap, the tick protocol, and the delivery rules.
