@@ -33,11 +33,13 @@ The Server team owns the API and the database in a separate repo. Our front-ends
 
 ## Status
 
-**Phase 0 — Agree.** `0 / 60` tasks. No app code yet. The tech stack is not chosen — see [ADR 0001](docs/adr/0001-tech-stack.md).
+**Phase 0 — Agree.** `5 / 71` tasks. No app code yet. The tech stack is not chosen — see [ADR 0001](docs/adr/0001-tech-stack.md).
 
 Do not start Phase 1 until every Phase 0 task is done. Phase 0 is the cheapest phase and it prevents the most rework.
 
-**The most urgent open question: does the cabinet have its own network connection?** Every part of this plan assumes it does. That is task **P0-01**.
+**Android first.** The first version targets Android only. iOS is deferred, not cancelled — see [ADR 0007](docs/adr/0007-android-first.md).
+
+**Next up:** pick the phone tech stack (**P0-03**) and list the test devices (**P0-09**). Neither needs an answer from another team.
 
 ## For agents
 

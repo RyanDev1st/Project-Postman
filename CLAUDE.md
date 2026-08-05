@@ -10,7 +10,7 @@ This repo holds the **IT team work — two front-ends**:
 
 | Front-end | Who uses it | What it does |
 | --- | --- | --- |
-| **Phone app** | The receiver | Register, get told a parcel arrived, scan the cabinet, open the box |
+| **Phone app** | The receiver | Register, get told a parcel arrived, scan the cabinet, open the box. **Android first** — iOS deferred, see [ADR 0007](docs/adr/0007-android-first.md) |
 | **Cabinet screen** | The shipper | Find the receiver, drop the parcel. No login, no app to install |
 
 The Server team owns the API and the database. We call their API. We do not change it.

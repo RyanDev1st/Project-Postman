@@ -16,7 +16,7 @@
       - Notes: agree in P0-04 who counts as staff and what they may see
 
 - [ ] **P7-03** — The server records every door opening
-      - Owner: _unassigned_ · Needs: P5-03 · Blocks: P8-01, P8-02, P8-03
+      - Owner: _unassigned_ · Needs: P5-03 · Blocks: P8-01, P8-03
       - Verify: after a full drop and pickup, the server log holds one row per door opening, with who caused it
       - Notes: this log is the evidence for every locker task in Phase 8. Without it, nothing can be checked
 

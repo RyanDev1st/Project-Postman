@@ -12,17 +12,17 @@ No feature in this phase. Only proof that the pipes exist.
       - Owner: _unassigned_ · Needs: P0-03, P0-09 · Blocks: P1-04
       - Verify: the app opens on the listed Android phone and shows one screen with its version number
 
-- [ ] **P1-02** — Empty app runs on the real iPhone
-      - Owner: _unassigned_ · Needs: P0-03, P0-09 · Blocks: P1-04
+- [ ] **⏸️ LATER — P1-02** — Empty app runs on the real iPhone
+      - Owner: _unassigned_ · Needs: P0-03, P0-09 · Blocks: —
       - Verify: the app opens on the listed iPhone and shows one screen with its version number
-      - Notes: needs a Mac and an Apple developer account. Check this in P0-09, not here
+      - Notes: deferred by [ADR 0007](../adr/0007-android-first.md) — Android MVP first. Needs a Mac and an Apple developer account, which is now the rest of the team's item. Do not let this hold up P1-04
 
 - [ ] **P1-03** — Empty screen runs on the real cabinet
       - Owner: _unassigned_ · Needs: P0-01, P0-02, P0-14 · Blocks: P1-06
       - Verify: the cabinet screen shows one screen with its version number, at the cabinet, not on a desk
 
 - [ ] **P1-04** — One network file in the app. Every call goes through it
-      - Owner: _unassigned_ · Needs: P1-01, P1-02 · Blocks: P1-05
+      - Owner: _unassigned_ · Needs: P1-01 · Blocks: P1-05
       - Verify: a search of the app source finds no HTTP call outside that one file
       - Notes: rule 1 in `architecture.md`. Doing this later means touching every screen
 
@@ -42,7 +42,7 @@ No feature in this phase. Only proof that the pipes exist.
 ## Exit check
 
 - [ ] All seven tasks ticked
-- [ ] The app runs on a real Android **and** a real iPhone
+- [ ] The app runs on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs on the real cabinet
 - [ ] Both front-ends appear in the server log
 - [ ] Counts updated in [README.md](README.md)

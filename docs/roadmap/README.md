@@ -59,8 +59,11 @@ A `Done` line that a non-technical reader cannot follow is not finished. Rewrite
 
 - `🔴 BLOCKED —` cannot move. Say why in Notes.
 - `🟡 DOING —` someone is on it now. Owner must be a name.
+- `⏸️ LATER —` we chose not to do it yet. Say which ADR decided that.
 
 Nothing else. No half-ticks.
+
+**`BLOCKED` and `LATER` are not the same.** Blocked means something is in the way. Later means we decided to wait, on purpose, and can start whenever we choose. A `LATER` task still counts in the total — hiding deferred work makes progress look better than it is.
 
 ## How to tick a task
 
@@ -96,7 +99,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 5 / 71.**
+**Total: 5 / 71.**  ·  2 marked `⏸️ LATER` (iOS, [ADR 0007](../adr/0007-android-first.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -117,7 +120,9 @@ Phases 1 → 5 run in order. Each leans on the one before. Phase 5 is the produc
 
 Phase 6 needs Phase 5 working, because a fault is a fault in a flow that already runs.
 
-Phase 8 runs at the end, but its device testing starts early — test on a real Android, a real iPhone, **and** the real cabinet at the end of every phase.
+Phase 8 runs at the end, but its device testing starts early — test on a real Android **and** the real cabinet at the end of every phase.
+
+**Android first.** iOS is deferred, not cancelled — see [ADR 0007](../adr/0007-android-first.md). Every iOS task keeps its ID and is marked `⏸️ LATER`. Rule D3 still says test on both platforms; we are knowingly deferring half of it, and ADR 0007 records what that will cost when iOS starts.
 
 ## Two front-ends, one team
 

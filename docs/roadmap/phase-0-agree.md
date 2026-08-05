@@ -59,7 +59,7 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: a phone-sized screen and a tablet-sized screen need different layouts
 
 - [ ] **P0-03** — Pick the tech stack for the **phone app**
-      - Owner: _unassigned_ · Needs: P0-09 · Blocks: P0-15, P1-01, P1-02
+      - Owner: _unassigned_ · Needs: P0-09 · Blocks: P0-15, P1-01
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Notes: nobody outside this team decides this. It needs P0-09 only because no Mac changes the answer. Split from the cabinet choice (P0-14) so the phone app is not held up by hardware questions
 
@@ -89,9 +89,9 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
 
 - [ ] **P0-09** — List the test devices: two phones and one cabinet
-      - Owner: _unassigned_ · Needs: — · Blocks: P0-03, P1-01, P1-02
-      - Verify: a table in this file names the Android model, the iPhone model, their OS versions, and where the test cabinet is
-      - Notes: check today whether a Mac and an Apple developer account exist. It blocks P1-02 and takes longest to fix
+      - Owner: _unassigned_ · Needs: — · Blocks: P0-03, P1-01
+      - Verify: a table in this file names the Android model and its OS version, and where the test cabinet is
+      - Notes: Android only for now — [ADR 0007](../adr/0007-android-first.md). The Mac and Apple developer account question moves to the rest of the team and no longer blocks us
 
 - [x] **P0-10** — Decide what records a delivery, now that there is no sensor
       - Owner: Team · Needs: — · Blocks: P3-05, P5-04
@@ -130,7 +130,7 @@ Fill this in during P0-09.
 | Device | Model | OS version | Who holds it |
 | --- | --- | --- | --- |
 | Android phone | | | |
-| iPhone | | | |
+| iPhone | *(later — [ADR 0007](../adr/0007-android-first.md))* | | |
 | Test cabinet | | | |
 
 ## Exit check

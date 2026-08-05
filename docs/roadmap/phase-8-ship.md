@@ -13,16 +13,17 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Verify: every screen was opened on the real Android device, and the result is in the bug log
       - Notes: log to [bug-log.md](../reference/bug-log.md) as you go, not afterwards
 
-- [ ] **P8-02** — Walk every screen on a real iPhone. Log every bug
-      - Owner: _unassigned_ · Needs: P7-03 · Blocks: P8-04
+- [ ] **⏸️ LATER — P8-02** — Walk every screen on a real iPhone. Log every bug
+      - Owner: _unassigned_ · Needs: P7-03 · Blocks: —
       - Verify: every screen was opened on the real iPhone, and the result is in the bug log
+      - Notes: deferred by [ADR 0007](../adr/0007-android-first.md). When iOS starts it gets its own phase, not a bolt-on here — that is how the deferred bugs stay a task instead of becoming a crisis
 
 - [ ] **P8-03** — Walk every screen on the real cabinet. Log every bug
       - Owner: _unassigned_ · Needs: P7-03 · Blocks: P8-04
       - Verify: every cabinet screen was used at the cabinet, and the result is in the bug log
 
 - [ ] **P8-04** — Fix every logged bug, then test it again on the device that found it
-      - Owner: _unassigned_ · Needs: P8-01, P8-02, P8-03 · Blocks: P8-09
+      - Owner: _unassigned_ · Needs: P8-01, P8-03 · Blocks: P8-09
       - Verify: every bug row is `fixed` **and** `re-tested`
       - Notes: a fix is not done until it is re-tested on the same device
 
@@ -57,7 +58,7 @@ Device testing starts at the end of **every** phase, not only here. This phase i
 ## Exit check
 
 - [ ] All ten tasks ticked
-- [ ] The release build runs on a clean Android **and** a clean iPhone
+- [ ] The release build runs on a clean Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs from a fresh install
 - [ ] The bug log has zero `open` rows
 - [ ] Counts updated in [README.md](README.md)

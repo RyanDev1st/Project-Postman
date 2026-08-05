@@ -18,8 +18,8 @@ A parcel nobody knows about is a parcel nobody collects.
 
 - [ ] **P4-03** — The notice arrives while the app is closed
       - Owner: _unassigned_ · Needs: P4-02 · Blocks: P4-05
-      - Verify: with the app fully closed on a real Android **and** a real iPhone, the notice still arrives
-      - Notes: this is where the two platforms differ most. Test both, not one
+      - Verify: with the app fully closed on a real Android, the notice still arrives
+      - Notes: this is where the two platforms differ most, so it is also where the deferred iOS work will bite hardest — [ADR 0007](../adr/0007-android-first.md)
 
 - [ ] **P4-04** — "My parcels" screen lists what is waiting
       - Owner: _unassigned_ · Needs: P2-05, P4-01 · Blocks: P4-05, P5-02
@@ -32,6 +32,6 @@ A parcel nobody knows about is a parcel nobody collects.
 ## Exit check
 
 - [ ] All five tasks ticked
-- [ ] A notice arrived on a real Android **and** a real iPhone, with the app closed
+- [ ] A notice arrived on a real Android with the app closed *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The parcel list matches what the server holds
 - [ ] Counts updated in [README.md](README.md)

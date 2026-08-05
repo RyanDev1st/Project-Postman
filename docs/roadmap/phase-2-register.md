@@ -40,7 +40,7 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
 ## Exit check
 
 - [ ] All seven tasks ticked
-- [ ] A real phone number registers on a real Android **and** a real iPhone
+- [ ] A real phone number registers on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The token is in the secure store and in no log line
 - [ ] Every error case shows a plain sentence
 - [ ] Counts updated in [README.md](README.md)
