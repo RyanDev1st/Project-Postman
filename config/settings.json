@@ -1,0 +1,21 @@
+{
+  "_readme": "Every number we guessed rather than measured. Edit the values, not the key names. What each one means, and when to change it, is the settings table in docs/reference/architecture.md. See config/README.md before your first edit.",
+
+  "settings_version": 1,
+
+  "qr_session_seconds": 60,
+  "qr_refresh_seconds": 30,
+
+  "receiver_token_days": 30,
+
+  "pickup_code_digits": 6,
+  "pickup_code_hours": 48,
+  "wrong_tries_before_lock": 5,
+  "box_lock_minutes": 15,
+
+  "uncollected_chase_days": 3,
+
+  "notification_route": "push",
+
+  "server_base_url": ""
+}

@@ -46,12 +46,12 @@ What the Server team owns is listed in [architecture.md](docs/reference/architec
 | `docs/findings/` | Dated audits and test reports. Never edit one. A newer date replaces it |
 | `docs/legacy/` | Docs that are no longer true. Move them here. Never delete them |
 | `docs/adr/` | One short file per hard decision. It holds the *why* |
-| `src/` | App source code. Feature folders only |
-| `tests/` | Tests that mirror `src/` |
+| `src/`, `tests/` | App source, feature folders only. Tests mirror `src/` |
+| `config/` | `settings.json` — every number we guessed. One file, editable by a person |
 | `scripts/` | Build and automation scripts. `cabinet-sim/` is the Blender cabinet — **never evidence**, see [ADR 0008](docs/adr/0008-cabinet-simulator.md) |
 | `.claude/` | Agent context, skills, and rules for named file types |
 
-**Root policy:** the repo root holds only these — `CLAUDE.md`, `.gitignore`, setup files such as `package.json` or `pubspec.yaml`, CI folders, and container files. All feature code goes under `src/`.
+**Root policy:** the repo root holds only these — `CLAUDE.md`, `.gitignore`, `config/`, setup files such as `package.json` or `pubspec.yaml`, CI folders, and container files.
 
 ## Tech stack
 

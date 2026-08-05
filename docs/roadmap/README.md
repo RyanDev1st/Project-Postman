@@ -80,13 +80,13 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 ## Phases
 
-- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `6/16` · **CURRENT**
+- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `7/16` · **CURRENT**
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
-- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/7`
+- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/8`
       Empty app on both phones, empty screen on the cabinet, both reach the server.
-- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
+- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/8`
       A receiver registers with a phone number and stays logged in.
-- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
+- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/8`
       The cabinet screen. A shipper finds the receiver and a box opens.
 - [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/5`
       The notification arrives and the parcel shows in the app.
@@ -99,7 +99,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 6 / 72.**  ·  2 marked `⏸️ LATER` (iOS, [ADR 0007](../adr/0007-android-first.md))
+**Total: 7 / 73.**  ·  2 marked `⏸️ LATER` (iOS, [ADR 0007](../adr/0007-android-first.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -128,7 +128,7 @@ Phase 8 runs at the end, but its device testing starts early — test on a real 
 
 Phases 1, 3, 5 and 8 touch **both** the phone app and the cabinet screen. When a task names one of them, it means only that one.
 
-The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 72 tasks and not 45.
+The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 73 tasks and not 45.
 
 ## Working rules
 

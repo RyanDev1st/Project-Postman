@@ -260,7 +260,9 @@ Every value in this design that we chose rather than measured lives in **one set
 
 **A number is a setting. A shape is not.** Changing `60` to `120` is editing this table. Changing *"the code works once"* to *"twice"* is a design decision and needs an ADR.
 
-Task **P0-15** builds the file. It exists before Phase 1 so no guess ever gets typed into source code.
+The file is [`config/settings.json`](../../config/settings.json). Editing rules are in [config/README.md](../../config/README.md).
+
+Changing a number here does **not** yet reach a phone without a new release — that is task **P1-08**. Until it is ticked, these values are frozen at whatever shipped.
 
 ## Open questions
 

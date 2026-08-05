@@ -2,7 +2,7 @@
 
 **Goal:** an empty app runs on both real phones, an empty screen runs on the real cabinet, and both reach the real server.
 
-**Progress: 0 / 7.**
+**Progress: 0 / 8.**
 
 No feature in this phase. Only proof that the pipes exist.
 
@@ -27,7 +27,7 @@ No feature in this phase. Only proof that the pipes exist.
       - Notes: rule 1 in `architecture.md`. Doing this later means touching every screen
 
 - [ ] **P1-05** — The app reaches the real server over HTTPS
-      - Owner: _unassigned_ · Needs: P1-04 · Blocks: P1-07, P2-01
+      - Owner: _unassigned_ · Needs: P1-04 · Blocks: P1-07, P1-08, P2-01
       - Verify: the app calls one real endpoint and the server log shows the request arriving
 
 - [ ] **P1-06** — The cabinet reaches the real server with its key
@@ -39,9 +39,14 @@ No feature in this phase. Only proof that the pipes exist.
       - Verify: a search of both source trees for keys and addresses returns nothing, and `.gitignore` covers the config files
       - Notes: the cabinet key is placed on the device, never built into the code
 
+- [ ] **P1-08** — A changed setting reaches a phone without a new release
+      - Owner: _unassigned_ · Needs: P0-15, P1-05 · Blocks: —
+      - Verify: change one number in `config/settings.json`, do **not** rebuild the app, and the phone behaves by the new number
+      - Notes: design is in [config/README.md](../../config/README.md). Needs a Server-team endpoint we have not proposed yet — add it to `api-contract.md` before the meeting. Until this is ticked, every guessed number is frozen at whatever shipped
+
 ## Exit check
 
-- [ ] All seven tasks ticked
+- [ ] All eight tasks ticked
 - [ ] The app runs on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs on the real cabinet
 - [ ] Both front-ends appear in the server log
