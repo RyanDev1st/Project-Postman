@@ -252,12 +252,14 @@ Every belief we act on but have not yet checked. Add a row the moment you notice
 
 **Status:** `open` → `confirmed` or `wrong`. A `wrong` row is a win — it was found before it cost anything.
 
+A fourth status, `dropped`, is for a row the product change made meaningless. Never delete a row. A reader must be able to see what we once believed.
+
 | # | Assumption | Made by | Date | How we will check it | Status |
 | --- | --- | --- | --- | --- | --- |
-| A-01 | All VGU student cards use one barcode format | — | — | Scan several real cards from different years (P0-02) | open |
-| A-02 | The API sends each locker point's location, so the app can find the nearest | — | — | Ask the Server team (P0-05, question 1) | open |
-| A-03 | Operating mode is per locker point, not one setting for the whole school | — | — | Ask the Server team (P0-05, question 3) | open |
-| A-04 | The phone never talks to the locker hardware directly — only the server does | — | — | Confirm with the hardware owner (blocks the ADR 0001 stack choice) | open |
+| A-01 | All VGU student cards use one barcode format | — | 2026-08-05 | No longer asked. There is no card scan in the parcel product ([ADR 0003](../adr/0003-parcel-locker-product.md)) | dropped |
+| A-02 | The API sends each locker point's location, so the app can find the nearest | — | 2026-08-05 | No longer asked. One cabinet, no "nearest point" ([ADR 0003](../adr/0003-parcel-locker-product.md)) | dropped |
+| A-03 | Operating mode is per locker point, not one setting for the whole school | — | 2026-08-05 | No longer asked. There is no exam mode in the parcel product ([ADR 0003](../adr/0003-parcel-locker-product.md)) | dropped |
+| A-04 | The phone never talks to the cabinet hardware directly — only the server does | — | — | Confirm with the hardware owner (blocks the ADR 0001 stack choice, P0-03) | open |
 | A-05 | We have a Mac and an Apple developer account available for iOS builds | — | — | Check today. It blocks P1-02 and takes longest to fix | open |
 | A-06 | The cabinet has a screen the shipper can type on | — | 2026-08-05 | **Confirmed by the team** (P0-02 records the size and type) | confirmed |
 | A-07 | The design needs no camera on the cabinet | — | 2026-08-05 | True by design — the phone scans the cabinet, not the reverse. See [ADR 0003](../adr/0003-parcel-locker-product.md) | confirmed |

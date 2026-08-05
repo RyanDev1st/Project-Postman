@@ -32,16 +32,7 @@ The Server team owns the API and the database. We call their API. We do not chan
 
 **The phone scans the cabinet, not the other way round.** The QR on the screen only says *which cabinet, at what moment*. It is not a key. Identity comes from the app login, so a photograph of the screen opens nothing. Decided in [ADR 0003](docs/adr/0003-parcel-locker-product.md).
 
-## What the Server team owns
-
-Not this repo, but we depend on it.
-
-- Tables: users, cabinets, boxes, parcels, and the full open and close history.
-- API: send a one-time code, check it, look up a masked name, pick a free box, open a door, read history.
-- Send the notice to the receiver when a door closes.
-- Issue and expire the QR session code each cabinet displays.
-- Give each cabinet its own key, and replace that key if a cabinet is stolen.
-- Back up on a schedule. Set access rights per user group.
+What the Server team owns is listed in [architecture.md](docs/reference/architecture.md) section 3. Do not copy it here — one list, one place.
 
 ## Repository map
 
@@ -74,20 +65,18 @@ The board is `docs/roadmap/README.md`. One file per phase. Every task is a check
 - [x] **P2-03** — Send the one-time code back and get a token
       - Owner: Minh · Needs: P2-02 · Blocks: P2-04
       - Verify: a real phone number gets a real code and reaches the parcel list
-      - Done: 2026-08-12 — Typed a real number into the app. The code came by SMS in
-        about 4 seconds. Typed it in and the parcel list opened. Watched it on Minh's
-        own phone, not a simulator.
+      - Done: 2026-08-12 — Typed a real number in. The code came by SMS in 4 seconds. Typed it in and the parcel list opened. On Minh's own phone, not a simulator.
 ```
 
 - **At the start of a session:** open `docs/roadmap/README.md`. Find the current phase. Find the first unticked task where every `Needs` task is ticked. That is the next task.
 - **To take a task:** write your name in `Owner`. Put `🟡 DOING — ` in front of the title. If you get stuck, change it to `🔴 BLOCKED — ` and write why in `Notes`.
-- **To tick a task:** run the `Verify` line first. If it passes, change `- [ ]` to `- [x]`. Add the `Done:` line. Remove the marker. Update the phase `Progress` line. Update the count and the phase box in `docs/roadmap/README.md`. Do all of this in one change.
+- **To tick a task:** run `Verify` first. If it passes, change `- [ ]` to `- [x]`, add the `Done:` line, remove the marker, update the phase `Progress` line, and update the count and phase box in `docs/roadmap/README.md`. All in one change.
 - **Every tick carries a `Done:` line.** Write it for a reader with no technical background. Say what you did and what you saw, not what you built. Name the real phone, the real cabinet, the real person. Two or three sentences.
 - **Keep the board current.** Update it in the same change as the work — never at the end of the day. A board that lags is a board that lies.
-- **Never** tick a task because the code is written. If `Verify` did not pass, it is not done.
-- **Never** renumber an ID. **Never** reuse one. A new task takes the next free number. Raise the phase total in the same change.
-- Name the branch after the task ID: `P2-03-candidate-login`. Write the commit subject as `feat(P2-03): add candidate login`.
-- A bug is not a roadmap task. Bugs go to `docs/reference/bug-log.md` as `BUG-nnn`. A bug closes only when it is `re-tested`.
+- **Never** tick because the code is written. If `Verify` did not pass, it is not done.
+- **Never** renumber or reuse an ID. A new task takes the next free number. Raise the phase total in the same change.
+- Branch name is the task ID: `P2-03-one-time-code`. Commit subject: `feat(P2-03): send the one-time code`.
+- A bug is not a roadmap task. Bugs go to `docs/reference/bug-log.md` as `BUG-nnn`, and close only when `re-tested`.
 
 ## How we work — empirical development
 

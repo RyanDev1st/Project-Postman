@@ -9,12 +9,19 @@ Plain-English meaning of every term used in this repo. Add a row when you use a 
 | **Endpoint** | One single request on that list. "Log in" is one endpoint. "Open locker" is another |
 | **Token** | A temporary pass the server gives the app after a correct login. The app shows it with every later request, instead of sending the password again |
 | **Expiry** | The moment a token stops working. After that the user logs in again |
-| **Backend / server** | The machine that holds the truth and commands the locker hardware. Owned by the Server team |
-| **Database** | The tables that remember users, lockers, points, history, orders |
-| **Locker point** | One physical place with a group of lockers. The school has several |
-| **Mode** | Normal, or exam season. It changes which lockers may be opened by whom. Set by an admin on the server |
-| **Barcode** | The printed code on a student or lecturer card. The app reads it with the camera |
-| **Fallback** | The second way to do something when the first way fails. Scan fails → log in with ID and password |
+| **Backend / server** | The machine that holds the truth and commands the cabinet hardware. Owned by the Server team |
+| **Database** | The tables that remember users, cabinets, boxes, parcels and history |
+| **Cabinet** | One physical unit of boxes, with a screen on it. Sits in one place on campus |
+| **Box** | One door in a cabinet. A parcel goes in one box |
+| **Cabinet screen** | The screen fixed to the cabinet. The shipper uses it. It has no login, so anyone can walk up to it |
+| **Shipper** | The person delivering a parcel. Installs nothing, uses the cabinet screen |
+| **Receiver** | The person collecting a parcel. Uses the phone app |
+| **QR session code** | The code shown on the cabinet screen. It says *which cabinet, at what moment*, and nothing else. It is not a key — see [architecture.md](architecture.md) section 6 |
+| **One-time code** | The short number sent to a phone during registration, to prove the number is real |
+| **Masked name** | A name with most of it hidden, such as `Nguyễn V. A***`. Enough for a shipper to confirm the right person, not enough to harvest names |
+| **Cabinet key** | The secret that proves a cabinet is that cabinet. Placed on the device at setup. Never in this repo |
+| **Push notice** | A message the phone shows when a parcel arrives, even with the app closed |
+| **Fallback** | The second way to do something when the first way fails |
 | **Native** | An app built separately for Android and for iOS, in each platform's own language |
 | **Cross-platform** | One code base that builds an app for both Android and iOS |
 | **Build** | Turning the code into an app file that installs on a phone |
