@@ -120,6 +120,15 @@ Not the screen. The screen shows what the app believes. The log shows what happe
 **D5. Unclear is not success.**
 If the app cannot tell whether the locker opened, it says so. It never guesses.
 
+**D6. A tick carries a `Done` line, written for someone with no technical background.**
+Say what you did and what you saw. Name the real phone, the real cabinet, the real person. Two or three sentences, plain words.
+*Why:* "done" is a claim. The `Done` line is the evidence, in a form the whole team can check — not only the person who wrote the code. A team member who cannot follow it cannot inspect it, and [transparency](#the-one-idea) stops working.
+*Check:* read it to somebody outside the team. They cannot follow it → rewrite it.
+
+**D7. The board is updated in the same change as the work.**
+Not at the end of the day. Not at the end of the week.
+*Why:* a board that lags is a board that lies. People trust it and plan around it. See [H1](#h-cadence--when-inspection-happens) — a board that lies is worse than no board.
+
 ---
 
 ## E. Debugging rules
@@ -249,7 +258,11 @@ Every belief we act on but have not yet checked. Add a row the moment you notice
 | A-02 | The API sends each locker point's location, so the app can find the nearest | — | — | Ask the Server team (P0-05, question 1) | open |
 | A-03 | Operating mode is per locker point, not one setting for the whole school | — | — | Ask the Server team (P0-05, question 3) | open |
 | A-04 | The phone never talks to the locker hardware directly — only the server does | — | — | Confirm with the hardware owner (blocks the ADR 0001 stack choice) | open |
-| A-05 | We have a Mac and an Apple developer account available for iOS builds | — | — | Check today. It blocks P1-03 and takes longest to fix | open |
+| A-05 | We have a Mac and an Apple developer account available for iOS builds | — | — | Check today. It blocks P1-02 and takes longest to fix | open |
+| A-06 | The cabinet has a screen the shipper can type on | — | 2026-08-05 | **Confirmed by the team** (P0-02 records the size and type) | confirmed |
+| A-07 | The design needs no camera on the cabinet | — | 2026-08-05 | True by design — the phone scans the cabinet, not the reverse. See [ADR 0003](../adr/0003-parcel-locker-product.md) | confirmed |
+| A-08 | The receiver has the app installed and is logged in before a parcel is dropped | — | — | True by design — registration lives in the app. Watch for a real receiver who has not registered (P3-06) | open |
+| A-09 | The cabinet has its own network connection (SIM or Wi-Fi) | — | — | **Ask the hardware team (P0-01).** Nothing in the plan works without one | open |
 
 ---
 

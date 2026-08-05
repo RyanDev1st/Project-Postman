@@ -4,36 +4,44 @@ Rules for Claude Code and other agents. This file loads every session. Keep it *
 
 ## Mission
 
-Build a smart locker system for VGU that works. A person opens a locker with a phone. Staff manage the locker points, the modes and the history.
+Build a **parcel drop-off locker** for VGU. A shipper leaves a parcel in a box. The receiver picks it up with a phone. Nobody needs a key. See [ADR 0003](docs/adr/0003-parcel-locker-product.md).
 
-This repo holds the **IT team work — the app**. The Server team owns the API and the database. We call their API. We do not change it.
+This repo holds the **IT team work — two front-ends**:
+
+| Front-end | Who uses it | What it does |
+| --- | --- | --- |
+| **Phone app** | The receiver | Register, get told a parcel arrived, scan the cabinet, open the box |
+| **Cabinet screen** | The shipper | Find the receiver, drop the parcel. No login, no app to install |
+
+The Server team owns the API and the database. We call their API. We do not change it.
 
 | In scope | Out of scope (unless the user says otherwise) |
 | --- | --- |
-| The phone app (Android and iOS), screens, login, open and lock a locker, barcode scan, no-network handling | Server code, database design, locker hardware |
+| The phone app (Android and iOS) and the cabinet screen | Server code, database design, cabinet hardware |
 | Work against the real Server-team API | Fake servers in shipped code. Test fakes are allowed, and carry a label |
 | | Secrets in the repo, in a commit, or in chat |
 
-## Feature list (from the team requirements)
+## The flow, in six steps
 
-The app (this repo):
-1. Screens: login, locker-point list, locker list, open and lock a locker.
-2. Login for 2 account types: student or lecturer, and candidate or parent.
-3. Call the Server API. Handle no network. Handle a wrong password.
-4. Test on real Android and iOS phones. Write down every bug, then fix it.
-5. Show each locker point with its free-slot count. Suggest the nearest point.
-6. Scan the card barcode of a student or lecturer to open a locker. The code in the VGU Library app also works. If the scan fails, the user logs in with ID and password.
-7. Later: parcel handoff. Read the scanned locker data, pick a free locker, then send the open code to the receiver.
+1. The receiver registers in the app with a phone number.
+2. The shipper types that phone number on the cabinet screen and picks the masked name.
+3. The server opens a free box. The shipper puts the parcel in and closes the door.
+4. The receiver's phone gets a notice: a parcel is waiting, in which box.
+5. The receiver walks up and scans the QR shown **on the cabinet screen**.
+6. The server checks who they are, opens their box, and records it.
 
-The Server team (not this repo, but we depend on it):
-- Tables: users, locker, open and lock history, school events.
-- API: log in, issue a password, open a locker, read the usage history.
-- Send the login name and password by email to a candidate or parent, without staff action.
+**The phone scans the cabinet, not the other way round.** The QR on the screen only says *which cabinet, at what moment*. It is not a key. Identity comes from the app login, so a photograph of the screen opens nothing. Decided in [ADR 0003](docs/adr/0003-parcel-locker-product.md).
+
+## What the Server team owns
+
+Not this repo, but we depend on it.
+
+- Tables: users, cabinets, boxes, parcels, and the full open and close history.
+- API: send a one-time code, check it, look up a masked name, pick a free box, open a door, read history.
+- Send the notice to the receiver when a door closes.
+- Issue and expire the QR session code each cabinet displays.
+- Give each cabinet its own key, and replace that key if a cabinet is stolen.
 - Back up on a schedule. Set access rights per user group.
-- Locker state per mode: exam-reserved or shared. Locker size. Order data.
-- Each card barcode maps to one user account.
-- Many locker points. Each point has its own code, locker list, state and mode.
-- Two modes: normal and exam season. An admin switches between them.
 
 ## Repository map
 
@@ -63,15 +71,19 @@ The Server team (not this repo, but we depend on it):
 The board is `docs/roadmap/README.md`. One file per phase. Every task is a checkbox. The shape never changes:
 
 ```markdown
-- [ ] **P2-03** — Log in as candidate or parent against the real API
-      - Owner: _unassigned_ · Needs: P2-02 · Blocks: —
-      - Verify: a real candidate account reaches the point list
-      - Notes: optional, one line
+- [x] **P2-03** — Send the one-time code back and get a token
+      - Owner: Minh · Needs: P2-02 · Blocks: P2-04
+      - Verify: a real phone number gets a real code and reaches the parcel list
+      - Done: 2026-08-12 — Typed a real number into the app. The code came by SMS in
+        about 4 seconds. Typed it in and the parcel list opened. Watched it on Minh's
+        own phone, not a simulator.
 ```
 
 - **At the start of a session:** open `docs/roadmap/README.md`. Find the current phase. Find the first unticked task where every `Needs` task is ticked. That is the next task.
 - **To take a task:** write your name in `Owner`. Put `🟡 DOING — ` in front of the title. If you get stuck, change it to `🔴 BLOCKED — ` and write why in `Notes`.
-- **To tick a task:** run the `Verify` line first. If it passes, change `- [ ]` to `- [x]`. Remove the marker. Update the phase `Progress` line. Update the count and the phase box in `docs/roadmap/README.md`. Do all of this in one change.
+- **To tick a task:** run the `Verify` line first. If it passes, change `- [ ]` to `- [x]`. Add the `Done:` line. Remove the marker. Update the phase `Progress` line. Update the count and the phase box in `docs/roadmap/README.md`. Do all of this in one change.
+- **Every tick carries a `Done:` line.** Write it for a reader with no technical background. Say what you did and what you saw, not what you built. Name the real phone, the real cabinet, the real person. Two or three sentences.
+- **Keep the board current.** Update it in the same change as the work — never at the end of the day. A board that lags is a board that lies.
 - **Never** tick a task because the code is written. If `Verify` did not pass, it is not done.
 - **Never** renumber an ID. **Never** reuse one. A new task takes the next free number. Raise the phase total in the same change.
 - Name the branch after the task ID: `P2-03-candidate-login`. Write the commit subject as `feat(P2-03): add candidate login`.

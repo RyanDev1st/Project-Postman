@@ -2,15 +2,30 @@
 
 The plan for the app side of VGU Smart Locker. One file per phase. Every task is a checkbox with an ID.
 
+Product: a **parcel drop-off locker**, with two front-ends — the phone app and the cabinet screen. See [ADR 0003](../adr/0003-parcel-locker-product.md).
+
 ## Task format
 
-Every task looks exactly like this. Do not change the shape — humans and agents both read it.
+Every task looks exactly like this. Do not change the shape — people and agents both read it.
+
+**While it is open:**
 
 ```markdown
-- [ ] **P2-03** — Log in as candidate or parent against the real API
-      - Owner: _unassigned_ · Needs: P2-02 · Blocks: —
-      - Verify: a real candidate account reaches the point list
-      - Notes: these accounts come by email from the server
+- [ ] **P2-03** — Send the one-time code back and get a token
+      - Owner: _unassigned_ · Needs: P2-02 · Blocks: P2-04
+      - Verify: a real phone number gets a real code and reaches the parcel list
+      - Notes: optional, one line
+```
+
+**After it is ticked** — one line is added, and nothing is removed:
+
+```markdown
+- [x] **P2-03** — Send the one-time code back and get a token
+      - Owner: Minh · Needs: P2-02 · Blocks: P2-04
+      - Verify: a real phone number gets a real code and reaches the parcel list
+      - Done: 2026-08-12 — Typed a real number into the app. The code came by SMS in
+        about 4 seconds. Typed it in and the parcel list opened. Watched it happen on
+        Minh's own phone, not a simulator.
 ```
 
 | Field | Rule |
@@ -22,6 +37,23 @@ Every task looks exactly like this. Do not change the shape — humans and agent
 | Blocks | Task IDs waiting on this one, or `—` |
 | Verify | The one check that makes this task done. Not "code written" |
 | Notes | Optional. One line |
+| **Done** | **Added when you tick.** The date, then what you did and what you saw, in plain words |
+
+### How to write the Done line
+
+It is written for a reader with no technical background. A team member, a lecturer, or you in three months.
+
+- Say **what you did** and **what you saw**. Not what you built.
+- Name the real thing: which phone, which cabinet, which person.
+- Two or three sentences. No jargon. No tool names unless they matter.
+- If something was odd but you ticked anyway, say that too.
+
+| Good | Bad |
+| --- | --- |
+| "Dropped a real parcel at the cabinet by the library. Box 4 opened, I put a book in, closed it. The phone buzzed 2 seconds later." | "Implemented drop flow, endpoint 11 wired, tests green." |
+| "Scanned the cabinet screen in a dark corridor. It read on the second try, so we made the screen brighter." | "QR scanning works." |
+
+A `Done` line that a non-technical reader cannot follow is not finished. Rewrite it.
 
 **Extra state markers** — put at the front of the title:
 
@@ -34,34 +66,37 @@ Nothing else. No half-ticks.
 
 1. Run the Verify check. Actually run it.
 2. It passes → change `- [ ]` to `- [x]`.
-3. Update the phase file's **Progress** line.
-4. Update this file's count in the table below.
-5. Commit with the ID: `feat(P2-03): add candidate login`.
+3. **Add the `Done:` line.** The date, then what you did and what you saw, in plain words.
+4. Update the phase file's **Progress** line.
+5. Update this file's count in the table below.
+6. Commit with the ID: `feat(P2-03): send the one-time code`.
 
-All in the same change. A tick with a stale count is a broken board.
+All in the same change. A tick with a stale count is a broken board. A tick with no `Done` line is worse — nobody can tell what was proved.
+
+**The board is never left stale.** Whoever does the work updates the board in the same change as the work. Not at the end of the day. Not at the end of the week.
 
 ## Phases
 
 - [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `0/9` · **CURRENT**
-      Decide the stack, the barcode format, the API contract. No code.
+      Settle the stack, the cabinet hardware, and the API contract. No code.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/7`
-      Empty app runs on both real phones and reaches the real server.
-- [ ] **Phase 2 — Login** · [phase-2-login.md](phase-2-login.md) · `0/8`
-      Both account types log in and stay logged in. Errors are plain.
-- [ ] **Phase 3 — See the lockers** · [phase-3-see-lockers.md](phase-3-see-lockers.md) · `0/7`
-      Points, free counts, nearest point, locker list and size.
-- [ ] **Phase 4 — Open the locker** · [phase-4-open-locker.md](phase-4-open-locker.md) · `0/8`
-      The core. Open, lock, history, and the safety rules around them.
-- [ ] **Phase 5 — Barcode** · [phase-5-barcode.md](phase-5-barcode.md) · `0/7`
-      Card scan, library-app code, and the ID + password fallback.
-- [ ] **Phase 6 — Modes** · [phase-6-modes.md](phase-6-modes.md) · `0/5`
-      Normal mode and exam season. The app follows, never decides.
-- [ ] **Phase 7 — Handoff** · [phase-7-handoff.md](phase-7-handoff.md) · `0/6`
-      Parcel drop and collect. Marked future. Do last.
-- [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/9`
+      Empty app on both phones, empty screen on the cabinet, both reach the server.
+- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
+      A receiver registers with a phone number and stays logged in.
+- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
+      The cabinet screen. A shipper finds the receiver and a box opens.
+- [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/5`
+      The notification arrives and the parcel shows in the app.
+- [ ] **Phase 5 — Pick up** · [phase-5-pickup.md](phase-5-pickup.md) · `0/7`
+      Scan the cabinet QR, the right box opens. The core feature.
+- [ ] **Phase 6 — When it goes wrong** · [phase-6-faults.md](phase-6-faults.md) · `0/5`
+      Faulty box, two parcels, nobody collects, shipper walks away.
+- [ ] **Phase 7 — History** · [phase-7-history.md](phase-7-history.md) · `0/3`
+      What happened, for the receiver and for staff.
+- [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 0 / 66.**
+**Total: 0 / 60.**
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -69,23 +104,30 @@ Tick a phase box only when every task inside it is ticked **and** its Exit check
 
 **Phase 0 — Agree.** Nothing here needs a tech stack, so nothing here is wasted.
 
-Do every Phase 0 task before any Phase 1 task. Two items cost the most if they change late:
+Do every Phase 0 task before any Phase 1 task. Three items cost the most if they change late:
 
-1. **The API contract.** Change it after the screens exist → rebuild the screens.
-2. **The barcode format.** Build against a guess → the app fails on the first real card.
+1. **Does the cabinet have its own network?** If it does not, nothing in this plan works. Ask today.
+2. **The API contract.** Change it after the screens exist → rebuild the screens.
+3. **The cabinet key.** How the cabinet proves it is the cabinet. Get it wrong and anyone can open every box.
 
 ## Order of work
 
-Phases 1 → 6 run in order. Each leans on the one before.
+Phases 1 → 5 run in order. Each leans on the one before. Phase 5 is the product — everything before it exists to make Phase 5 possible.
 
-Phase 7 is marked *future* in the team requirements. Start it only when Phases 1–6 are ticked and the Server team has the order API ready.
+Phase 6 needs Phase 5 working, because a fault is a fault in a flow that already runs.
 
-Phase 8 runs at the end, but its device testing starts early — test on a real Android and a real iPhone at the end of **every** phase.
+Phase 8 runs at the end, but its device testing starts early — test on a real Android, a real iPhone, **and** the real cabinet at the end of every phase.
+
+## Two front-ends, one team
+
+Phases 1, 3, 5 and 8 touch **both** the phone app and the cabinet screen. When a task names one of them, it means only that one.
+
+The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 60 tasks and not 45.
 
 ## Working rules
 
 1. One owner per task. No task is `🟡 DOING` with `_unassigned_`.
 2. A task bigger than one day is two tasks. Split it, give the new one the next free number.
-3. Branch name = task ID: `P2-03-candidate-login`.
-4. New task discovered mid-phase → add it to the phase file with the next free number, raise the total here, in the same change.
+3. Branch name = task ID: `P2-03-one-time-code`.
+4. New task found mid-phase → add it to the phase file with the next free number, raise the total here, in the same change.
 5. Bugs are not roadmap tasks. They go to [../reference/bug-log.md](../reference/bug-log.md) as `BUG-nnn`.
