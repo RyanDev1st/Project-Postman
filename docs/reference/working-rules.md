@@ -206,6 +206,37 @@ An open request moves real metal and exposes someone's belongings. These are not
 
 ---
 
+## J. Restraint rules — writing the change
+
+Groups A–I say how the team decides. This group says what the change itself should look like. It comes from Andrej Karpathy's list of the mistakes AI coding assistants make most — and human juniors make the same ones.
+
+**J1. Say your assumptions out loud before you build.**
+Two ways to read the task → show both and ask. Never pick one silently and build it.
+*Why:* a silent choice looks like agreement. Four days later it turns out to be a rebuild. Cheaper to ask for one minute.
+*Related:* [A3](#a-evidence-rules) logs assumptions about the **project**. J1 is about assumptions inside **one task**.
+
+**J2. The simplest thing that solves the problem. Nothing more.**
+No feature nobody asked for. No setting nobody asked for. No wrapper around a thing used once. No handling for a case that cannot happen.
+*Why:* every extra line is a line to read, test, fix and carry. Code written "in case we need it later" is almost never the code needed later.
+*Check:* if it is 200 lines and it could be 50, it is not done. Rewrite it.
+
+**J3. Touch only what the task needs.**
+Do not tidy nearby code. Do not rename things you did not come to change. Do not reformat. Match the style already in the file, even where you would have done it differently.
+*Why:* a change that touches ten files for one reason cannot be reviewed, and cannot be undone cleanly when it breaks.
+*Check:* every changed line traces back to the task. One that does not, comes out.
+
+**J4. Clean up your own mess, not other people's.**
+Your change left an unused import or variable → delete it, same change. You spotted dead code you did not create → say so, leave it.
+*Why:* the first is finishing your work. The second is a different task, and it hides inside yours where nobody reviews it.
+
+**J5. Push back when the ask is more complicated than the problem.**
+Say the simpler version, say why, then do what is decided.
+*Why:* [A2](#a-evidence-rules) — evidence beats opinion, and both beat seniority. That runs in both directions. Silent agreement is not agreement.
+
+**Deliberately not copied.** Karpathy's fourth rule is "define success criteria, loop until verified." That is already [D1](#d-verify-rules) and [D2](#d-verify-rules). Copying it would put two rules in this file on the same subject, and the day they drift, neither is the authority. If you came here to add it, it is above.
+
+---
+
 ## Assumption log
 
 Every belief we act on but have not yet checked. Add a row the moment you notice one.
@@ -247,3 +278,4 @@ Industry practice these rules are drawn from:
 - [Mobile App Testing: Best Practices and Strategy — Applause](https://www.applause.com/blog/mobile-app-testing-best-practices-and-strategy/) — real devices over simulators
 - [API Testing for Mobile Apps — Quash](https://quashbugs.com/blog/api-testing-for-mobile-apps) — contract-first, broken contracts as a top regression cause
 - [Debugging like a senior: a step-by-step mental model — Lauren M.](https://medium.com/@lauren.m45/debugging-like-a-senior-a-step-by-step-mental-model-59a1fd4dbc7d) — hypothesis before change, one variable at a time
+- [Andrej Karpathy on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) — group J: state assumptions, simplest thing that works, surgical changes

@@ -12,6 +12,9 @@ GoogleService-Info.plist
 # throwaways
 scratch_*
 
+# generated artifacts
+graphify-out/
+
 # caches / build
 __pycache__/
 *.pyc

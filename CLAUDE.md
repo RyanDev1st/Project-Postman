@@ -90,6 +90,9 @@ The short form:
 - **Verify or it is not done.** Real device, real network, real server. For anything that opens a locker, the server log is the evidence — not the screen.
 - **Debug by hypothesis.** Reproduce → three possible causes → change one thing → verify on the device that found it. Changing code before you can explain the failure is gambling.
 - **Assumptions get logged**, in the assumption log at the bottom of `working-rules.md`, with a date and a way to check them.
+- **Say assumptions before building.** Two readings of the task → show both and ask. Never pick one silently.
+- **Simplest thing that solves it.** No unasked feature, setting, or wrapper. 200 lines that could be 50 → rewrite.
+- **Surgical changes.** Touch only what the task needs. Do not tidy nearby code. Match the style already there. Clean up orphans *your* change made; dead code you found, mention and leave.
 
 ## Product principles
 
