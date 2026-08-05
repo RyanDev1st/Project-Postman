@@ -48,14 +48,16 @@ What the Server team owns is listed in [architecture.md](docs/reference/architec
 | `docs/adr/` | One short file per hard decision. It holds the *why* |
 | `src/` | App source code. Feature folders only |
 | `tests/` | Tests that mirror `src/` |
-| `scripts/` | Build and automation scripts |
+| `scripts/` | Build and automation scripts. `cabinet-sim/` is the Blender cabinet — **never evidence**, see [ADR 0008](docs/adr/0008-cabinet-simulator.md) |
 | `.claude/` | Agent context, skills, and rules for named file types |
 
 **Root policy:** the repo root holds only these — `CLAUDE.md`, `.gitignore`, setup files such as `package.json` or `pubspec.yaml`, CI folders, and container files. All feature code goes under `src/`.
 
 ## Tech stack
 
-**Not chosen yet.** Two separate choices. The phone app stack is `docs/adr/0001-tech-stack.md`, decided by task **P0-03**. The cabinet screen stack is task **P0-14**. When ADR 0001 is `accepted`, replace this section with the real stack and the version numbers.
+**Phone app: Kotlin, native Android, with Jetpack Compose.** Decided in [ADR 0001](docs/adr/0001-tech-stack.md). Android only for now — [ADR 0007](docs/adr/0007-android-first.md). Add version numbers here once P1-01 has built.
+
+**Cabinet screen: not chosen yet.** Task **P0-14**, and it waits on P0-02 saying what the screen actually runs.
 
 ## Task tracking (agents: read this before you start any work)
 
