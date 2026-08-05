@@ -80,8 +80,8 @@ The Google Meet the team asked about covers the Server-team column in one sittin
 
 - [ ] **P0-08** — Agree what the shipper sees when he looks up a receiver
       - Owner: _unassigned_ · Needs: P0-04 · Blocks: P3-03
-      - Verify: the exact masked format is written in `api-contract.md`, with a worked example
-      - Notes: never a full name, never a phone number. The cabinet screen is a public terminal
+      - Verify: the exact masked format is written in `api-contract.md` with a worked example, **and the Server team has confirmed they can produce it**
+      - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
 
 - [ ] **P0-09** — List the test devices: two phones and one cabinet
       - Owner: _unassigned_ · Needs: — · Blocks: P1-01, P1-02
