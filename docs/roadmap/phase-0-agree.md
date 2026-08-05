@@ -49,13 +49,13 @@ Much of this phase is answers we need from other people. Grouped that way, it is
 The Google Meet the team asked about covers the Server-team column in one sitting.
 
 ## Tasks
-
+P/s: P0.0 -> agree with the server team on the shape of the API
 - [x] **P0-01** — Ask the hardware team: does the cabinet have its own network connection?
       - Owner: Team · Needs: — · Blocks: P0-02, P0-04, P0-12, P0-16, P1-03
       - Verify: a written answer from the hardware owner naming SIM or Wi-Fi, in `architecture.md`
       - Done: 2026-08-05 — The team confirmed the cabinet connects to Wi-Fi. That is now written into `architecture.md` as a fact rather than a guess, and the diagram says so. Everything in the plan needed this answer, so it unblocks most of the phase. Worth knowing the answer came from our own team rather than the hardware owner directly — if that turns out to be wrong, this is the first thing to re-check.
 
-- [ ] **P0-02** — Write down what the cabinet screen is: size, touch, what it runs
+- [ ] **P0-02** — Write down what the cabinet screen is: size, touch, what it runs   **unknown yet, do scaling instead**
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-14, P1-03
       - Verify: the screen size, whether it takes touch, and its operating system are written in `architecture.md`
       - Notes: a phone-sized screen and a tablet-sized screen need different layouts
@@ -65,12 +65,12 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Done: 2026-08-05 — Chose to build the Android app natively, in Kotlin. Nobody on the team has used any of the options before, so the usual tie-breaker of "use what you already know" did not apply. Native won because when a beginner hits a problem the error message is Android's own and the first search result answers it — with a cross-platform tool the same problem arrives translated, and you cannot tell whose fault it is. The cost is real and we took it knowingly: an iPhone version later means writing the app a second time, not converting it. The design work carries over even though the code will not.
 
-- [ ] **P0-04** — Write the whole API contract as our proposal, and send it
+- [ ] **P0-04** — Write the whole API contract as our proposal, and send it            **Unnecessary, marginal changes can be made later**
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-05, P0-08, P2-01, P3-01
       - Verify: `api-contract.md` has zero `TO AGREE` markers **and** it has been sent to the Server team with a date recorded here
       - Notes: changed from *agree with them* to *propose to them* — see [ADR 0005](../adr/0005-we-propose-they-object.md). They have no API design yet, so a blank form would never come back. The document is written; **it still has to be sent**
 
-- [ ] **P0-05** — Agree how the cabinet proves it is the cabinet
+- [ ] **P0-05** — Agree how the cabinet proves it is the cabinet       **keep simple, redefine later**
       - Owner: _unassigned_ · Needs: P0-04 · Blocks: P1-06, P3-01
       - Verify: the key type, how it is placed on the cabinet, and how it is replaced are written in `api-contract.md`
       - Notes: get this wrong and a stolen cabinet opens every box. The key never enters this repo
@@ -85,7 +85,7 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: the lifetime in seconds and the refresh rate are written down, and both are adjustable without a new release
       - Done: 2026-08-05 — Set the code on the cabinet screen to last 60 seconds, with the screen drawing a new one every 30 seconds. Both numbers are guesses, so both went into the settings list where anyone can change them. If people find it expires while they are still walking up, the number goes up; nothing else has to change. The code itself only says which cabinet and when, so a longer life is not dangerous the way the typed code would be.
 
-- [ ] **P0-08** — Agree what the shipper sees when he looks up a receiver
+- [ ] **P0-08** — Agree what the shipper sees when he looks up a receiver  **Self-remind to redefine this later**
       - Owner: _unassigned_ · Needs: P0-04 · Blocks: P3-03
       - Verify: the exact masked format is written in `api-contract.md` with a worked example, **and the Server team has confirmed they can produce it**
       - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
@@ -96,7 +96,7 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: Android only — [ADR 0007](../adr/0007-android-first.md). Simulator is [ADR 0008](../adr/0008-cabinet-simulator.md). **Not** a substitute for a real cabinet — that is P0-16
       - Done: 2026-08-05 — Named the test phone: a Vivo X200 Pro running OriginOS 6. The OS version is as reported, not yet read off the phone, so it is marked to confirm. Then ran the cabinet simulator in Blender: it built 19 doors with no door 06, exactly as the drawing shows. Asked it to open box 4 and door 04 turned, on its own, by 105 degrees — the other 18 did not move at all. So the thing that will later tell a real cabinet to open a box already talks to the model correctly. This does not prove anything about real metal; that is P0-16.
 
-- [ ] **P0-17** — Find the oldest Android phone on the team, and set `minSdk`
+- [ ] **P0-17** — Find the oldest Android phone on the team, and set `minSdk` **unnecessary, revisit when necessary**
       - Owner: _unassigned_ · Needs: — · Blocks: P1-01
       - Verify: every team member's Android version is listed, and the chosen `minSdk` is written in [ADR 0001](../adr/0001-tech-stack.md) with the phone that set it
       - Notes: the goal is an MVP **everyone on the team can test**, so the oldest phone decides, not the newest. Raising `minSdk` later drops users; lowering it later means re-testing everything. Ask once, in the group chat, before P1-01 starts
@@ -111,28 +111,28 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: the length, the lifetime, and the number of wrong tries before a box locks are all written in `api-contract.md`, and all three are adjustable
       - Done: 2026-08-05 — Settled on a 6-digit code that lasts 48 hours, with the box locking for 15 minutes after 5 wrong tries. 48 hours because a parcel usually sits a day or two and nobody should be punished for being busy. The lockout matters more than it looks: 6 digits is one chance in a million per try, which is only safe while somebody cannot sit there guessing all night. All four numbers are in the settings list. What is **not** adjustable is that the code works once and never repeats — that is a design decision, not a number.
 
-- [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
+- [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network **Use cryptography**
       - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
       - Verify: [ADR 0004](../adr/0004-offline-pickup.md) is `accepted`, and the chosen way is written in `api-contract.md`
       - Notes: the team has no answer for this yet. Two options are written up in the ADR, which recommends the challenge-and-response one. Both a drop and a pickup can work offline — an earlier draft of the ADR said otherwise and was wrong
 
-- [ ] **P0-13** — Settle whether rule C4 gains an offline exception
+- [ ] **P0-13** — Settle whether rule C4 gains an offline exception  
       - Owner: _unassigned_ · Needs: P0-12 · Blocks: —
       - Verify: rule **C4** in `working-rules.md` either carries a written exception, or ADR 0004 is marked rejected. One or the other, decided by the team, not by whoever writes the code
       - Notes: C4 says the front-end never decides. ADR 0004 has the cabinet opening a door with no server involved. Both cannot be true. **Nothing offline gets built until this is settled**
 
-- [ ] **P0-14** — Pick the tech stack for the **cabinet screen**
+- [ ] **P0-14** — Pick the tech stack for the **cabinet screen**       **figure out later when hardware is defined**
       - Owner: _unassigned_ · Needs: P0-02 · Blocks: P1-03
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) names the cabinet stack, and says whether it is the same as the phone app or different
       - Notes: cannot be decided before P0-02 says what the screen is and what it runs. A different stack from the phone app is allowed — say so if it is
 
-- [x] **P0-15** — Build the settings file, before any code is written
+- [x] **P0-15** — Build the settings file, before any code is written  
       - Owner: Team · Needs: P0-03 · Blocks: P1-01, P1-08
       - Verify: every number in the settings table in `architecture.md` is in `config/settings.json`, and a person can edit it without touching code
       - Notes: makes guessing safe — [ADR 0005](../adr/0005-we-propose-they-object.md). The "without a new release" half moved to **P1-08**: it needs a running app, and P0-15 blocks P1-01 which builds it
       - Done: 2026-08-05 — Made `config/settings.json`, holding all ten numbers we guessed. Anyone can open it and change one. The server address is left blank on purpose — the real one must never sit in this repo. Getting a changed number onto a phone without rebuilding is not done yet; that is P1-08.
 
-- [ ] **P0-16** — Get a real cabinet to test on
+- [ ] **P0-16** — Get a real cabinet to test on  **pivot to simulator**
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: —
       - Verify: a real cabinet, or at least one real door with a real lock and the real screen, is somewhere the team can physically reach it
       - Notes: **the simulator does not close this task and cannot.** [ADR 0008](../adr/0008-cabinet-simulator.md) explains why a good simulator makes hardware feel less urgent, which is exactly the trap. Every Phase 3, 5 and 6 Verify line needs the real thing
