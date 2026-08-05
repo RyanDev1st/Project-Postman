@@ -77,8 +77,8 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 ## Phases
 
-- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `0/9` · **CURRENT**
-      Settle the stack, the cabinet hardware, and the API contract. No code.
+- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `0/12` · **CURRENT**
+      Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/7`
       Empty app on both phones, empty screen on the cabinet, both reach the server.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
@@ -87,16 +87,16 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       The cabinet screen. A shipper finds the receiver and a box opens.
 - [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/5`
       The notification arrives and the parcel shows in the app.
-- [ ] **Phase 5 — Pick up** · [phase-5-pickup.md](phase-5-pickup.md) · `0/7`
-      Scan the cabinet QR, the right box opens. The core feature.
-- [ ] **Phase 6 — When it goes wrong** · [phase-6-faults.md](phase-6-faults.md) · `0/5`
-      Faulty box, two parcels, nobody collects, shipper walks away.
+- [ ] **Phase 5 — Pick up** · [phase-5-pickup.md](phase-5-pickup.md) · `0/9`
+      Scan the cabinet QR — or type the code — and the right box opens. The core feature.
+- [ ] **Phase 6 — When it goes wrong** · [phase-6-faults.md](phase-6-faults.md) · `0/6`
+      Faulty box, two parcels, nobody collects, shipper walks away, network drops.
 - [ ] **Phase 7 — History** · [phase-7-history.md](phase-7-history.md) · `0/3`
       What happened, for the receiver and for staff.
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 0 / 60.**
+**Total: 0 / 66.**
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -104,11 +104,12 @@ Tick a phase box only when every task inside it is ticked **and** its Exit check
 
 **Phase 0 — Agree.** Nothing here needs a tech stack, so nothing here is wasted.
 
-Do every Phase 0 task before any Phase 1 task. Three items cost the most if they change late:
+Do every Phase 0 task before any Phase 1 task. Four items cost the most if they change late:
 
-1. **Does the cabinet have its own network?** If it does not, nothing in this plan works. Ask today.
+1. **Does the cabinet have its own network?** We are building as if it does, but nobody from the hardware team has said so in writing. Ask today.
 2. **The API contract.** Change it after the screens exist → rebuild the screens.
 3. **The cabinet key.** How the cabinet proves it is the cabinet. Get it wrong and anyone can open every box.
+4. **What the sensor reports.** It decides what "delivered" means, so it cannot be guessed.
 
 ## Order of work
 
@@ -122,7 +123,7 @@ Phase 8 runs at the end, but its device testing starts early — test on a real 
 
 Phases 1, 3, 5 and 8 touch **both** the phone app and the cabinet screen. When a task names one of them, it means only that one.
 
-The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 60 tasks and not 45.
+The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 66 tasks and not 45.
 
 ## Working rules
 

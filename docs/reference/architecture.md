@@ -12,7 +12,7 @@ Check this chart against what the team expects. If one arrow is wrong, the plan 
 
 ```
 ╔════════════════════════════╦═══════════════════════════════╦════════════════════════════╗
-║  RECEIVER                  ║  CABINET — on campus, Wi-Fi   ║  SERVER TEAM               ║
+║  RECEIVER                  ║  CABINET — on campus, online  ║  SERVER TEAM               ║
 ║  student, own phone        ║  screen · boxes · sensor      ║  API + database, not us    ║
 ╠════════════════════════════╬═══════════════════════════════╬════════════════════════════╣
 ║                            ║                               ║                            ║
@@ -210,10 +210,17 @@ Identity comes from the **token**, not from the QR. So a photograph of the cabin
 
 ## Settled by the team on 2026-08-05
 
-- **The cabinet is on Wi-Fi.** Confirmed. Assumption A-09 closed.
-- **There is a sensor in each box.** A parcel is recorded when the sensor sees it, not when the door shuts. A shipper who opens a door and walks away empty-handed records nothing.
-- **Pickup has two paths:** scan the QR, or type a code. See blocks D1 and D2 above.
+Said by the team, in writing. These are decisions, not guesses.
+
+- **There is a sensor in each box.** A parcel is recorded when the sensor sees it, not when the door shuts. A shipper who opens a door and walks away holding the parcel records nothing.
+- **Pickup has two paths:** scan the QR, or type a code. See D1 and D2 above.
 - **Free for students.** No payment, no wallet, no fee screen, anywhere.
+
+## Assumed, not confirmed
+
+- **The cabinet is on the network.** We are building as if it is. Nobody from the hardware team has said so in writing yet. Assumption **A-09**, still `open`, and task **P0-01** still has to close it.
+
+  It is written here in plain sight because every arrow in the chart above depends on it. If the cabinet turns out to have no connection, this design does not degrade — it stops.
 
 ## Open questions
 

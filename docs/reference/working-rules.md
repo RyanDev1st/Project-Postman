@@ -264,7 +264,10 @@ A fourth status, `dropped`, is for a row the product change made meaningless. Ne
 | A-06 | The cabinet has a screen the shipper can type on | — | 2026-08-05 | **Confirmed by the team** (P0-02 records the size and type) | confirmed |
 | A-07 | The design needs no camera on the cabinet | — | 2026-08-05 | True by design — the phone scans the cabinet, not the reverse. See [ADR 0003](../adr/0003-parcel-locker-product.md) | confirmed |
 | A-08 | The receiver has the app installed and is logged in before a parcel is dropped | — | — | True by design — registration lives in the app. Watch for a real receiver who has not registered (P3-06) | open |
-| A-09 | The cabinet has its own network connection (SIM or Wi-Fi) | — | — | **Ask the hardware team (P0-01).** Nothing in the plan works without one | open |
+| A-09 | The cabinet has its own network connection (SIM or Wi-Fi) | — | 2026-08-05 | **Ask the hardware team (P0-01).** We are building as if it does, on the team's instruction — but nobody has said so in writing. Nothing in the plan works without one | open |
+| A-10 | The sensor can tell "a parcel is in here" reliably enough to record a delivery on | — | 2026-08-05 | The team said a sensor will exist. Nobody has said what it reports. Ask (P0-10) | open |
+| A-11 | A receiver who types the backup code is the person the code was sent to | — | 2026-08-05 | Cannot be checked, only limited. One use, an expiry, a lockout after wrong tries (P0-11, P5-08) | open |
+| A-12 | One cabinet is enough for the first release | — | 2026-08-05 | Ask the team. Two cabinets means the notice must say *which* one, and the pickup must check it (P6-05 already assumes this) | open |
 
 ---
 

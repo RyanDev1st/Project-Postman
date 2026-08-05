@@ -26,6 +26,7 @@ Edit these in place. No date in the name.
 | [reference/working-rules.md](reference/working-rules.md) | **How this team works.** Evidence, small batches, verify, review, restraint. Holds the assumption log |
 | [reference/architecture.md](reference/architecture.md) | The parts of the system and how they connect. Two front-ends |
 | [reference/api-contract.md](reference/api-contract.md) | Every request each front-end sends and every answer it expects. **Draft** |
+| [reference/how-it-works.html](reference/how-it-works.html) | **One chart** of the whole process, for anyone. Open it in a browser |
 | [reference/glossary.md](reference/glossary.md) | Plain-English meaning of every term used in this repo |
 | [reference/bug-log.md](reference/bug-log.md) | Running list of bugs found on real devices |
 
@@ -39,6 +40,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0001-tech-stack.md](adr/0001-tech-stack.md) | Which tech the front-ends are built with | **open** |
 | [adr/0002-where-rules-live.md](adr/0002-where-rules-live.md) | Where working rules live, and which file is the authority | accepted |
 | [adr/0003-parcel-locker-product.md](adr/0003-parcel-locker-product.md) | Parcel drop-off product. The phone scans the cabinet, not the reverse | accepted |
+| [adr/0004-offline-pickup.md](adr/0004-offline-pickup.md) | How a pickup works when the cabinet loses the network | **open** |
 
 ## Findings — dated reports
 

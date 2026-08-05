@@ -2,7 +2,7 @@
 
 **Goal:** the awkward cases have an answer, and none of them loses a parcel.
 
-**Progress: 0 / 5.**
+**Progress: 0 / 6.**
 
 Every task here needs Phase 5 working first. A fault is a fault in a flow that already runs.
 
@@ -29,9 +29,14 @@ Every task here needs Phase 5 working first. A fault is a fault in a flow that a
       - Owner: _unassigned_ · Needs: P5-03 · Blocks: —
       - Verify: scanning a cabinet that holds nothing for you says which cabinet does hold your parcel. No door opens
 
+- [ ] **P6-06** — A pickup still works when the cabinet has no network
+      - Owner: _unassigned_ · Needs: P5-08, P0-12 · Blocks: —
+      - Verify: unplug the network at the real cabinet. A parcel already inside can still be collected, and the server learns about it once the network returns
+      - Notes: only pickup. A drop can never work offline — the cabinet cannot look up whose number it is
+
 ## Exit check
 
-- [ ] All five tasks ticked
+- [ ] All six tasks ticked
 - [ ] No case above lost a parcel or opened a wrong door
 - [ ] Every new message was read by someone outside the team and understood
 - [ ] Counts updated in [README.md](README.md)

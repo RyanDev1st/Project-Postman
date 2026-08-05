@@ -28,9 +28,10 @@ This whole phase is the **cabinet screen**, not the phone app. The shipper insta
       - Verify: the server log shows which box was chosen, and that door physically opens
       - Notes: the cabinet does not choose the box. It asks. Rule 2 in `architecture.md`
 
-- [ ] **P3-05** — The shipper closes the door and the parcel is recorded
-      - Owner: _unassigned_ · Needs: P3-04 · Blocks: P4-01, P6-04
-      - Verify: closing the real door writes one parcel row in the server log, with the box number and the time
+- [ ] **P3-05** — The sensor sees the parcel, and only then is it recorded
+      - Owner: _unassigned_ · Needs: P3-04, P0-10 · Blocks: P4-01, P6-04
+      - Verify: put a real parcel in and the server records it. Then open a door, close it again with **nothing inside**, and the server records nothing
+      - Notes: the door shutting is not the evidence. The sensor is. Both halves of the Verify must pass
 
 - [ ] **P3-06** — Plain messages for "number not registered" and "no free box"
       - Owner: _unassigned_ · Needs: P3-03, P3-04 · Blocks: —
