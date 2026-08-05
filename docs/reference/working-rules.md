@@ -272,6 +272,7 @@ A fourth status, `dropped`, is for a row the product change made meaningless. Ne
 | A-13 | The cabinet can remember a wrong-try count across a power cut | — | 2026-08-05 | Ask the hardware team with P0-01. Without it, the attack is guess, unplug, repeat (P6-08) | open |
 | A-14 | Campus Wi-Fi drops rarely enough that a late notice is acceptable during an outage | — | 2026-08-05 | Log the cabinet's connection for one week (P0-12 open question 1) | open |
 | A-15 | The cabinet holds 19 parcels, not the 20 the spec claims | — | 2026-08-05 | The drawing numbers doors 01-20 but 06 is the control panel, so counting gives 19. Ask whoever drew it (P0-02). It changes how many parcels a cabinet holds | open |
+| A-16 | A push notice arrives on a Vivo, Oppo, Xiaomi or Huawei phone that has been idle for hours | — | 2026-08-05 | These makers stop background apps hard to save battery, and the app is not exempt by default. Our main test phone is a Vivo. Leave the app shut overnight, send a parcel, see whether the notice arrives (P4-03) | open |
 | A-12 | One cabinet is enough for the first release | — | 2026-08-05 | Ask the team. Two cabinets means the notice must say *which* one, and the pickup must check it (P6-05 already assumes this) | open |
 
 ---

@@ -18,8 +18,8 @@ A parcel nobody knows about is a parcel nobody collects.
 
 - [ ] **P4-03** — The notice arrives while the app is closed
       - Owner: _unassigned_ · Needs: P4-02 · Blocks: P4-05
-      - Verify: with the app fully closed on a real Android, the notice still arrives
-      - Notes: this is where the two platforms differ most, so it is also where the deferred iOS work will bite hardest — [ADR 0007](../adr/0007-android-first.md)
+      - Verify: with the app fully closed on a real Android, the notice arrives — **and it still arrives after the phone has sat untouched overnight**, with battery saving left at the factory setting
+      - Notes: the overnight half is the real test. Vivo, Oppo, Xiaomi and Huawei stop background apps hard to save battery, and our main test phone is a Vivo (A-16). Closing the app and sending at once will pass on any phone and prove nothing. Do not fix a failure by telling users to change a battery setting — most never will
 
 - [ ] **P4-04** — "My parcels" screen lists what is waiting
       - Owner: _unassigned_ · Needs: P2-05, P4-01 · Blocks: P4-05, P5-02

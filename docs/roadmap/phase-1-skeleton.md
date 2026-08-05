@@ -9,7 +9,7 @@ No feature in this phase. Only proof that the pipes exist.
 ## Tasks
 
 - [ ] **P1-01** — Empty app runs on the real Android phone
-      - Owner: _unassigned_ · Needs: P0-03, P0-09, P0-15 · Blocks: P1-04
+      - Owner: _unassigned_ · Needs: P0-03, P0-09, P0-15, P0-17 · Blocks: P1-04
       - Verify: the app opens on the listed Android phone and shows one screen with its version number
 
 - [ ] **⏸️ LATER — P1-02** — Empty app runs on the real iPhone

@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 7 / 16.**
+**Progress: 8 / 17.**
 
 Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
 
@@ -12,10 +12,10 @@ Two tasks can start right now. Everything else is waiting on one of them.
 
 | Start today | Why it is free to start |
 | --- | --- |
-| **P0-09** — test devices + simulator | Nothing blocks it. The simulator is already built; this needs a real Android phone named |
+| **P0-17** — oldest team phone, and `minSdk` | Nothing blocks it. One question in the group chat |
 | **P0-16** — get a real cabinet | Long lead time, and no amount of simulator work replaces it |
 
-**P0-09 is now the only thing standing between us and Phase 1.** It is ours alone, and it needs one real phone named in the table below. Nothing else in this phase blocks the app starting.
+**P0-17 is now the only thing standing between us and Phase 1.** It is one question asked once: what Android version is everybody on?
 
 Everything else unlocks in this order:
 
@@ -27,10 +27,11 @@ Everything else unlocks in this order:
                         └──> P0-06 ──> P0-11 ──> P0-12 ──> P0-13
 
    P0-03 ✅ ───> P0-15 ✅ ───────────> (phone app, Phase 1)
-   P0-09 ───────────────────────────> (phone app, Phase 1)
+   P0-09 ✅ ─────────────────────────> (phone app, Phase 1)
+   P0-17 ───────────────────────────> (phone app, Phase 1)
 ```
 
-The bottom two lines need nobody outside this team. They are the only way into Phase 1 that we control, and only **P0-09** is left on them.
+Those lines need nobody outside this team. Only **P0-17** is left on them.
 
 **The longest chain is six deep: P0-01 → P0-04 → P0-06 → P0-11 → P0-12 → P0-13.** That chain is the length of Phase 0. Shortening it means answering P0-01 and P0-04 fast, not working harder later.
 
@@ -42,7 +43,7 @@ Much of this phase is answers we need from other people. Grouped that way, it is
 | --- | --- | --- |
 | **Hardware team** | P0-01, P0-02, and the sensor half of P0-10 | One message. Four questions. Send it today |
 | **Server team** | P0-04, and P0-05 · P0-06 · P0-07 · P0-08 · P0-10 · P0-11 which all hang off it | One meeting. P0-04 is the meeting; the other six are its agenda |
-| **Us, the IT team** | P0-03 ✅, P0-15 ✅, P0-09, P0-12, P0-13, P0-16 | Ours alone. **P0-09 needs nobody** — do it now. P0-12 and P0-13 need the other columns first |
+| **Us, the IT team** | P0-03 ✅, P0-09 ✅, P0-15 ✅, P0-12, P0-13, P0-16, P0-17 | Ours alone. **P0-17 needs nobody** — do it now. P0-12 and P0-13 need the other columns first |
 | **Hardware, then us** | P0-14 | The cabinet stack, once P0-02 says what the screen runs |
 
 The Google Meet the team asked about covers the Server-team column in one sitting.
@@ -89,11 +90,16 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: the exact masked format is written in `api-contract.md` with a worked example, **and the Server team has confirmed they can produce it**
       - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
 
-- [ ] **P0-09** — List the test devices, and stand up the cabinet simulator
-      - Owner: _unassigned_ · Needs: — · Blocks: P1-01
+- [x] **P0-09** — List the test devices, and stand up the cabinet simulator
+      - Owner: Team · Needs: — · Blocks: P1-01
       - Verify: the table below names a real Android phone and its OS version, **and** `open_door(4)` swings the right door in the Blender simulator
       - Notes: Android only — [ADR 0007](../adr/0007-android-first.md). Simulator is [ADR 0008](../adr/0008-cabinet-simulator.md). **Not** a substitute for a real cabinet — that is P0-16
-      - 2026-08-05, simulator half done: `build()` made 19 doors, no `Door_06`. `open_door(4)` turned `Door_04` alone, 0° to −105°; all 18 others unmoved. Waiting on a real Android phone and OS version in the table below
+      - Done: 2026-08-05 — Named the test phone: a Vivo X200 Pro running OriginOS 6. The OS version is as reported, not yet read off the phone, so it is marked to confirm. Then ran the cabinet simulator in Blender: it built 19 doors with no door 06, exactly as the drawing shows. Asked it to open box 4 and door 04 turned, on its own, by 105 degrees — the other 18 did not move at all. So the thing that will later tell a real cabinet to open a box already talks to the model correctly. This does not prove anything about real metal; that is P0-16.
+
+- [ ] **P0-17** — Find the oldest Android phone on the team, and set `minSdk`
+      - Owner: _unassigned_ · Needs: — · Blocks: P1-01
+      - Verify: every team member's Android version is listed, and the chosen `minSdk` is written in [ADR 0001](../adr/0001-tech-stack.md) with the phone that set it
+      - Notes: the goal is an MVP **everyone on the team can test**, so the oldest phone decides, not the newest. Raising `minSdk` later drops users; lowering it later means re-testing everything. Ask once, in the group chat, before P1-01 starts
 
 - [x] **P0-10** — Decide what records a delivery, now that there is no sensor
       - Owner: Team · Needs: — · Blocks: P3-05, P5-04
@@ -137,14 +143,17 @@ Fill this in during P0-09.
 
 | Device | Model | OS version | Who holds it |
 | --- | --- | --- | --- |
-| Android phone | | | |
+| Android phone — main | Vivo X200 Pro | OriginOS 6, Android 16 — *reported, confirm in Settings › About* | the user |
+| Android phone — oldest on the team | *(P0-17 — not yet collected)* | — | — |
 | iPhone | *(later — [ADR 0007](../adr/0007-android-first.md))* | — | — |
 | Real cabinet | *(P0-16 — not yet)* | — | — |
 | Cabinet simulator | Blender, `scripts/cabinet-sim/` | — | anyone |
 
+The X200 Pro is a 2024 flagship on the newest OS. It will find the fewest problems of any phone on the team. **The oldest team phone is the one that decides `minSdk`** — that is P0-17.
+
 ## Exit check
 
-- [ ] All sixteen tasks ticked
+- [ ] All seventeen tasks ticked
 - [x] `api-contract.md` has zero `TO AGREE` markers — done 2026-08-05
 - [x] [ADR 0001](../adr/0001-tech-stack.md) is `accepted` — Kotlin, native Android, done 2026-08-05
 - [x] The cabinet is confirmed to have a network connection — Wi-Fi, done 2026-08-05
