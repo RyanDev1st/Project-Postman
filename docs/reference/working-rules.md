@@ -96,8 +96,10 @@ If a mock exists, it is labelled as a fixture and it lives in `tests/`.
 *Why:* a mock in a shipping path is a lie that passes every test and fails every user.
 
 **C4. The server is the truth. The app never decides.**
-The app does not decide who you are, which box is yours, or whether a box is free. It asks. The one exception is written down and argued in [ADR 0004](../adr/0004-offline-pickup.md): when the network is gone, the cabinet checks an answer itself, because the alternative is refusing everybody.
+The app does not decide who you are, which box is yours, or whether a box is free. It asks.
 *Why:* one truth in one place. Also: an app on a phone can be modified. A server cannot.
+
+> ⚠️ **This rule is under challenge, and the challenge is not yet decided.** [ADR 0004](../adr/0004-offline-pickup.md) proposes that when the network is gone, the cabinet checks an answer by itself and opens a door with no server involved. That is a front-end deciding. Either C4 gains a written exception, or ADR 0004 does not get built. **Task P0-13 settles it.** Until then C4 stands as written, and nothing offline gets built.
 
 ---
 
@@ -280,6 +282,23 @@ A fourth status, `dropped`, is for a row the product change made meaningless. Ne
 These rules are subject to their own loop. They are inspected at the end of every phase and adapted.
 
 To change one: say which rule, what happened that shows it is wrong, and what replaces it. Bring evidence, not preference. Then edit this file — it is mutable in place, like everything in `reference/`.
+
+### A rule does not change because the product changed
+
+This is the line, and it is drawn because it was crossed on 2026-08-05.
+
+The product moved from a student storage locker to a parcel locker. In the same change as that work, this file was edited. Most of it was harmless — but one edit quietly gave **C4** an exception it had never been granted. Nobody decided that. It arrived as a side-effect.
+
+| What it is | May it change with the product? |
+| --- | --- |
+| **The rule** — what it permits, forbids, or requires. Its *why* | **No.** Only through the process above: which rule, what evidence, what replaces it |
+| **The words naming a project thing** — locker, box, card, parcel | Yes, but in **its own change**, never carried along with other work |
+| **A pointer to a task ID** | Yes, same condition. A pointer to a task that has been renumbered is worse than none — it sends the reader somewhere wrong |
+| **The assumption log** | Yes, freely. It is a log. It is meant to grow |
+
+The test: **would this edit change what somebody is allowed to do?** Yes → it is a rule change, and it needs the process. No → it is wording, and it still gets its own commit.
+
+"The product changed" is never on its own a reason to weaken a rule. If a rule genuinely blocks the new product, that is a real conflict and it deserves a real decision — written down, argued, and decided by the team. Not a quiet edit inside a commit about something else.
 
 ---
 

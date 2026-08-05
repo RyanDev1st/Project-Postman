@@ -1,8 +1,20 @@
 # 0004 — Working when the cabinet loses the network
 
-- **Status:** proposed. **Not decided.** Task **P0-12** settles it
+- **Status:** proposed. **Not decided.** Task **P0-12** settles the design. Task **P0-13** settles the rule conflict below
 - **Date:** 2026-08-05
 - **Deciders:** IT team, with the hardware team
+
+## This ADR breaks a working rule, on purpose
+
+**Rule C4** in [working-rules.md](../reference/working-rules.md) says *"The server is the truth. The app never decides."*
+
+Everything proposed here has the cabinet checking an answer by itself and opening a door with **no server involved**. That is a front-end deciding. The two cannot both stand.
+
+This is not a reason to reject the idea, and it is not a reason to quietly reword C4 either. It is a real conflict, and it gets a real decision — **task P0-13**. Either C4 gains a written exception, or this ADR is rejected and the cabinet simply refuses everybody during an outage.
+
+The argument for the exception, for whoever decides: the cabinet is not forming an opinion. It is checking a proof that only the server's key could have made possible. The secret on the phone came from the server, and the key on the cabinet came from the server. Nothing new is being trusted — the trust is only being checked at a different moment. But the cabinet *does* hold key material, which is exactly the kind of thing C4's *why* was written to avoid, so this deserves a decision rather than an assumption.
+
+**Nothing offline gets built until P0-13 is settled.**
 
 ## Context
 

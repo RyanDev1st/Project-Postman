@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 0 / 12.**
+**Progress: 0 / 13.**
 
 Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
 
@@ -64,9 +64,14 @@ Phase 0 is the cheapest phase and it prevents the most rework. Do all of it befo
       - Notes: this code **is** the key — unlike the QR. Too long a life and a forwarded message still opens the box. Not the same question as P0-07
 
 - [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
-      - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P6-06, P6-07
+      - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
       - Verify: [ADR 0004](../adr/0004-offline-pickup.md) is `accepted`, and the chosen way is written in `api-contract.md`
       - Notes: the team has no answer for this yet. Two options are written up in the ADR, which recommends the challenge-and-response one. Both a drop and a pickup can work offline — an earlier draft of the ADR said otherwise and was wrong
+
+- [ ] **P0-13** — Settle whether rule C4 gains an offline exception
+      - Owner: _unassigned_ · Needs: P0-12 · Blocks: —
+      - Verify: rule **C4** in `working-rules.md` either carries a written exception, or ADR 0004 is marked rejected. One or the other, decided by the team, not by whoever writes the code
+      - Notes: C4 says the front-end never decides. ADR 0004 has the cabinet opening a door with no server involved. Both cannot be true. **Nothing offline gets built until this is settled**
 
 ## Test devices
 
@@ -80,7 +85,7 @@ Fill this in during P0-09.
 
 ## Exit check
 
-- [ ] All twelve tasks ticked
+- [ ] All thirteen tasks ticked
 - [ ] `api-contract.md` has zero `TO AGREE` markers
 - [ ] [ADR 0001](../adr/0001-tech-stack.md) is `accepted`
 - [ ] The cabinet is confirmed to have a network connection
