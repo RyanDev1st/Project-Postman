@@ -23,6 +23,7 @@ Edit these in place. No date in the name.
 
 | Doc | What it holds |
 | --- | --- |
+| [reference/working-rules.md](reference/working-rules.md) | **How this team works.** Empirical development: evidence, small batches, verify, review, measure. Includes the assumption log |
 | [reference/architecture.md](reference/architecture.md) | The five parts of the system and how they connect |
 | [reference/api-contract.md](reference/api-contract.md) | Every request the app sends and every answer it expects. **Draft** |
 | [reference/glossary.md](reference/glossary.md) | Plain-English meaning of every term used in this repo |

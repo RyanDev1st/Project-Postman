@@ -8,6 +8,7 @@ This repo holds the **IT team (app)** work. The Server team owns the API and the
 
 | I want to… | Go to |
 | --- | --- |
+| Know how we work — read this first | [`docs/reference/working-rules.md`](docs/reference/working-rules.md) |
 | See the plan and what is left | [`docs/roadmap/README.md`](docs/roadmap/README.md) |
 | See what we must agree with the Server team | [`docs/reference/api-contract.md`](docs/reference/api-contract.md) |
 | Understand the parts of the system | [`docs/reference/architecture.md`](docs/reference/architecture.md) |

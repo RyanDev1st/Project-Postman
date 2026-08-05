@@ -77,6 +77,18 @@ The board is `docs/roadmap/README.md`. One file per phase. Every task is a **mar
 - Branch = task ID: `P2-03-candidate-login`. Commit subject: `feat(P2-03): add candidate login`.
 - Bugs are not roadmap tasks. They go to `docs/reference/bug-log.md` as `BUG-nnn`, and close only at `re-tested`.
 
+## How we work — empirical development
+
+Full rules: `docs/reference/working-rules.md`. Read it before starting work. The short form:
+
+- **Decide from evidence, not assumption.** No "done", "fixed" or "works" without stating what you ran and what came out.
+- **Loop:** transparency → inspection → adaptation. Make work visible, look at what is real, change the work or the plan.
+- **Small batches.** One task = one change, ~200 lines. Merge to main daily. Main always works.
+- **Contract first.** Agree the API before building the screen. A contract change needs both teams.
+- **Verify or it is not done.** Real device, real network, real server. For anything that opens a locker, the server log is the evidence — not the screen.
+- **Debug by hypothesis.** Reproduce → three possible causes → change one thing → verify on the device that found it. Changing code before you can explain the failure is gambling.
+- **Assumptions get logged**, in the assumption log at the bottom of `working-rules.md`, with a date and a way to check them.
+
 ## Product principles
 
 ### File size (hard cap)
