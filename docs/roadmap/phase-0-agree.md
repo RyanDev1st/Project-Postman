@@ -92,7 +92,8 @@ The Google Meet the team asked about covers the Server-team column in one sittin
 - [ ] **P0-09** — List the test devices, and stand up the cabinet simulator
       - Owner: _unassigned_ · Needs: — · Blocks: P1-01
       - Verify: the table below names a real Android phone and its OS version, **and** `open_door(4)` swings the right door in the Blender simulator
-      - Notes: Android only — [ADR 0007](../adr/0007-android-first.md). The simulator ([ADR 0008](../adr/0008-cabinet-simulator.md)) lets Phases 3 and 5 start without hardware. It is **not** a substitute for a real cabinet — that is P0-16, and it stays open
+      - Notes: Android only — [ADR 0007](../adr/0007-android-first.md). Simulator is [ADR 0008](../adr/0008-cabinet-simulator.md). **Not** a substitute for a real cabinet — that is P0-16
+      - 2026-08-05, simulator half done: `build()` made 19 doors, no `Door_06`. `open_door(4)` turned `Door_04` alone, 0° to −105°; all 18 others unmoved. Waiting on a real Android phone and OS version in the table below
 
 - [x] **P0-10** — Decide what records a delivery, now that there is no sensor
       - Owner: Team · Needs: — · Blocks: P3-05, P5-04
