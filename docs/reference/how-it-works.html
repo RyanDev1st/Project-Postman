@@ -1,0 +1,453 @@
+<title>VGU Smart Locker — how it works</title>
+
+<style>
+  :root {
+    --paper:      #F2F4F3;
+    --card:       #FFFFFF;
+    --ink:        #16201D;
+    --ink-soft:   #4A5A55;
+    --ink-faint:  #7C8B86;
+    --rule:       #D6DCDA;
+    --amber:      #E08A1E;
+    --amber-soft: #FBEEDA;
+    --teal:       #0F6E64;
+    --teal-soft:  #E0EFEC;
+    --brick:      #A8452C;
+    --brick-soft: #F7E7E2;
+
+    --display: "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", "Roboto Condensed", system-ui, sans-serif;
+    --body: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+
+    --step: clamp(1.6rem, 4vw, 2.6rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #111614;
+      --card:       #1A211F;
+      --ink:        #E9EEEC;
+      --ink-soft:   #A9B8B3;
+      --ink-faint:  #788782;
+      --rule:       #2C3633;
+      --amber:      #F0A742;
+      --amber-soft: #2E2415;
+      --teal:       #4FB3A5;
+      --teal-soft:  #122A27;
+      --brick:      #D97558;
+      --brick-soft: #2E1B16;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:      #111614;
+    --card:       #1A211F;
+    --ink:        #E9EEEC;
+    --ink-soft:   #A9B8B3;
+    --ink-faint:  #788782;
+    --rule:       #2C3633;
+    --amber:      #F0A742;
+    --amber-soft: #2E2415;
+    --teal:       #4FB3A5;
+    --teal-soft:  #122A27;
+    --brick:      #D97558;
+    --brick-soft: #2E1B16;
+  }
+  :root[data-theme="light"] {
+    --paper:      #F2F4F3;
+    --card:       #FFFFFF;
+    --ink:        #16201D;
+    --ink-soft:   #4A5A55;
+    --ink-faint:  #7C8B86;
+    --rule:       #D6DCDA;
+    --amber:      #E08A1E;
+    --amber-soft: #FBEEDA;
+    --teal:       #0F6E64;
+    --teal-soft:  #E0EFEC;
+    --brick:      #A8452C;
+    --brick-soft: #F7E7E2;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 1.25rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 60rem; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    font-size: .8rem;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    font-weight: 700;
+    font-size: clamp(2.4rem, 7vw, 4.2rem);
+    line-height: .98;
+    text-wrap: balance;
+    margin: .5rem 0 0;
+  }
+
+  h2 {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: 1.05rem;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  header.top {
+    padding: 4.5rem 0 3rem;
+    border-bottom: 3px solid var(--ink);
+  }
+  header.top .lede {
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    color: var(--ink-soft);
+    max-width: 34em;
+    margin: 1.5rem 0 0;
+  }
+
+  section { padding: 3.5rem 0 0; }
+
+  /* ---- cast ---- */
+  .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+  .who {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 1.4rem;
+  }
+  .who .role {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-size: .82rem;
+    color: var(--teal);
+    margin: 0 0 .5rem;
+  }
+  .who .name { font-weight: 650; font-size: 1.15rem; margin: 0 0 .4rem; }
+  .who p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+  .who .tool {
+    margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed var(--rule);
+    font-family: var(--mono); font-size: .82rem; color: var(--ink-faint);
+  }
+
+  /* ---- steps ---- */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: var(--step) 1fr;
+    gap: 1.5rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+  .step:last-child { border-bottom: none; }
+  .num {
+    font-family: var(--display);
+    font-size: var(--step);
+    line-height: 1;
+    font-weight: 700;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+  .step h3 {
+    font-size: 1.3rem;
+    font-weight: 650;
+    margin: 0 0 .5rem;
+    text-wrap: balance;
+    line-height: 1.25;
+  }
+  .step p { margin: 0 0 .9rem; color: var(--ink-soft); max-width: 42em; }
+  .step p:last-child { margin-bottom: 0; }
+
+  .actor {
+    display: inline-block;
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: .72rem;
+    padding: .2rem .55rem;
+    border: 1px solid currentColor;
+    margin-bottom: .7rem;
+  }
+  .a-receiver { color: var(--teal); }
+  .a-shipper  { color: var(--amber); }
+  .a-system   { color: var(--ink-faint); }
+
+  .screen {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--amber);
+    padding: .9rem 1.1rem;
+    font-family: var(--mono);
+    font-size: .88rem;
+    color: var(--ink);
+    max-width: 30rem;
+  }
+  .screen .cap {
+    display: block; font-family: var(--display); text-transform: uppercase;
+    letter-spacing: .12em; font-size: .68rem; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+
+  /* ---- cabinet ---- */
+  .cabinet-block { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2.5rem; align-items: center; }
+  @media (max-width: 40rem) { .cabinet-block { grid-template-columns: 1fr; } }
+  .cabinet {
+    display: grid; grid-template-columns: repeat(3, 3.6rem); gap: .35rem;
+    padding: .55rem; background: var(--card); border: 2px solid var(--ink);
+  }
+  .door {
+    aspect-ratio: 1; border: 1px solid var(--rule); background: var(--paper);
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: .78rem; color: var(--ink-faint);
+  }
+  .door.open {
+    background: var(--amber-soft); border-color: var(--amber); color: var(--amber);
+    font-weight: 700;
+  }
+  .door.open::after { content: ""; }
+
+  /* ---- two ways ---- */
+  .ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.25rem; }
+  .way { background: var(--card); border: 1px solid var(--rule); padding: 1.5rem; }
+  .way.safe { border-top: 4px solid var(--teal); }
+  .way.risk { border-top: 4px solid var(--brick); }
+  .way h3 { font-size: 1.15rem; margin: 0 0 .2rem; font-weight: 650; }
+  .way .sub {
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
+    font-size: .72rem; color: var(--ink-faint); margin: 0 0 1rem;
+  }
+  .way p { margin: 0 0 .9rem; color: var(--ink-soft); font-size: .95rem; }
+  .verdict {
+    margin-top: 1rem; padding: .8rem 1rem; font-size: .9rem;
+    display: flex; gap: .6rem; align-items: baseline;
+  }
+  .verdict b { font-family: var(--display); text-transform: uppercase; letter-spacing: .1em; font-size: .72rem; }
+  .safe .verdict { background: var(--teal-soft); color: var(--teal); }
+  .risk .verdict { background: var(--brick-soft); color: var(--brick); }
+
+  /* ---- notes ---- */
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+  .note { background: var(--card); border: 1px solid var(--rule); padding: 1.3rem; }
+  .note h3 {
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
+    font-size: .8rem; color: var(--ink-faint); margin: 0 0 .6rem;
+  }
+  .note p { margin: 0; font-size: .95rem; color: var(--ink-soft); }
+  .note strong { color: var(--ink); font-weight: 650; }
+
+  .scope { border-left: 3px solid var(--teal); padding-left: 1.2rem; }
+  .scope ul { margin: 0; padding-left: 1.1rem; color: var(--ink-soft); }
+  .scope li { margin-bottom: .45rem; }
+  .scope li strong { color: var(--ink); font-weight: 650; }
+
+  footer {
+    margin-top: 4.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
+    font-size: .85rem; color: var(--ink-faint);
+  }
+  footer code { font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .step, .who, .way { animation: rise .5s ease-out both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">VGU Smart Locker · Project Postman</p>
+    <h1>A parcel arrives.<br>Nobody waits for it.</h1>
+    <p class="lede">A delivery driver leaves a parcel in a cabinet on campus. The student who owns it walks over whenever they like and takes it out with their phone. The two never have to meet.</p>
+  </header>
+
+  <section>
+    <h2>Who is involved</h2>
+    <div class="cast">
+      <div class="who">
+        <p class="role">Collects the parcel</p>
+        <p class="name">The student</p>
+        <p>Registers once with a phone number. Gets a message when something arrives.</p>
+        <p class="tool">uses → our phone app</p>
+      </div>
+      <div class="who">
+        <p class="role">Delivers the parcel</p>
+        <p class="name">The driver</p>
+        <p>Turns up, drops the parcel, leaves. Installs nothing, signs up for nothing.</p>
+        <p class="tool">uses → the screen on the cabinet</p>
+      </div>
+      <div class="who">
+        <p class="role">Decides everything</p>
+        <p class="name">The cabinet and the server</p>
+        <p>The cabinet has a screen, doors, and a sensor in each box. The server decides which door opens, and when.</p>
+        <p class="tool">built by → hardware team + server team</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What happens, start to finish</h2>
+    <div class="steps">
+
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <span class="actor a-receiver">Student</span>
+          <h3>Signs up once, and never again</h3>
+          <p>She opens the app and types her phone number. A short code arrives by text. She types it back. That is the whole sign-up.</p>
+          <p>From now on the system knows that this phone belongs to her.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <span class="actor a-shipper">Driver</span>
+          <h3>Types her phone number on the cabinet</h3>
+          <p>The driver arrives with a parcel. There is a screen on the front of the cabinet. He types the phone number written on the parcel.</p>
+          <div class="screen">
+            <span class="cap">On the cabinet screen</span>
+            Deliver a parcel<br>
+            Phone number: 09•• ••• 482
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div>
+          <span class="actor a-shipper">Driver</span>
+          <h3>Checks he has the right person</h3>
+          <p>The screen shows part of the name — enough for the driver to be sure, not enough for a stranger to learn who lives here. He taps to confirm.</p>
+          <div class="screen">
+            <span class="cap">On the cabinet screen</span>
+            Is this the right person?<br>
+            <strong>Nguyễn V. A***</strong>
+          </div>
+          <p style="margin-top:.9rem">Anyone can walk up to this screen, so it never shows a full name and never shows a phone number back.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div>
+          <span class="actor a-system">Cabinet</span>
+          <h3>A door opens. The parcel goes in.</h3>
+          <div class="cabinet-block">
+            <div>
+              <p>The server picks a free box and opens that one door. The driver puts the parcel inside and shuts it.</p>
+              <p>A sensor inside the box checks that something is really there. Until it sees the parcel, nothing is recorded — so a driver who opens a door and walks away empty-handed cannot leave a delivery on the books that does not exist.</p>
+            </div>
+            <div class="cabinet" role="img" aria-label="Cabinet with nine boxes. Box 04 is open.">
+              <div class="door">01</div><div class="door">02</div><div class="door">03</div>
+              <div class="door open">04</div><div class="door">05</div><div class="door">06</div>
+              <div class="door">07</div><div class="door">08</div><div class="door">09</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">5</div>
+        <div>
+          <span class="actor a-receiver">Student</span>
+          <h3>Her phone tells her</h3>
+          <p>She does not have to be there, or waiting, or watching. A message arrives saying a parcel is in box 04.</p>
+          <div class="screen">
+            <span class="cap">On her phone</span>
+            A parcel is waiting for you<br>
+            Cabinet by the library · Box 04
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">6</div>
+        <div>
+          <span class="actor a-receiver">Student</span>
+          <h3>She walks over and opens it</h3>
+          <p>Whenever suits her. There are two ways to open the door, and she can use either — the next section explains why there are two.</p>
+          <p>The door opens. She takes the parcel. The sensor sees the box is empty again, and that is the end of it.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>The two ways to open the door</h2>
+    <div class="ways">
+
+      <div class="way safe">
+        <h3>Scan the screen</h3>
+        <p class="sub">The normal way</p>
+        <p>The cabinet screen shows a square code that keeps changing. She points the app at it. The door opens.</p>
+        <p>The code on the screen does not say <em>open box 04</em>. It only says <em>this cabinet, right now</em>. Who she is comes from being signed in on her own phone.</p>
+        <div class="verdict"><b>If copied</b><span>Nothing happens. A photo of the screen is useless without her account.</span></div>
+      </div>
+
+      <div class="way risk">
+        <h3>Type a code</h3>
+        <p class="sub">The backup way</p>
+        <p>The message also contains a short code. She can type it straight into the cabinet, with no app at all.</p>
+        <p>This exists for the bad day — a flat battery, a phone left at home, an app that will not start. Without it, a dead phone traps a parcel.</p>
+        <div class="verdict"><b>If copied</b><span>The door opens. This code <em>is</em> the key — so it works once, it expires, and wrong guesses lock the box.</span></div>
+      </div>
+
+    </div>
+    <p style="margin-top:1.25rem; color:var(--ink-soft); max-width:44em">
+      These two are not equally safe, and that is the point of showing them side by side. Scanning is the front door. Typing a code is the spare key under the mat — worth having, kept short-lived on purpose.
+    </p>
+  </section>
+
+  <section>
+    <h2>Three things worth knowing</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>The cabinet asks, it never decides</h3>
+        <p>The cabinet cannot choose a box or open a door on its own. It asks the server every time. <strong>A stolen cabinet opens nothing.</strong></p>
+      </div>
+      <div class="note">
+        <h3>The sensor, not the door</h3>
+        <p>A parcel counts as delivered when the sensor sees it — <strong>not</strong> when the door shuts. This removes a whole class of arguments about whether something was really left.</p>
+      </div>
+      <div class="note">
+        <h3>Never a false "done"</h3>
+        <p>If the network drops halfway, the app does not know whether the door opened. So it says exactly that. <strong>It never shows success it cannot prove.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What this is not</h2>
+    <div class="scope">
+      <ul>
+        <li><strong>Not paid.</strong> Free for students. No fees, no wallet, no card.</li>
+        <li><strong>Not storage.</strong> You cannot rent a box to keep your own things in. A box holds a parcel until it is collected.</li>
+        <li><strong>Not a student card system.</strong> No card, no scanning your ID. A phone number is the whole account.</li>
+        <li><strong>Not the delivery company's problem.</strong> The driver needs no app, no account, and no training.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Project Postman · VGU Smart Locker · IT team. The parts and the wiring are in <code>docs/reference/architecture.md</code>; the agreed requests between app and server are in <code>docs/reference/api-contract.md</code>.</p>
+  </footer>
+
+</div>
