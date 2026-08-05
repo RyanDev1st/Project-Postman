@@ -4,450 +4,372 @@
   :root {
     --paper:      #F2F4F3;
     --card:       #FFFFFF;
+    --lane:       #FAFBFB;
     --ink:        #16201D;
-    --ink-soft:   #4A5A55;
+    --ink-soft:   #46554F;
     --ink-faint:  #7C8B86;
-    --rule:       #D6DCDA;
-    --amber:      #E08A1E;
+    --rule:       #D3DAD8;
+    --hair:       #E3E8E7;
+    --amber:      #C87A15;
     --amber-soft: #FBEEDA;
     --teal:       #0F6E64;
-    --teal-soft:  #E0EFEC;
+    --teal-soft:  #E2F0ED;
     --brick:      #A8452C;
     --brick-soft: #F7E7E2;
 
     --display: "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", "Roboto Condensed", system-ui, sans-serif;
     --body: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
-
-    --step: clamp(1.6rem, 4vw, 2.6rem);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper:      #111614;
-      --card:       #1A211F;
-      --ink:        #E9EEEC;
-      --ink-soft:   #A9B8B3;
-      --ink-faint:  #788782;
-      --rule:       #2C3633;
-      --amber:      #F0A742;
-      --amber-soft: #2E2415;
-      --teal:       #4FB3A5;
-      --teal-soft:  #122A27;
-      --brick:      #D97558;
-      --brick-soft: #2E1B16;
+      --paper: #111614; --card: #1B221F; --lane: #171E1C;
+      --ink: #E9EEEC; --ink-soft: #AEBCB7; --ink-faint: #7B8A85;
+      --rule: #313B38; --hair: #262F2C;
+      --amber: #EDA847; --amber-soft: #2F2415;
+      --teal: #55B9AB; --teal-soft: #122B28;
+      --brick: #DB7859; --brick-soft: #2F1B16;
     }
   }
   :root[data-theme="dark"] {
-    --paper:      #111614;
-    --card:       #1A211F;
-    --ink:        #E9EEEC;
-    --ink-soft:   #A9B8B3;
-    --ink-faint:  #788782;
-    --rule:       #2C3633;
-    --amber:      #F0A742;
-    --amber-soft: #2E2415;
-    --teal:       #4FB3A5;
-    --teal-soft:  #122A27;
-    --brick:      #D97558;
-    --brick-soft: #2E1B16;
+    --paper: #111614; --card: #1B221F; --lane: #171E1C;
+    --ink: #E9EEEC; --ink-soft: #AEBCB7; --ink-faint: #7B8A85;
+    --rule: #313B38; --hair: #262F2C;
+    --amber: #EDA847; --amber-soft: #2F2415;
+    --teal: #55B9AB; --teal-soft: #122B28;
+    --brick: #DB7859; --brick-soft: #2F1B16;
   }
   :root[data-theme="light"] {
-    --paper:      #F2F4F3;
-    --card:       #FFFFFF;
-    --ink:        #16201D;
-    --ink-soft:   #4A5A55;
-    --ink-faint:  #7C8B86;
-    --rule:       #D6DCDA;
-    --amber:      #E08A1E;
-    --amber-soft: #FBEEDA;
-    --teal:       #0F6E64;
-    --teal-soft:  #E0EFEC;
-    --brick:      #A8452C;
-    --brick-soft: #F7E7E2;
+    --paper: #F2F4F3; --card: #FFFFFF; --lane: #FAFBFB;
+    --ink: #16201D; --ink-soft: #46554F; --ink-faint: #7C8B86;
+    --rule: #D3DAD8; --hair: #E3E8E7;
+    --amber: #C87A15; --amber-soft: #FBEEDA;
+    --teal: #0F6E64; --teal-soft: #E2F0ED;
+    --brick: #A8452C; --brick-soft: #F7E7E2;
   }
 
   body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--body);
-    font-size: 17px;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0 1.25rem 6rem;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.55;
+    margin: 0; padding: 0 1.25rem 5rem;
     -webkit-font-smoothing: antialiased;
   }
+  .wrap { max-width: 68rem; margin: 0 auto; }
 
-  .wrap { max-width: 60rem; margin: 0 auto; }
-
+  header.top { padding: 3rem 0 1.75rem; }
   .eyebrow {
-    font-family: var(--display);
-    text-transform: uppercase;
-    letter-spacing: .18em;
-    font-size: .8rem;
-    color: var(--ink-faint);
-    margin: 0;
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .18em;
+    font-size: .78rem; color: var(--ink-faint); margin: 0;
+  }
+  h1 {
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .02em;
+    font-weight: 700; font-size: clamp(2rem, 5.5vw, 3.2rem); line-height: 1;
+    margin: .55rem 0 0; text-wrap: balance;
+  }
+  header.top p.lede {
+    color: var(--ink-soft); max-width: 40em; margin: .9rem 0 0; font-size: 1.05rem;
   }
 
-  h1 {
-    font-family: var(--display);
-    text-transform: uppercase;
-    letter-spacing: .02em;
-    font-weight: 700;
-    font-size: clamp(2.4rem, 7vw, 4.2rem);
-    line-height: .98;
-    text-wrap: balance;
-    margin: .5rem 0 0;
+  .chart-frame {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    padding: .5rem;
+  }
+  .chart-frame svg { display: block; min-width: 54rem; width: 100%; height: auto; }
+
+  .figcap {
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .12em;
+    font-size: .74rem; color: var(--ink-faint); margin: .85rem 0 0;
   }
 
   h2 {
-    font-family: var(--display);
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    font-size: 1.05rem;
-    color: var(--ink-faint);
-    font-weight: 700;
-    margin: 0 0 1.5rem;
-    padding-bottom: .6rem;
-    border-bottom: 1px solid var(--rule);
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
+    font-size: 1rem; color: var(--ink-faint); font-weight: 700;
+    margin: 3.25rem 0 1.25rem; padding-bottom: .55rem; border-bottom: 1px solid var(--rule);
   }
 
-  header.top {
-    padding: 4.5rem 0 3rem;
-    border-bottom: 3px solid var(--ink);
-  }
-  header.top .lede {
-    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
-    color: var(--ink-soft);
-    max-width: 34em;
-    margin: 1.5rem 0 0;
-  }
-
-  section { padding: 3.5rem 0 0; }
-
-  /* ---- cast ---- */
-  .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
-  .who {
-    background: var(--card);
-    border: 1px solid var(--rule);
-    padding: 1.4rem;
-  }
-  .who .role {
-    font-family: var(--display);
-    text-transform: uppercase;
-    letter-spacing: .12em;
-    font-size: .82rem;
-    color: var(--teal);
-    margin: 0 0 .5rem;
-  }
-  .who .name { font-weight: 650; font-size: 1.15rem; margin: 0 0 .4rem; }
-  .who p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
-  .who .tool {
-    margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed var(--rule);
-    font-family: var(--mono); font-size: .82rem; color: var(--ink-faint);
-  }
-
-  /* ---- steps ---- */
-  .steps { display: flex; flex-direction: column; gap: 0; }
-  .step {
-    display: grid;
-    grid-template-columns: var(--step) 1fr;
-    gap: 1.5rem;
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--rule);
-    align-items: start;
-  }
-  .step:last-child { border-bottom: none; }
-  .num {
-    font-family: var(--display);
-    font-size: var(--step);
-    line-height: 1;
-    font-weight: 700;
-    color: var(--amber);
-    font-variant-numeric: tabular-nums;
-  }
-  .step h3 {
-    font-size: 1.3rem;
-    font-weight: 650;
-    margin: 0 0 .5rem;
-    text-wrap: balance;
-    line-height: 1.25;
-  }
-  .step p { margin: 0 0 .9rem; color: var(--ink-soft); max-width: 42em; }
-  .step p:last-child { margin-bottom: 0; }
-
-  .actor {
-    display: inline-block;
-    font-family: var(--display);
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    font-size: .72rem;
-    padding: .2rem .55rem;
-    border: 1px solid currentColor;
-    margin-bottom: .7rem;
-  }
-  .a-receiver { color: var(--teal); }
-  .a-shipper  { color: var(--amber); }
-  .a-system   { color: var(--ink-faint); }
-
-  .screen {
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--amber);
-    padding: .9rem 1.1rem;
-    font-family: var(--mono);
-    font-size: .88rem;
-    color: var(--ink);
-    max-width: 30rem;
-  }
-  .screen .cap {
-    display: block; font-family: var(--display); text-transform: uppercase;
-    letter-spacing: .12em; font-size: .68rem; color: var(--ink-faint); margin-bottom: .4rem;
-  }
-
-  /* ---- cabinet ---- */
-  .cabinet-block { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2.5rem; align-items: center; }
-  @media (max-width: 40rem) { .cabinet-block { grid-template-columns: 1fr; } }
-  .cabinet {
-    display: grid; grid-template-columns: repeat(3, 3.6rem); gap: .35rem;
-    padding: .55rem; background: var(--card); border: 2px solid var(--ink);
-  }
-  .door {
-    aspect-ratio: 1; border: 1px solid var(--rule); background: var(--paper);
-    display: grid; place-items: center;
-    font-family: var(--mono); font-size: .78rem; color: var(--ink-faint);
-  }
-  .door.open {
-    background: var(--amber-soft); border-color: var(--amber); color: var(--amber);
-    font-weight: 700;
-  }
-  .door.open::after { content: ""; }
-
-  /* ---- two ways ---- */
-  .ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.25rem; }
-  .way { background: var(--card); border: 1px solid var(--rule); padding: 1.5rem; }
+  .ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.1rem; }
+  .way { background: var(--card); border: 1px solid var(--rule); padding: 1.35rem; }
   .way.safe { border-top: 4px solid var(--teal); }
   .way.risk { border-top: 4px solid var(--brick); }
-  .way h3 { font-size: 1.15rem; margin: 0 0 .2rem; font-weight: 650; }
+  .way h3 { font-size: 1.1rem; margin: 0 0 .15rem; font-weight: 650; }
   .way .sub {
     font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
-    font-size: .72rem; color: var(--ink-faint); margin: 0 0 1rem;
+    font-size: .7rem; color: var(--ink-faint); margin: 0 0 .85rem;
   }
-  .way p { margin: 0 0 .9rem; color: var(--ink-soft); font-size: .95rem; }
-  .verdict {
-    margin-top: 1rem; padding: .8rem 1rem; font-size: .9rem;
-    display: flex; gap: .6rem; align-items: baseline;
+  .way p { margin: 0 0 .8rem; color: var(--ink-soft); font-size: .93rem; }
+  .verdict { margin-top: .9rem; padding: .7rem .9rem; font-size: .88rem; }
+  .verdict b {
+    font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
+    font-size: .7rem; display: block; margin-bottom: .15rem;
   }
-  .verdict b { font-family: var(--display); text-transform: uppercase; letter-spacing: .1em; font-size: .72rem; }
   .safe .verdict { background: var(--teal-soft); color: var(--teal); }
   .risk .verdict { background: var(--brick-soft); color: var(--brick); }
 
-  /* ---- notes ---- */
   .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
-  .note { background: var(--card); border: 1px solid var(--rule); padding: 1.3rem; }
+  .note { background: var(--card); border: 1px solid var(--rule); padding: 1.2rem; }
   .note h3 {
     font-family: var(--display); text-transform: uppercase; letter-spacing: .1em;
-    font-size: .8rem; color: var(--ink-faint); margin: 0 0 .6rem;
+    font-size: .76rem; color: var(--ink-faint); margin: 0 0 .5rem;
   }
-  .note p { margin: 0; font-size: .95rem; color: var(--ink-soft); }
+  .note p { margin: 0; font-size: .93rem; color: var(--ink-soft); }
   .note strong { color: var(--ink); font-weight: 650; }
 
-  .scope { border-left: 3px solid var(--teal); padding-left: 1.2rem; }
-  .scope ul { margin: 0; padding-left: 1.1rem; color: var(--ink-soft); }
-  .scope li { margin-bottom: .45rem; }
-  .scope li strong { color: var(--ink); font-weight: 650; }
-
   footer {
-    margin-top: 4.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
-    font-size: .85rem; color: var(--ink-faint);
+    margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    font-size: .84rem; color: var(--ink-faint);
   }
   footer code { font-family: var(--mono); }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .step, .who, .way { animation: rise .5s ease-out both; }
-    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  }
+  .svg-lane-label { font-family: var(--display); font-size: 15px; letter-spacing: 1.6px; font-weight: 700; }
+  .svg-lane-sub   { font-family: var(--body); font-size: 11.5px; }
+  .svg-step-no    { font-family: var(--display); font-size: 27px; font-weight: 700; }
+  .svg-step-name  { font-family: var(--display); font-size: 12.5px; letter-spacing: 1.3px; font-weight: 700; }
+  .svg-box        { font-family: var(--body); font-size: 13px; }
+  .svg-arrow-lbl  { font-family: var(--body); font-size: 11.5px; font-style: italic; }
+  .svg-aside      { font-family: var(--body); font-size: 11.5px; }
+  .svg-chip       { font-family: var(--mono); font-size: 12px; font-weight: 700; }
 </style>
 
 <div class="wrap">
 
   <header class="top">
     <p class="eyebrow">VGU Smart Locker · Project Postman</p>
-    <h1>A parcel arrives.<br>Nobody waits for it.</h1>
-    <p class="lede">A delivery driver leaves a parcel in a cabinet on campus. The student who owns it walks over whenever they like and takes it out with their phone. The two never have to meet.</p>
+    <h1>How a parcel gets from a driver to a student</h1>
+    <p class="lede">Follow it from top to bottom. Each column is one of the three parties. Every arrow is one thing being asked, or one thing being answered.</p>
   </header>
 
-  <section>
-    <h2>Who is involved</h2>
-    <div class="cast">
-      <div class="who">
-        <p class="role">Collects the parcel</p>
-        <p class="name">The student</p>
-        <p>Registers once with a phone number. Gets a message when something arrives.</p>
-        <p class="tool">uses → our phone app</p>
-      </div>
-      <div class="who">
-        <p class="role">Delivers the parcel</p>
-        <p class="name">The driver</p>
-        <p>Turns up, drops the parcel, leaves. Installs nothing, signs up for nothing.</p>
-        <p class="tool">uses → the screen on the cabinet</p>
-      </div>
-      <div class="who">
-        <p class="role">Decides everything</p>
-        <p class="name">The cabinet and the server</p>
-        <p>The cabinet has a screen, doors, and a sensor in each box. The server decides which door opens, and when.</p>
-        <p class="tool">built by → hardware team + server team</p>
-      </div>
+  <div class="chart-frame">
+    <svg viewBox="0 0 1040 1210" role="img" aria-label="Diagram of the parcel locker process in six steps across three columns: the student, the cabinet, and the server.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="9" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="var(--ink-soft)"/>
+        </marker>
+        <marker id="ar-a" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="9" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="var(--amber)"/>
+        </marker>
+        <marker id="ar-t" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="9" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,4 L0,8 z" fill="var(--teal)"/>
+        </marker>
+      </defs>
+
+      <!-- lane grounds -->
+      <rect x="60"  y="64" width="300" height="1130" fill="var(--lane)"/>
+      <rect x="380" y="64" width="300" height="1130" fill="var(--lane)"/>
+      <rect x="700" y="64" width="310" height="1130" fill="var(--lane)"/>
+
+      <!-- lane headers -->
+      <text class="svg-lane-label" x="210" y="30" text-anchor="middle" fill="var(--teal)">THE STUDENT</text>
+      <text class="svg-lane-sub"   x="210" y="48" text-anchor="middle" fill="var(--ink-faint)">on her own phone</text>
+      <text class="svg-lane-label" x="530" y="30" text-anchor="middle" fill="var(--amber)">THE CABINET</text>
+      <text class="svg-lane-sub"   x="530" y="48" text-anchor="middle" fill="var(--ink-faint)">screen · doors · a sensor in every box</text>
+      <text class="svg-lane-label" x="855" y="30" text-anchor="middle" fill="var(--ink-soft)">THE SERVER</text>
+      <text class="svg-lane-sub"   x="855" y="48" text-anchor="middle" fill="var(--ink-faint)">decides everything · another team builds it</text>
+
+      <line x1="60" y1="64" x2="1010" y2="64" stroke="var(--ink)" stroke-width="2.5"/>
+      <line x1="370" y1="64" x2="370" y2="1194" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="690" y1="64" x2="690" y2="1194" stroke="var(--rule)" stroke-width="1"/>
+
+      <!-- ============ 1 · SIGNING UP ============ -->
+      <text class="svg-step-no"   x="42" y="122" text-anchor="end" fill="var(--amber)">1</text>
+      <text class="svg-step-name" x="80" y="98"  fill="var(--ink-faint)">SIGNING UP — HAPPENS ONCE, LONG BEFORE ANY PARCEL</text>
+
+      <rect x="82" y="112" width="256" height="76" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="98" y="136" fill="var(--ink)">She types her phone number</text>
+      <text class="svg-box" x="98" y="155" fill="var(--ink)">into the app, then types back</text>
+      <text class="svg-box" x="98" y="174" fill="var(--ink)">the short code she is sent.</text>
+
+      <rect x="722" y="112" width="266" height="76" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="738" y="136" fill="var(--ink)">Sends the code. Checks it.</text>
+      <text class="svg-box" x="738" y="155" fill="var(--ink)">From now on it knows this</text>
+      <text class="svg-box" x="738" y="174" fill="var(--ink)">phone belongs to her.</text>
+
+      <line x1="342" y1="134" x2="716" y2="134" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text class="svg-arrow-lbl" x="529" y="128" text-anchor="middle" fill="var(--ink-soft)">my phone number</text>
+      <line x1="716" y1="168" x2="342" y2="168" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text class="svg-arrow-lbl" x="529" y="162" text-anchor="middle" fill="var(--ink-soft)">a code, by text message</text>
+
+      <line x1="60" y1="212" x2="1010" y2="212" stroke="var(--hair)"/>
+
+      <!-- ============ 2 · A DRIVER ARRIVES ============ -->
+      <text class="svg-step-no"   x="42" y="270" text-anchor="end" fill="var(--amber)">2</text>
+      <text class="svg-step-name" x="80" y="246" fill="var(--ink-faint)">A DRIVER ARRIVES WITH HER PARCEL</text>
+
+      <rect x="392" y="260" width="276" height="76" rx="2" fill="var(--card)" stroke="var(--amber)"/>
+      <text class="svg-box" x="408" y="284" fill="var(--ink)">He types her phone number</text>
+      <text class="svg-box" x="408" y="303" fill="var(--ink)">on the screen. He has no app</text>
+      <text class="svg-box" x="408" y="322" fill="var(--ink)">and no account.</text>
+
+      <rect x="722" y="260" width="266" height="76" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="738" y="284" fill="var(--ink)">Finds whose number it is.</text>
+      <text class="svg-box" x="738" y="303" fill="var(--ink)">Sends back part of the name,</text>
+      <text class="svg-box" x="738" y="322" fill="var(--ink)">never all of it.</text>
+
+      <line x1="672" y1="282" x2="716" y2="282" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+      <line x1="716" y1="316" x2="672" y2="316" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+
+      <rect x="392" y="348" width="180" height="26" rx="2" fill="var(--amber-soft)" stroke="var(--amber)"/>
+      <text class="svg-chip" x="482" y="366" text-anchor="middle" fill="var(--amber)">Nguyễn V. A***</text>
+      <text class="svg-aside" x="584" y="366" fill="var(--ink-soft)">← he checks, then confirms</text>
+
+      <text class="svg-aside" x="82" y="360" fill="var(--ink-faint)">Anyone can walk up to</text>
+      <text class="svg-aside" x="82" y="376" fill="var(--ink-faint)">this screen. So it never</text>
+      <text class="svg-aside" x="82" y="392" fill="var(--ink-faint)">shows a whole name.</text>
+
+      <line x1="60" y1="412" x2="1010" y2="412" stroke="var(--hair)"/>
+
+      <!-- ============ 3 · A DOOR OPENS ============ -->
+      <text class="svg-step-no"   x="42" y="470" text-anchor="end" fill="var(--amber)">3</text>
+      <text class="svg-step-name" x="80" y="446" fill="var(--ink-faint)">A DOOR OPENS AND THE PARCEL GOES IN</text>
+
+      <rect x="722" y="460" width="266" height="58" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="738" y="484" fill="var(--ink)">Picks a box that is free and</text>
+      <text class="svg-box" x="738" y="503" fill="var(--ink)">unlocks that one door.</text>
+
+      <rect x="392" y="460" width="276" height="58" rx="2" fill="var(--card)" stroke="var(--amber)"/>
+      <text class="svg-box" x="408" y="484" fill="var(--ink)">Box 04 opens. He puts the</text>
+      <text class="svg-box" x="408" y="503" fill="var(--ink)">parcel in and shuts the door.</text>
+
+      <line x1="716" y1="489" x2="672" y2="489" stroke="var(--amber)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+
+      <!-- little cabinet -->
+      <g transform="translate(96,452)">
+        <rect x="0" y="0" width="122" height="76" rx="2" fill="var(--card)" stroke="var(--ink)" stroke-width="1.6"/>
+        <rect x="8"  y="8"  width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="45" y="8"  width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="82" y="8"  width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="8"  y="30" width="32" height="18" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1.6"/>
+        <text class="svg-chip" x="24" y="44" text-anchor="middle" fill="var(--amber)">04</text>
+        <rect x="45" y="30" width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="82" y="30" width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="8"  y="52" width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="45" y="52" width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="82" y="52" width="32" height="18" fill="var(--paper)" stroke="var(--rule)"/>
+      </g>
+      <text class="svg-aside" x="230" y="497" fill="var(--ink-faint)">one door,</text>
+      <text class="svg-aside" x="230" y="513" fill="var(--ink-faint)">not the cabinet</text>
+
+      <line x1="60" y1="548" x2="1010" y2="548" stroke="var(--hair)"/>
+
+      <!-- ============ 4 · THE SENSOR ============ -->
+      <text class="svg-step-no"   x="42" y="606" text-anchor="end" fill="var(--amber)">4</text>
+      <text class="svg-step-name" x="80" y="582" fill="var(--ink-faint)">THE SENSOR CHECKS THE PARCEL IS REALLY THERE</text>
+
+      <rect x="392" y="596" width="276" height="58" rx="2" fill="var(--card)" stroke="var(--amber)"/>
+      <text class="svg-box" x="408" y="620" fill="var(--ink)">A sensor inside box 04 sees</text>
+      <text class="svg-box" x="408" y="639" fill="var(--ink)">that something is in there.</text>
+
+      <rect x="722" y="596" width="266" height="58" rx="2" fill="var(--card)" stroke="var(--teal)"/>
+      <text class="svg-box" x="738" y="620" fill="var(--ink)">Only now is the delivery</text>
+      <text class="svg-box" x="738" y="639" fill="var(--ink)">written down as real.</text>
+
+      <line x1="672" y1="625" x2="716" y2="625" stroke="var(--teal)" stroke-width="1.8" marker-end="url(#ar-t)"/>
+
+      <text class="svg-aside" x="82" y="620" fill="var(--ink-faint)">A driver who opens a</text>
+      <text class="svg-aside" x="82" y="636" fill="var(--ink-faint)">door and walks off with</text>
+      <text class="svg-aside" x="82" y="652" fill="var(--ink-faint)">the parcel still in hand</text>
+      <text class="svg-aside" x="82" y="668" fill="var(--ink-faint)">records nothing.</text>
+
+      <line x1="60" y1="690" x2="1010" y2="690" stroke="var(--hair)"/>
+
+      <!-- ============ 5 · SHE IS TOLD ============ -->
+      <text class="svg-step-no"   x="42" y="748" text-anchor="end" fill="var(--amber)">5</text>
+      <text class="svg-step-name" x="80" y="724" fill="var(--ink-faint)">HER PHONE TELLS HER — SHE NEVER HAD TO WAIT ANYWHERE</text>
+
+      <rect x="722" y="738" width="266" height="40" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="738" y="763" fill="var(--ink)">Sends her a message.</text>
+
+      <rect x="82" y="738" width="256" height="60" rx="2" fill="var(--teal-soft)" stroke="var(--teal)"/>
+      <text class="svg-box" x="98" y="762" fill="var(--teal)">A parcel is waiting for you.</text>
+      <text class="svg-box" x="98" y="781" fill="var(--teal)">Cabinet by the library, box 04.</text>
+
+      <line x1="716" y1="758" x2="342" y2="758" stroke="var(--teal)" stroke-width="1.8" marker-end="url(#ar-t)"/>
+      <text class="svg-arrow-lbl" x="529" y="752" text-anchor="middle" fill="var(--ink-soft)">the cabinet is not involved here</text>
+
+      <line x1="60" y1="820" x2="1010" y2="820" stroke="var(--hair)"/>
+
+      <!-- ============ 6 · SHE COLLECTS ============ -->
+      <text class="svg-step-no"   x="42" y="878" text-anchor="end" fill="var(--amber)">6</text>
+      <text class="svg-step-name" x="80" y="854" fill="var(--ink-faint)">SHE WALKS OVER, WHENEVER SHE LIKES, AND TAKES IT</text>
+
+      <rect x="82" y="868" width="256" height="96" rx="2" fill="var(--card)" stroke="var(--teal)"/>
+      <text class="svg-box" x="98" y="892" fill="var(--ink)">She points the app at the</text>
+      <text class="svg-box" x="98" y="911" fill="var(--ink)">square code on the screen.</text>
+      <text class="svg-box" x="98" y="936" fill="var(--ink-faint)">Or, if her phone is dead,</text>
+      <text class="svg-box" x="98" y="955" fill="var(--ink-faint)">she types the code instead.</text>
+
+      <rect x="392" y="868" width="276" height="52" rx="2" fill="var(--card)" stroke="var(--amber)"/>
+      <text class="svg-box" x="408" y="890" fill="var(--ink)">The screen shows a square</text>
+      <text class="svg-box" x="408" y="909" fill="var(--ink)">code that keeps changing.</text>
+
+      <rect x="722" y="868" width="266" height="52" rx="2" fill="var(--card)" stroke="var(--rule)"/>
+      <text class="svg-box" x="738" y="890" fill="var(--ink)">Checks it really is her, then</text>
+      <text class="svg-box" x="738" y="909" fill="var(--ink)">unlocks her box — only hers.</text>
+
+      <line x1="386" y1="894" x2="344" y2="894" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+      <line x1="342" y1="978" x2="716" y2="978" stroke="var(--teal)" stroke-width="1.8" marker-end="url(#ar-t)"/>
+      <text class="svg-arrow-lbl" x="529" y="972" text-anchor="middle" fill="var(--ink-soft)">it is me, and I am standing at this cabinet</text>
+
+      <rect x="392" y="1000" width="276" height="76" rx="2" fill="var(--card)" stroke="var(--amber)"/>
+      <text class="svg-box" x="408" y="1024" fill="var(--ink)">Box 04 opens. She takes the</text>
+      <text class="svg-box" x="408" y="1043" fill="var(--ink)">parcel. The sensor sees the</text>
+      <text class="svg-box" x="408" y="1062" fill="var(--ink)">box is empty again.</text>
+
+      <line x1="716" y1="1026" x2="672" y2="1026" stroke="var(--amber)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+
+      <rect x="722" y="1000" width="266" height="40" rx="2" fill="var(--teal-soft)" stroke="var(--teal)"/>
+      <text class="svg-box" x="738" y="1025" fill="var(--teal)">Marked collected. Finished.</text>
+
+      <line x1="60" y1="1108" x2="1010" y2="1108" stroke="var(--rule)"/>
+
+      <!-- legend -->
+      <text class="svg-step-name" x="80" y="1138" fill="var(--ink-faint)">READING THE CHART</text>
+      <line x1="82"  y1="1160" x2="126" y2="1160" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text class="svg-aside" x="136" y="1164" fill="var(--ink-soft)">something is asked, or answered</text>
+      <line x1="392" y1="1160" x2="436" y2="1160" stroke="var(--amber)" stroke-width="1.8" marker-end="url(#ar-a)"/>
+      <text class="svg-aside" x="446" y="1164" fill="var(--ink-soft)">a door physically opens</text>
+      <line x1="722" y1="1160" x2="766" y2="1160" stroke="var(--teal)" stroke-width="1.8" marker-end="url(#ar-t)"/>
+      <text class="svg-aside" x="776" y="1164" fill="var(--ink-soft)">something is settled for good</text>
+    </svg>
+  </div>
+  <p class="figcap">The whole system. Six steps, three parties, no step hidden.</p>
+
+  <h2>The one place two paths exist</h2>
+  <div class="ways">
+    <div class="way safe">
+      <h3>She scans the screen</h3>
+      <p class="sub">The normal way</p>
+      <p>The square code on the cabinet does not say <em>open box 04</em>. It only says <em>this cabinet, right now</em>. Who she is comes from being signed in on her own phone.</p>
+      <div class="verdict"><b>If somebody copies it</b>Nothing happens. A photograph of that screen is worthless without her account.</div>
     </div>
-  </section>
-
-  <section>
-    <h2>What happens, start to finish</h2>
-    <div class="steps">
-
-      <div class="step">
-        <div class="num">1</div>
-        <div>
-          <span class="actor a-receiver">Student</span>
-          <h3>Signs up once, and never again</h3>
-          <p>She opens the app and types her phone number. A short code arrives by text. She types it back. That is the whole sign-up.</p>
-          <p>From now on the system knows that this phone belongs to her.</p>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="num">2</div>
-        <div>
-          <span class="actor a-shipper">Driver</span>
-          <h3>Types her phone number on the cabinet</h3>
-          <p>The driver arrives with a parcel. There is a screen on the front of the cabinet. He types the phone number written on the parcel.</p>
-          <div class="screen">
-            <span class="cap">On the cabinet screen</span>
-            Deliver a parcel<br>
-            Phone number: 09•• ••• 482
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="num">3</div>
-        <div>
-          <span class="actor a-shipper">Driver</span>
-          <h3>Checks he has the right person</h3>
-          <p>The screen shows part of the name — enough for the driver to be sure, not enough for a stranger to learn who lives here. He taps to confirm.</p>
-          <div class="screen">
-            <span class="cap">On the cabinet screen</span>
-            Is this the right person?<br>
-            <strong>Nguyễn V. A***</strong>
-          </div>
-          <p style="margin-top:.9rem">Anyone can walk up to this screen, so it never shows a full name and never shows a phone number back.</p>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="num">4</div>
-        <div>
-          <span class="actor a-system">Cabinet</span>
-          <h3>A door opens. The parcel goes in.</h3>
-          <div class="cabinet-block">
-            <div>
-              <p>The server picks a free box and opens that one door. The driver puts the parcel inside and shuts it.</p>
-              <p>A sensor inside the box checks that something is really there. Until it sees the parcel, nothing is recorded — so a driver who opens a door and walks away empty-handed cannot leave a delivery on the books that does not exist.</p>
-            </div>
-            <div class="cabinet" role="img" aria-label="Cabinet with nine boxes. Box 04 is open.">
-              <div class="door">01</div><div class="door">02</div><div class="door">03</div>
-              <div class="door open">04</div><div class="door">05</div><div class="door">06</div>
-              <div class="door">07</div><div class="door">08</div><div class="door">09</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="num">5</div>
-        <div>
-          <span class="actor a-receiver">Student</span>
-          <h3>Her phone tells her</h3>
-          <p>She does not have to be there, or waiting, or watching. A message arrives saying a parcel is in box 04.</p>
-          <div class="screen">
-            <span class="cap">On her phone</span>
-            A parcel is waiting for you<br>
-            Cabinet by the library · Box 04
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="num">6</div>
-        <div>
-          <span class="actor a-receiver">Student</span>
-          <h3>She walks over and opens it</h3>
-          <p>Whenever suits her. There are two ways to open the door, and she can use either — the next section explains why there are two.</p>
-          <p>The door opens. She takes the parcel. The sensor sees the box is empty again, and that is the end of it.</p>
-        </div>
-      </div>
-
+    <div class="way risk">
+      <h3>She types the code</h3>
+      <p class="sub">The backup way</p>
+      <p>The message also carries a short code she can type straight into the cabinet, with no app at all. It is there for the flat battery and the phone left at home.</p>
+      <div class="verdict"><b>If somebody copies it</b>The door opens. This code <em>is</em> the key — so it works once, it expires, and wrong guesses lock the box.</div>
     </div>
-  </section>
+  </div>
 
-  <section>
-    <h2>The two ways to open the door</h2>
-    <div class="ways">
-
-      <div class="way safe">
-        <h3>Scan the screen</h3>
-        <p class="sub">The normal way</p>
-        <p>The cabinet screen shows a square code that keeps changing. She points the app at it. The door opens.</p>
-        <p>The code on the screen does not say <em>open box 04</em>. It only says <em>this cabinet, right now</em>. Who she is comes from being signed in on her own phone.</p>
-        <div class="verdict"><b>If copied</b><span>Nothing happens. A photo of the screen is useless without her account.</span></div>
-      </div>
-
-      <div class="way risk">
-        <h3>Type a code</h3>
-        <p class="sub">The backup way</p>
-        <p>The message also contains a short code. She can type it straight into the cabinet, with no app at all.</p>
-        <p>This exists for the bad day — a flat battery, a phone left at home, an app that will not start. Without it, a dead phone traps a parcel.</p>
-        <div class="verdict"><b>If copied</b><span>The door opens. This code <em>is</em> the key — so it works once, it expires, and wrong guesses lock the box.</span></div>
-      </div>
-
+  <h2>Three things the chart is quietly saying</h2>
+  <div class="notes">
+    <div class="note">
+      <h3>The cabinet asks, it never decides</h3>
+      <p>Every amber arrow starts at the server. The cabinet cannot choose a box or open a door by itself. <strong>A stolen cabinet opens nothing.</strong></p>
     </div>
-    <p style="margin-top:1.25rem; color:var(--ink-soft); max-width:44em">
-      These two are not equally safe, and that is the point of showing them side by side. Scanning is the front door. Typing a code is the spare key under the mat — worth having, kept short-lived on purpose.
-    </p>
-  </section>
-
-  <section>
-    <h2>Three things worth knowing</h2>
-    <div class="notes">
-      <div class="note">
-        <h3>The cabinet asks, it never decides</h3>
-        <p>The cabinet cannot choose a box or open a door on its own. It asks the server every time. <strong>A stolen cabinet opens nothing.</strong></p>
-      </div>
-      <div class="note">
-        <h3>The sensor, not the door</h3>
-        <p>A parcel counts as delivered when the sensor sees it — <strong>not</strong> when the door shuts. This removes a whole class of arguments about whether something was really left.</p>
-      </div>
-      <div class="note">
-        <h3>Never a false "done"</h3>
-        <p>If the network drops halfway, the app does not know whether the door opened. So it says exactly that. <strong>It never shows success it cannot prove.</strong></p>
-      </div>
+    <div class="note">
+      <h3>The sensor, not the door</h3>
+      <p>Step 4 exists on its own for a reason. A parcel counts as delivered when the sensor sees it — <strong>not</strong> when the door is shut.</p>
     </div>
-  </section>
-
-  <section>
-    <h2>What this is not</h2>
-    <div class="scope">
-      <ul>
-        <li><strong>Not paid.</strong> Free for students. No fees, no wallet, no card.</li>
-        <li><strong>Not storage.</strong> You cannot rent a box to keep your own things in. A box holds a parcel until it is collected.</li>
-        <li><strong>Not a student card system.</strong> No card, no scanning your ID. A phone number is the whole account.</li>
-        <li><strong>Not the delivery company's problem.</strong> The driver needs no app, no account, and no training.</li>
-      </ul>
+    <div class="note">
+      <h3>Nothing is free to guess</h3>
+      <p>If the network drops halfway through step 6, the app cannot know whether the door opened. So it says so. <strong>It never shows a success it cannot prove.</strong></p>
     </div>
-  </section>
+  </div>
 
   <footer>
-    <p>Project Postman · VGU Smart Locker · IT team. The parts and the wiring are in <code>docs/reference/architecture.md</code>; the agreed requests between app and server are in <code>docs/reference/api-contract.md</code>.</p>
+    <p>Project Postman · VGU Smart Locker · IT team. The parts and the wiring are in <code>docs/reference/architecture.md</code>. The agreed requests between app and server are in <code>docs/reference/api-contract.md</code>. Free for students — there is no payment anywhere in this chart.</p>
   </footer>
 
 </div>
