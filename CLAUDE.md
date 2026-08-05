@@ -94,6 +94,8 @@ The short form:
 - **Simplest thing that solves it.** No unasked feature, setting, or wrapper. 200 lines that could be 50 → rewrite.
 - **Surgical changes.** Touch only what the task needs. Do not tidy nearby code. Match the style already there. Clean up orphans *your* change made; dead code you found, mention and leave.
 
+Those last three are group **J** in `working-rules.md`. Full text lives in the installed skill `andrej-karpathy-skills:karpathy-guidelines` — invoke it, never web-search it.
+
 ## Product principles
 
 ### File size (hard cap)

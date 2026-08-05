@@ -208,7 +208,7 @@ An open request moves real metal and exposes someone's belongings. These are not
 
 ## J. Restraint rules — writing the change
 
-Groups A–I say how the team decides. This group says what the change itself should look like. It comes from Andrej Karpathy's list of the mistakes AI coding assistants make most — and human juniors make the same ones.
+Groups A–I say how the team decides. This group says what the change itself should look like. It comes from the `andrej-karpathy-skills:karpathy-guidelines` skill — a list of the mistakes AI coding assistants make most, and human juniors make the same ones. Agents load that skill for the full text instead of searching the web for it.
 
 **J1. Say your assumptions out loud before you build.**
 Two ways to read the task → show both and ask. Never pick one silently and build it.
@@ -278,4 +278,4 @@ Industry practice these rules are drawn from:
 - [Mobile App Testing: Best Practices and Strategy — Applause](https://www.applause.com/blog/mobile-app-testing-best-practices-and-strategy/) — real devices over simulators
 - [API Testing for Mobile Apps — Quash](https://quashbugs.com/blog/api-testing-for-mobile-apps) — contract-first, broken contracts as a top regression cause
 - [Debugging like a senior: a step-by-step mental model — Lauren M.](https://medium.com/@lauren.m45/debugging-like-a-senior-a-step-by-step-mental-model-59a1fd4dbc7d) — hypothesis before change, one variable at a time
-- [Andrej Karpathy on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) — group J: state assumptions, simplest thing that works, surgical changes
+- **Karpathy guidelines** — the installed skill `andrej-karpathy-skills:karpathy-guidelines`, not a web page. Source for group J: state assumptions, simplest thing that works, surgical changes. Agents invoke the skill; they do not search for it.
