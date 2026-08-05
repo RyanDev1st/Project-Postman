@@ -6,7 +6,7 @@ One line per doc. Add a row when you add a doc. Move a row to **Legacy** when th
 
 | Doc | What it holds |
 | --- | --- |
-| [roadmap/README.md](roadmap/README.md) | Master board. All phases, all task counts, current phase |
+| [roadmap/README.md](roadmap/README.md) | Master board. Task format, tick rules, phase counts, current phase |
 | [roadmap/phase-0-agree.md](roadmap/phase-0-agree.md) | Decide the stack, the barcode format, the API contract |
 | [roadmap/phase-1-skeleton.md](roadmap/phase-1-skeleton.md) | Empty app runs on both phones and reaches the server |
 | [roadmap/phase-2-login.md](roadmap/phase-2-login.md) | Login for both account types, plus error states |

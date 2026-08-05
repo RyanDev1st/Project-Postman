@@ -58,13 +58,24 @@ Server team (not this repo, but we depend on it):
 
 **Not chosen yet.** The decision lives in `docs/adr/0001-tech-stack.md` (status: proposed). Task **P0-01** settles it. Replace this section with the real stack and versions once the ADR is `accepted`.
 
-## Task tracking
+## Task tracking (agents: read this before starting any work)
 
-- The board is `docs/roadmap/README.md`. One file per phase, task IDs `P<phase>-<nn>`.
-- Branch name: `P2-03-login-screen`. Commit subject: `feat(P2-03): add login screen`.
-- A task is `done` only when its **Verify** line passes — not when the code is written.
-- Bugs go in `docs/reference/bug-log.md` as `BUG-nnn`, and close only at `re-tested`.
-- Change a task status → update the phase file **and** the count in `docs/roadmap/README.md` in the same change.
+The board is `docs/roadmap/README.md`. One file per phase. Every task is a **markdown checkbox** with a fixed shape:
+
+```markdown
+- [ ] **P2-03** — Log in as candidate or parent against the real API
+      - Owner: _unassigned_ · Needs: P2-02 · Blocks: —
+      - Verify: a real candidate account reaches the point list
+      - Notes: optional, one line
+```
+
+- **Start of a session:** read `docs/roadmap/README.md`, find the current phase, find the first unticked task whose `Needs` are all ticked. That is the next task.
+- **Taking a task:** put the owner's name in, prefix the title with `🟡 DOING — `. Stuck → `🔴 BLOCKED — ` and say why in Notes.
+- **Ticking a task:** run the **Verify** line first. It passes → `- [x]`, drop the marker, update the phase **Progress** line, update the count and phase box in `docs/roadmap/README.md`. All in one change.
+- **Never** tick on "code written". Verify or it is not done.
+- **Never** renumber or reuse an ID. New task → next free number, and raise the phase total.
+- Branch = task ID: `P2-03-candidate-login`. Commit subject: `feat(P2-03): add candidate login`.
+- Bugs are not roadmap tasks. They go to `docs/reference/bug-log.md` as `BUG-nnn`, and close only at `re-tested`.
 
 ## Product principles
 
