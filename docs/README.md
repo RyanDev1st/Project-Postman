@@ -37,6 +37,7 @@ One short file per non-obvious decision. Never edited after it is `accepted`. Re
 | --- | --- | --- |
 | [adr/0000-template.md](adr/0000-template.md) | Template. Copy it | — |
 | [adr/0001-tech-stack.md](adr/0001-tech-stack.md) | Which tech the app is built with | **open** |
+| [adr/0002-where-rules-live.md](adr/0002-where-rules-live.md) | Where working rules live, and which file is the authority | accepted |
 
 ## Findings — dated reports
 

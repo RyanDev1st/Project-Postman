@@ -79,7 +79,9 @@ The board is `docs/roadmap/README.md`. One file per phase. Every task is a **mar
 
 ## How we work — empirical development
 
-Full rules: `docs/reference/working-rules.md`. Read it before starting work. The short form:
+**`docs/reference/working-rules.md` is the authority.** What follows is a summary for agents. The two disagree → the doc wins, and this summary gets fixed in the same change. Never edit a rule here only.
+
+The short form:
 
 - **Decide from evidence, not assumption.** No "done", "fixed" or "works" without stating what you ran and what came out.
 - **Loop:** transparency → inspection → adaptation. Make work visible, look at what is real, change the work or the plan.
@@ -174,4 +176,14 @@ Verification fails → fix it, or report the failing command and the error text.
 
 ## Maintaining this file
 
-Add a rule when an agent makes the same mistake twice. Remove stale map rows when folders go. Past 200 lines → move file-type rules to `.claude/rules/<topic>.md`.
+Add a rule when an agent makes the same mistake twice. Remove stale map rows when folders go.
+
+**Where a rule belongs** (decided in [ADR 0002](docs/adr/0002-where-rules-live.md)):
+
+| Kind of rule | Home |
+| --- | --- |
+| How the team works — needs the *why*, read by humans | `docs/reference/working-rules.md`. Summarize here only if an agent needs it every session |
+| Agent behavior needed on **every** task | this file |
+| Agent behavior for **specific file types** (e.g. UI files, API-call files) | `.claude/rules/<topic>.md` with `paths:` frontmatter. **None yet** — `src/` is empty until P0-01 picks the stack |
+
+`.claude/rules/` files load every session, same as this file — the split is for readability, not for saving context. Move file-type rules there when this file passes 200 lines.

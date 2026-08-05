@@ -224,6 +224,8 @@ Every belief we act on but have not yet checked. Add a row the moment you notice
 
 ## Changing these rules
 
+**This file is the authority on how the team works.** `CLAUDE.md` carries a short summary of it for agents. If the two disagree, this file wins — and the summary is corrected in the same change. Never edit a rule in `CLAUDE.md` alone. See [ADR 0002](../adr/0002-where-rules-live.md).
+
 These rules are subject to their own loop. They are inspected at the end of every phase and adapted.
 
 To change one: say which rule, what happened that shows it is wrong, and what replaces it. Bring evidence, not preference. Then edit this file — it is mutable in place, like everything in `reference/`.
