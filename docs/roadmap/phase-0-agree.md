@@ -6,6 +6,41 @@
 
 Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
 
+## Start here
+
+Only **two** tasks can start right now. Everything else is waiting on one of them.
+
+| Start today | Why it is free to start |
+| --- | --- |
+| **P0-01** — does the cabinet have its own network? | Nothing blocks it, and it blocks four other tasks |
+| **P0-09** — list the test devices | Nothing blocks it. The Mac and Apple account question takes the longest to fix, so ask today |
+
+Everything else unlocks in this order:
+
+```
+   P0-01 ──┬──> P0-02 ──> P0-03
+           │
+           └──> P0-04 ──┬──> P0-05, P0-07, P0-08, P0-10
+                        │
+                        └──> P0-06 ──> P0-11 ──> P0-12 ──> P0-13
+
+   P0-09  (on its own, blocks nothing in this phase)
+```
+
+**The longest chain is six deep: P0-01 → P0-04 → P0-06 → P0-11 → P0-12 → P0-13.** That chain is the length of Phase 0. Shortening it means answering P0-01 and P0-04 fast, not working harder later.
+
+## Who actually answers each one
+
+Most of this phase is not work we do. It is answers we need from other people. Grouped that way, it is three conversations, not thirteen tasks.
+
+| Who | Tasks | What to do |
+| --- | --- | --- |
+| **Hardware team** | P0-01, P0-02, and the sensor half of P0-10 | One message. Four questions. Send it today |
+| **Server team** | P0-04, and P0-05 · P0-06 · P0-07 · P0-08 · P0-10 · P0-11 which all hang off it | One meeting. P0-04 is the meeting; the other six are its agenda |
+| **Us, the IT team** | P0-03, P0-09, P0-12, P0-13 | Ours to decide. P0-12 and P0-13 need the other two groups answered first |
+
+The Google Meet the team asked about covers the Server-team column in one sitting.
+
 ## Tasks
 
 - [ ] **P0-01** — Ask the hardware team: does the cabinet have its own network connection?
