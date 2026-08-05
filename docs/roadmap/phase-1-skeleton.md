@@ -18,7 +18,7 @@ No feature in this phase. Only proof that the pipes exist.
       - Notes: needs a Mac and an Apple developer account. Check this in P0-09, not here
 
 - [ ] **P1-03** — Empty screen runs on the real cabinet
-      - Owner: _unassigned_ · Needs: P0-01, P0-02, P0-03 · Blocks: P1-06
+      - Owner: _unassigned_ · Needs: P0-01, P0-02, P0-14 · Blocks: P1-06
       - Verify: the cabinet screen shows one screen with its version number, at the cabinet, not on a desk
 
 - [ ] **P1-04** — One network file in the app. Every call goes through it

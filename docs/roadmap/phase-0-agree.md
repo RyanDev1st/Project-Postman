@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 0 / 13.**
+**Progress: 0 / 14.**
 
 Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
 
@@ -15,29 +15,34 @@ Only **two** tasks can start right now. Everything else is waiting on one of the
 | **P0-01** — does the cabinet have its own network? | Nothing blocks it, and it blocks four other tasks |
 | **P0-09** — list the test devices | Nothing blocks it. The Mac and Apple account question takes the longest to fix, so ask today |
 
+**And immediately after P0-09, without waiting for anyone:** **P0-03**, the phone app stack. Those three are the whole IT-team-only path into Phase 1.
+
 Everything else unlocks in this order:
 
 ```
-   P0-01 ──┬──> P0-02 ──> P0-03
+   P0-01 ──┬──> P0-02 ──> P0-14 ──> (cabinet screen, Phase 1)
            │
            └──> P0-04 ──┬──> P0-05, P0-07, P0-08, P0-10
                         │
                         └──> P0-06 ──> P0-11 ──> P0-12 ──> P0-13
 
-   P0-09  (on its own, blocks nothing in this phase)
+   P0-09 ──────> P0-03 ──────────────> (phone app, Phase 1)
 ```
+
+The bottom line needs nobody outside this team. It is the only way into Phase 1 that we control.
 
 **The longest chain is six deep: P0-01 → P0-04 → P0-06 → P0-11 → P0-12 → P0-13.** That chain is the length of Phase 0. Shortening it means answering P0-01 and P0-04 fast, not working harder later.
 
 ## Who actually answers each one
 
-Most of this phase is not work we do. It is answers we need from other people. Grouped that way, it is three conversations, not thirteen tasks.
+Most of this phase is not work we do. It is answers we need from other people. Grouped that way, it is three conversations, not fourteen tasks.
 
 | Who | Tasks | What to do |
 | --- | --- | --- |
 | **Hardware team** | P0-01, P0-02, and the sensor half of P0-10 | One message. Four questions. Send it today |
 | **Server team** | P0-04, and P0-05 · P0-06 · P0-07 · P0-08 · P0-10 · P0-11 which all hang off it | One meeting. P0-04 is the meeting; the other six are its agenda |
-| **Us, the IT team** | P0-03, P0-09, P0-12, P0-13 | Ours to decide. P0-12 and P0-13 need the other two groups answered first |
+| **Us, the IT team** | P0-03, P0-09, P0-12, P0-13 | Ours to decide. **P0-09 and P0-03 need nobody** — do them now. P0-12 and P0-13 need the other columns first |
+| **Hardware, then us** | P0-14 | The cabinet stack, once P0-02 says what the screen runs |
 
 The Google Meet the team asked about covers the Server-team column in one sitting.
 
@@ -49,14 +54,14 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: **ask this first.** We are already building as if the answer is yes (assumption A-09). A chat message from a teammate is not the hardware owner. Every arrow in the chart dies without this
 
 - [ ] **P0-02** — Write down what the cabinet screen is: size, touch, what it runs
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-03, P1-03
+      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-14, P1-03
       - Verify: the screen size, whether it takes touch, and its operating system are written in `architecture.md`
       - Notes: a phone-sized screen and a tablet-sized screen need different layouts
 
-- [ ] **P0-03** — Pick the tech stack for both front-ends
-      - Owner: _unassigned_ · Needs: P0-02 · Blocks: P1-01, P1-02, P1-03
-      - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted`, and `CLAUDE.md` names the real stack
-      - Notes: the cabinet screen may use a different stack from the phone app. Say so if it does
+- [ ] **P0-03** — Pick the tech stack for the **phone app**
+      - Owner: _unassigned_ · Needs: P0-09 · Blocks: P1-01, P1-02
+      - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
+      - Notes: nobody outside this team decides this. It needs P0-09 only because no Mac changes the answer. Split from the cabinet choice (P0-14) so the phone app is not held up by hardware questions
 
 - [ ] **P0-04** — Agree the API contract with the Server team
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-05, P0-06, P0-07, P0-08, P0-10, P0-11, P2-01, P3-01
@@ -84,7 +89,7 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
 
 - [ ] **P0-09** — List the test devices: two phones and one cabinet
-      - Owner: _unassigned_ · Needs: — · Blocks: P1-01, P1-02
+      - Owner: _unassigned_ · Needs: — · Blocks: P0-03, P1-01, P1-02
       - Verify: a table in this file names the Android model, the iPhone model, their OS versions, and where the test cabinet is
       - Notes: check today whether a Mac and an Apple developer account exist. It blocks P1-02 and takes longest to fix
 
@@ -108,6 +113,11 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: rule **C4** in `working-rules.md` either carries a written exception, or ADR 0004 is marked rejected. One or the other, decided by the team, not by whoever writes the code
       - Notes: C4 says the front-end never decides. ADR 0004 has the cabinet opening a door with no server involved. Both cannot be true. **Nothing offline gets built until this is settled**
 
+- [ ] **P0-14** — Pick the tech stack for the **cabinet screen**
+      - Owner: _unassigned_ · Needs: P0-02 · Blocks: P1-03
+      - Verify: [ADR 0001](../adr/0001-tech-stack.md) names the cabinet stack, and says whether it is the same as the phone app or different
+      - Notes: cannot be decided before P0-02 says what the screen is and what it runs. A different stack from the phone app is allowed — say so if it is
+
 ## Test devices
 
 Fill this in during P0-09.
@@ -120,7 +130,7 @@ Fill this in during P0-09.
 
 ## Exit check
 
-- [ ] All thirteen tasks ticked
+- [ ] All fourteen tasks ticked
 - [ ] `api-contract.md` has zero `TO AGREE` markers
 - [ ] [ADR 0001](../adr/0001-tech-stack.md) is `accepted`
 - [ ] The cabinet is confirmed to have a network connection
