@@ -29,7 +29,7 @@ This whole phase is the **cabinet screen**, not the phone app. The shipper insta
       - Notes: the cabinet does not choose the box. It asks. Rule 2 in `architecture.md`
 
 - [ ] **P3-05** — The sensor sees the parcel, and only then is it recorded
-      - Owner: _unassigned_ · Needs: P3-04, P0-10 · Blocks: P4-01, P6-04
+      - Owner: _unassigned_ · Needs: P3-04, P0-10 · Blocks: P4-01, P6-04, P6-07
       - Verify: put a real parcel in and the server records it. Then open a door, close it again with **nothing inside**, and the server records nothing
       - Notes: the door shutting is not the evidence. The sensor is. Both halves of the Verify must pass
 
@@ -37,19 +37,19 @@ This whole phase is the **cabinet screen**, not the phone app. The shipper insta
       - Owner: _unassigned_ · Needs: P3-03, P3-04 · Blocks: —
       - Verify: both cases show their own plain sentence on the real cabinet screen
 
-- [ ] **P3-07** — What the cabinet does when it cannot reach the server
+- [ ] **P3-07** — The cabinet says plainly when it is working offline
       - Owner: _unassigned_ · Needs: P3-01 · Blocks: —
-      - Verify: with the network unplugged, the cabinet says it is offline and refuses to start a drop. No door opens
-      - Notes: an offline cabinet must never guess. It cannot know whose parcel this is
+      - Verify: with the network unplugged, the screen says so, and warns that the name cannot be checked before the driver commits
+      - Notes: offline the drop still works — see P6-07 — but the name check is skipped, so the driver must be told to read the number twice
 
 ## Safety rules for this phase
 
 Tick these with the phase. They are not style preferences.
 
-- [ ] A door opens only after the shipper confirms the name. Never on the number alone
+- [ ] A door opens only after the shipper confirms. Never on the number alone
 - [ ] One confirm = at most one door opening. Proven from the server log, not assumed
 - [ ] No full name, no phone number, and no parcel list ever appears on the cabinet screen
-- [ ] The cabinet never picks a box by itself, even when the server is slow
+- [ ] While online, the cabinet never picks a box by itself, even when the server is slow
 
 ## Exit check
 

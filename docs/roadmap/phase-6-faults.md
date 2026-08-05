@@ -2,7 +2,7 @@
 
 **Goal:** the awkward cases have an answer, and none of them loses a parcel.
 
-**Progress: 0 / 6.**
+**Progress: 0 / 8.**
 
 Every task here needs Phase 5 working first. A fault is a fault in a flow that already runs.
 
@@ -30,13 +30,23 @@ Every task here needs Phase 5 working first. A fault is a fault in a flow that a
       - Verify: scanning a cabinet that holds nothing for you says which cabinet does hold your parcel. No door opens
 
 - [ ] **P6-06** — A pickup still works when the cabinet has no network
-      - Owner: _unassigned_ · Needs: P5-08, P0-12 · Blocks: —
+      - Owner: _unassigned_ · Needs: P5-08, P0-12 · Blocks: P6-08
       - Verify: unplug the network at the real cabinet. A parcel already inside can still be collected, and the server learns about it once the network returns
-      - Notes: only pickup. A drop can never work offline — the cabinet cannot look up whose number it is
+      - Notes: the receiver's phone needs no network either. Her secret is already on it
+
+- [ ] **P6-07** — A drop still works when the cabinet has no network
+      - Owner: _unassigned_ · Needs: P3-05, P0-12 · Blocks: P6-08
+      - Verify: unplug the network, drop a real parcel, plug it back in. The receiver is told, late but correctly, and the box shows the right parcel
+      - Notes: offline, the cabinet cannot check the number is registered. It takes the number, opens a box, and the server settles up later
+
+- [ ] **P6-08** — Guessing the code locks the box, even across a power cut
+      - Owner: _unassigned_ · Needs: P6-06, P6-07 · Blocks: —
+      - Verify: type wrong codes until the box locks. Pull the power. Power it back on. The box is **still** locked
+      - Notes: without this, the attack is guess, unplug, repeat. Six digits is only safe while guessing is limited
 
 ## Exit check
 
-- [ ] All six tasks ticked
+- [ ] All eight tasks ticked
 - [ ] No case above lost a parcel or opened a wrong door
 - [ ] Every new message was read by someone outside the team and understood
 - [ ] Counts updated in [README.md](README.md)

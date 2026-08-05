@@ -89,14 +89,14 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       The notification arrives and the parcel shows in the app.
 - [ ] **Phase 5 — Pick up** · [phase-5-pickup.md](phase-5-pickup.md) · `0/9`
       Scan the cabinet QR — or type the code — and the right box opens. The core feature.
-- [ ] **Phase 6 — When it goes wrong** · [phase-6-faults.md](phase-6-faults.md) · `0/6`
+- [ ] **Phase 6 — When it goes wrong** · [phase-6-faults.md](phase-6-faults.md) · `0/8`
       Faulty box, two parcels, nobody collects, shipper walks away, network drops.
 - [ ] **Phase 7 — History** · [phase-7-history.md](phase-7-history.md) · `0/3`
       What happened, for the receiver and for staff.
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 0 / 66.**
+**Total: 0 / 68.**
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -123,7 +123,7 @@ Phase 8 runs at the end, but its device testing starts early — test on a real 
 
 Phases 1, 3, 5 and 8 touch **both** the phone app and the cabinet screen. When a task names one of them, it means only that one.
 
-The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 66 tasks and not 45.
+The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 68 tasks and not 45.
 
 ## Working rules
 

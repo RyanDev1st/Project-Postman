@@ -216,6 +216,30 @@ Said by the team, in writing. These are decisions, not guesses.
 - **Pickup has two paths:** scan the QR, or type a code. See D1 and D2 above.
 - **Free for students.** No payment, no wallet, no fee screen, anywhere.
 
+## 8. When the network drops
+
+The cabinet is on Wi-Fi, and campus Wi-Fi drops. Both a drop and a pickup keep working. See [ADR 0004](../adr/0004-offline-pickup.md), which recommends how.
+
+The short version: the cabinet asks a question the phone can only answer if it holds the right secret.
+
+```
+   ①  she types her phone number on the cabinet
+   ②  cabinet shows a QR — a one-off random number, nothing else
+   ③  her phone reads it, mixes it with her stored secret → 6 digits
+   ④  she types the 6 digits
+   ⑤  cabinet works out the same 6 digits and compares → the door opens
+```
+
+Three things make this work with no network on either side:
+
+- **Her secret is already on her phone**, put there when she registered. Her phone needs no signal either.
+- **The cabinet can work out anybody's secret** from the phone number typed at the keypad, using the key it was given at setup. It stores no user list.
+- **No clocks have to agree.** The cabinet supplies a fresh random number each time, so there is nothing to keep in step. This is why it is not the same as Google Authenticator, which does need clock sync.
+
+Offline, a drop skips the name check — the cabinet cannot look anything up. It takes the number, opens a box, and the server settles up when the network returns. The screen says so, so the driver knows to read the number twice.
+
+**What protects it:** the answer works once, the random number is thrown away after use, and wrong tries lock that box — with the count surviving a power cut. Six digits is only safe while guessing is limited.
+
 ## Assumed, not confirmed
 
 - **The cabinet is on the network.** We are building as if it is. Nobody from the hardware team has said so in writing yet. Assumption **A-09**, still `open`, and task **P0-01** still has to close it.

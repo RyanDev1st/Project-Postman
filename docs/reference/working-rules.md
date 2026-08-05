@@ -10,7 +10,7 @@ These rules are gathered from senior practice in industry — Google's code revi
 
 **Empirical means: decide from evidence, not from assumption.**
 
-A plan made in a room is a guess. A real card scanned by a real phone is evidence. When the two disagree, the evidence wins and the plan changes.
+A plan made in a room is a guess. A real parcel collected from a real cabinet is evidence. When the two disagree, the evidence wins and the plan changes.
 
 The loop is three steps, and it never stops:
 
@@ -49,7 +49,7 @@ It goes in the [Assumption log](#assumption-log) below, with a date and an owner
 *Check:* the log has no row older than two weeks with status `open`.
 
 **A4. An unknown that blocks work is a task, not a worry.**
-Turn it into a roadmap task with an ID and an owner. See P0-02, which exists only to answer "what is actually printed on a VGU card?"
+Turn it into a roadmap task with an ID and an owner. See P0-01, which exists only to answer "does the cabinet have its own network connection?"
 *Why:* worries get discussed forever. Tasks get done.
 
 **A5. "It works on my machine" is not evidence.**
@@ -85,7 +85,7 @@ Split it. Give the new one the next free ID.
 ## C. Contract-first rules
 
 **C1. Agree the API contract before building the screen.**
-See task P0-05 and [api-contract.md](api-contract.md).
+See task P0-04 and [api-contract.md](api-contract.md).
 *Why:* a broken contract is a top cause of mobile regressions. Change the contract after the screens exist and you rebuild the screens. This is the highest-cost mistake available to this project.
 
 **C2. A contract change is a decision by both teams, never by one.**
@@ -96,7 +96,7 @@ If a mock exists, it is labelled as a fixture and it lives in `tests/`.
 *Why:* a mock in a shipping path is a lie that passes every test and fails every user.
 
 **C4. The server is the truth. The app never decides.**
-The app does not decide who you are, which locker is yours, whether a locker is free, or whether the mode allows an open. It asks.
+The app does not decide who you are, which box is yours, or whether a box is free. It asks. The one exception is written down and argued in [ADR 0004](../adr/0004-offline-pickup.md): when the network is gone, the cabinet checks an answer itself, because the alternative is refusing everybody.
 *Why:* one truth in one place. Also: an app on a phone can be modified. A server cannot.
 
 ---
@@ -114,11 +114,11 @@ No Verify line → the task is not ready to start. Write the check before you wr
 Not only in Phase 8.
 *Why:* half of mobile bugs live on one device only. Finding them at the end means fixing them all at once, under pressure.
 
-**D4. For anything that opens a locker, the server log is the evidence.**
+**D4. For anything that opens a box, the server log is the evidence.**
 Not the screen. The screen shows what the app believes. The log shows what happened.
 
 **D5. Unclear is not success.**
-If the app cannot tell whether the locker opened, it says so. It never guesses.
+If the app cannot tell whether the box opened, it says so. It never guesses.
 
 **D6. A tick carries a `Done` line, written for someone with no technical background.**
 Say what you did and what you saw. Name the real phone, the real cabinet, the real person. Two or three sentences, plain words.
@@ -164,7 +164,7 @@ Follow this order. Do not skip a step because it feels slow.
 **F5. Review within one working day**, or say when you can.
 *Why:* a change waiting for review is work that is finished and helping nobody.
 
-**F6. Anything touching a locker open, a token, or a password gets a careful review, however small the change.**
+**F6. Anything touching a door opening, a token, or a code gets a careful review, however small the change.**
 
 ---
 
@@ -204,7 +204,7 @@ Measure the delivery process, not the people. Four numbers, checked weekly. They
 
 ## I. Safety rules — this project specifically
 
-An open request moves real metal and exposes someone's belongings. These are not style preferences.
+An open request moves real metal and exposes someone's parcel. These are not style preferences.
 
 1. An open request is fired only by a direct user tap. Never by a retry, a timer, or a screen refresh.
 2. One tap = at most one open request. Proven from the server log, not assumed.
@@ -267,6 +267,8 @@ A fourth status, `dropped`, is for a row the product change made meaningless. Ne
 | A-09 | The cabinet has its own network connection (SIM or Wi-Fi) | — | 2026-08-05 | **Ask the hardware team (P0-01).** We are building as if it does, on the team's instruction — but nobody has said so in writing. Nothing in the plan works without one | open |
 | A-10 | The sensor can tell "a parcel is in here" reliably enough to record a delivery on | — | 2026-08-05 | The team said a sensor will exist. Nobody has said what it reports. Ask (P0-10) | open |
 | A-11 | A receiver who types the backup code is the person the code was sent to | — | 2026-08-05 | Cannot be checked, only limited. One use, an expiry, a lockout after wrong tries (P0-11, P5-08) | open |
+| A-13 | The cabinet can remember a wrong-try count across a power cut | — | 2026-08-05 | Ask the hardware team with P0-01. Without it, the attack is guess, unplug, repeat (P6-08) | open |
+| A-14 | Campus Wi-Fi drops rarely enough that a late notice is acceptable during an outage | — | 2026-08-05 | Log the cabinet's connection for one week (P0-12 open question 1) | open |
 | A-12 | One cabinet is enough for the first release | — | 2026-08-05 | Ask the team. Two cabinets means the notice must say *which* one, and the pickup must check it (P6-05 already assumes this) | open |
 
 ---

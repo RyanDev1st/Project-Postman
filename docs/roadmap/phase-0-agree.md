@@ -64,9 +64,9 @@ Phase 0 is the cheapest phase and it prevents the most rework. Do all of it befo
       - Notes: this code **is** the key — unlike the QR. Too long a life and a forwarded message still opens the box. Not the same question as P0-07
 
 - [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
-      - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P6-06
+      - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P6-06, P6-07
       - Verify: [ADR 0004](../adr/0004-offline-pickup.md) is `accepted`, and the chosen way is written in `api-contract.md`
-      - Notes: the team has no answer for this yet. Two options are written up in the ADR. A drop can never work offline — only a pickup — and that makes the problem much smaller than it looks
+      - Notes: the team has no answer for this yet. Two options are written up in the ADR, which recommends the challenge-and-response one. Both a drop and a pickup can work offline — an earlier draft of the ADR said otherwise and was wrong
 
 ## Test devices
 
