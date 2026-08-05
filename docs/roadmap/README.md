@@ -77,7 +77,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 ## Phases
 
-- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `0/14` · **CURRENT**
+- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `5/15` · **CURRENT**
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/7`
       Empty app on both phones, empty screen on the cabinet, both reach the server.
@@ -96,7 +96,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 0 / 70.**
+**Total: 5 / 71.**
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -123,7 +123,7 @@ Phase 8 runs at the end, but its device testing starts early — test on a real 
 
 Phases 1, 3, 5 and 8 touch **both** the phone app and the cabinet screen. When a task names one of them, it means only that one.
 
-The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 70 tasks and not 45.
+The cabinet screen is a smaller job than the app, but it is a real second front-end. It is the reason this board is 71 tasks and not 45.
 
 ## Working rules
 

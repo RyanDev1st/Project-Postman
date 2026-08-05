@@ -23,10 +23,10 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
       - Owner: _unassigned_ · Needs: P5-02 · Blocks: P5-04, P5-05, P5-06, P5-07, P5-08, P6-05, P7-03
       - Verify: the correct door physically opens, and the server log shows which user and which box
 
-- [ ] **P5-04** — The sensor sees the box is empty, and the parcel is marked collected
+- [ ] **P5-04** — The door closes and the parcel is marked collected
       - Owner: _unassigned_ · Needs: P5-03, P0-10 · Blocks: P6-01, P6-02, P6-03, P7-01, P7-02
-      - Verify: take the parcel out and the parcel leaves "My parcels". Then open a box and close it **without taking anything**, and nothing is marked collected
-      - Notes: same rule as P3-05, in reverse. The sensor decides, not the door
+      - Verify: take the parcel out, close the door, and the parcel leaves "My parcels" and is written as collected in the server log
+      - Notes: same as P3-05, in reverse. No sensor — [ADR 0006](../adr/0006-no-sensor.md)
 
 - [ ] **P5-05** — Plain messages for "code expired" and "no parcel for you here"
       - Owner: _unassigned_ · Needs: P5-03 · Blocks: —

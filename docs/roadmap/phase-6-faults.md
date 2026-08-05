@@ -23,7 +23,8 @@ Every task here needs Phase 5 working first. A fault is a fault in a flow that a
 
 - [ ] **P6-04** — The shipper walks away with the door open
       - Owner: _unassigned_ · Needs: P3-05 · Blocks: —
-      - Verify: leave a real door open past the agreed time. The cabinet warns, and the server does not record a parcel that is not there
+      - Verify: leave a real door open past the agreed time. The cabinet warns on screen, and the server marks the drop unfinished rather than delivered
+      - Notes: with no sensor, an **open** door is the only signal we get that something went wrong. A closed door with no parcel inside is undetectable — that risk is accepted in [ADR 0006](../adr/0006-no-sensor.md)
 
 - [ ] **P6-05** — The receiver scans at the wrong cabinet
       - Owner: _unassigned_ · Needs: P5-03 · Blocks: —

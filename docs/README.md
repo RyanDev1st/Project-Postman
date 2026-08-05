@@ -41,6 +41,8 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0002-where-rules-live.md](adr/0002-where-rules-live.md) | Where working rules live, and which file is the authority | accepted |
 | [adr/0003-parcel-locker-product.md](adr/0003-parcel-locker-product.md) | Parcel drop-off product. The phone scans the cabinet, not the reverse | accepted |
 | [adr/0004-offline-pickup.md](adr/0004-offline-pickup.md) | How a pickup works when the cabinet loses the network | **open** |
+| [adr/0005-we-propose-they-object.md](adr/0005-we-propose-they-object.md) | We write the proposal; what we guess, we make adjustable | accepted |
+| [adr/0006-no-sensor.md](adr/0006-no-sensor.md) | No sensor. The door closing is the evidence | accepted |
 
 ## Findings — dated reports
 

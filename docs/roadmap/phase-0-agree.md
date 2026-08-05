@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 0 / 14.**
+**Progress: 5 / 15.**
 
 Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
 
@@ -48,10 +48,10 @@ The Google Meet the team asked about covers the Server-team column in one sittin
 
 ## Tasks
 
-- [ ] **P0-01** — Ask the hardware team: does the cabinet have its own network connection?
-      - Owner: _unassigned_ · Needs: — · Blocks: P0-02, P0-04, P0-12, P1-03
+- [x] **P0-01** — Ask the hardware team: does the cabinet have its own network connection?
+      - Owner: Team · Needs: — · Blocks: P0-02, P0-04, P0-12, P1-03
       - Verify: a written answer from the hardware owner naming SIM or Wi-Fi, in `architecture.md`
-      - Notes: **ask this first.** We are already building as if the answer is yes (assumption A-09). A chat message from a teammate is not the hardware owner. Every arrow in the chart dies without this
+      - Done: 2026-08-05 — The team confirmed the cabinet connects to Wi-Fi. That is now written into `architecture.md` as a fact rather than a guess, and the diagram says so. Everything in the plan needed this answer, so it unblocks most of the phase. Worth knowing the answer came from our own team rather than the hardware owner directly — if that turns out to be wrong, this is the first thing to re-check.
 
 - [ ] **P0-02** — Write down what the cabinet screen is: size, touch, what it runs
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-14, P1-03
@@ -59,29 +59,29 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Notes: a phone-sized screen and a tablet-sized screen need different layouts
 
 - [ ] **P0-03** — Pick the tech stack for the **phone app**
-      - Owner: _unassigned_ · Needs: P0-09 · Blocks: P1-01, P1-02
+      - Owner: _unassigned_ · Needs: P0-09 · Blocks: P0-15, P1-01, P1-02
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Notes: nobody outside this team decides this. It needs P0-09 only because no Mac changes the answer. Split from the cabinet choice (P0-14) so the phone app is not held up by hardware questions
 
-- [ ] **P0-04** — Agree the API contract with the Server team
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-05, P0-06, P0-07, P0-08, P0-10, P0-11, P2-01, P3-01
-      - Verify: `api-contract.md` has zero `TO AGREE` markers and both teams have signed off in writing
-      - Notes: the highest-cost task in the project. Do not start screens before it passes
+- [ ] **P0-04** — Write the whole API contract as our proposal, and send it
+      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-05, P0-08, P2-01, P3-01
+      - Verify: `api-contract.md` has zero `TO AGREE` markers **and** it has been sent to the Server team with a date recorded here
+      - Notes: changed from *agree with them* to *propose to them* — see [ADR 0005](../adr/0005-we-propose-they-object.md). They have no API design yet, so a blank form would never come back. The document is written; **it still has to be sent**
 
 - [ ] **P0-05** — Agree how the cabinet proves it is the cabinet
       - Owner: _unassigned_ · Needs: P0-04 · Blocks: P1-06, P3-01
       - Verify: the key type, how it is placed on the cabinet, and how it is replaced are written in `api-contract.md`
       - Notes: get this wrong and a stolen cabinet opens every box. The key never enters this repo
 
-- [ ] **P0-06** — Agree how the receiver is told a parcel arrived
-      - Owner: _unassigned_ · Needs: P0-04 · Blocks: P0-11, P4-01
-      - Verify: one route is chosen — push, Zalo or SMS — and written in `api-contract.md` with its cost per message
-      - Notes: push through the app is free. SMS is not
+- [x] **P0-06** — Decide how the receiver is told a parcel arrived
+      - Owner: Team · Needs: — · Blocks: P0-11, P4-01
+      - Verify: one route is chosen and written down, with its cost per message, and it is adjustable without a new release
+      - Done: 2026-08-05 — Chose push through the app. It costs nothing per message, and the app is already needed to collect a parcel, so nobody has to install anything extra. SMS would cost money for every single delivery. The choice sits in the settings list, so if push turns out to be unreliable on campus we can switch to Zalo or SMS by editing one line, not by rebuilding the app.
 
-- [ ] **P0-07** — Agree the QR session code: what it holds, how long it lives
-      - Owner: _unassigned_ · Needs: P0-04 · Blocks: P5-01
-      - Verify: the lifetime in seconds and the refresh rate are written in `api-contract.md`
-      - Notes: too short and a slow user fails; too long and a photograph stays useful
+- [x] **P0-07** — Decide the QR session code: what it holds, how long it lives
+      - Owner: Team · Needs: — · Blocks: P5-01
+      - Verify: the lifetime in seconds and the refresh rate are written down, and both are adjustable without a new release
+      - Done: 2026-08-05 — Set the code on the cabinet screen to last 60 seconds, with the screen drawing a new one every 30 seconds. Both numbers are guesses, so both went into the settings list where anyone can change them. If people find it expires while they are still walking up, the number goes up; nothing else has to change. The code itself only says which cabinet and when, so a longer life is not dangerous the way the typed code would be.
 
 - [ ] **P0-08** — Agree what the shipper sees when he looks up a receiver
       - Owner: _unassigned_ · Needs: P0-04 · Blocks: P3-03
@@ -93,15 +93,15 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: a table in this file names the Android model, the iPhone model, their OS versions, and where the test cabinet is
       - Notes: check today whether a Mac and an Apple developer account exist. It blocks P1-02 and takes longest to fix
 
-- [ ] **P0-10** — Agree what the box sensor actually reports
-      - Owner: _unassigned_ · Needs: P0-04 · Blocks: P3-05, P5-04
-      - Verify: what the sensor sends, and what counts as "a parcel is in there", are written in `api-contract.md` endpoint 12
-      - Notes: a weight, a broken beam, or a plain full/empty are three different answers. It decides what "delivered" means, so it cannot be guessed
+- [x] **P0-10** — Decide what records a delivery, now that there is no sensor
+      - Owner: Team · Needs: — · Blocks: P3-05, P5-04
+      - Verify: [ADR 0006](../adr/0006-no-sensor.md) is `accepted`, and `api-contract.md` endpoint 12 names the event rather than what causes it
+      - Done: 2026-08-05 — The team confirmed there is no sensor in the boxes, which reverses an earlier plan. So the door closing is what records a delivery. That means a driver could open a door, walk off still holding the parcel, and the system would think it was delivered. We looked at three ways to stop that — a confirm button, a camera, a weight check — and all three were either the same trust problem or a sensor by another name. We accept the risk: it leaves a trail naming the driver, the box and the time, so it is traceable afterwards even though it is not preventable beforehand. The call is named "a door closed" so that if a sensor is ever fitted, it fires the same call and nothing else changes.
 
-- [ ] **P0-11** — Agree the typed pickup code: length, lifetime, and lockout
-      - Owner: _unassigned_ · Needs: P0-04, P0-06 · Blocks: P0-12, P5-08
-      - Verify: the length, the lifetime in minutes, and the number of wrong tries before a box locks are all written in `api-contract.md`
-      - Notes: this code **is** the key — unlike the QR. Too long a life and a forwarded message still opens the box. Not the same question as P0-07
+- [x] **P0-11** — Decide the typed pickup code: length, lifetime, and lockout
+      - Owner: Team · Needs: P0-06 · Blocks: P0-12, P5-08
+      - Verify: the length, the lifetime, and the number of wrong tries before a box locks are all written in `api-contract.md`, and all three are adjustable
+      - Done: 2026-08-05 — Settled on a 6-digit code that lasts 48 hours, with the box locking for 15 minutes after 5 wrong tries. 48 hours because a parcel usually sits a day or two and nobody should be punished for being busy. The lockout matters more than it looks: 6 digits is one chance in a million per try, which is only safe while somebody cannot sit there guessing all night. All four numbers are in the settings list. What is **not** adjustable is that the code works once and never repeats — that is a design decision, not a number.
 
 - [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
       - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
@@ -118,6 +118,11 @@ The Google Meet the team asked about covers the Server-team column in one sittin
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) names the cabinet stack, and says whether it is the same as the phone app or different
       - Notes: cannot be decided before P0-02 says what the screen is and what it runs. A different stack from the phone app is allowed — say so if it is
 
+- [ ] **P0-15** — Build the settings file, before any code is written
+      - Owner: _unassigned_ · Needs: P0-03 · Blocks: —
+      - Verify: every number in the settings table in `architecture.md` is in one file, a person can edit it without touching code, and changing one takes effect without a new release
+      - Notes: this is what makes guessing safe — see [ADR 0005](../adr/0005-we-propose-they-object.md). It exists **before** Phase 1 so that no guessed number ever gets typed into a source file. An admin web page can come later; a plain config file is enough to start
+
 ## Test devices
 
 Fill this in during P0-09.
@@ -130,8 +135,8 @@ Fill this in during P0-09.
 
 ## Exit check
 
-- [ ] All fourteen tasks ticked
-- [ ] `api-contract.md` has zero `TO AGREE` markers
+- [ ] All fifteen tasks ticked
+- [x] `api-contract.md` has zero `TO AGREE` markers — done 2026-08-05
 - [ ] [ADR 0001](../adr/0001-tech-stack.md) is `accepted`
-- [ ] The cabinet is confirmed to have a network connection
+- [x] The cabinet is confirmed to have a network connection — Wi-Fi, done 2026-08-05
 - [ ] Counts updated in [README.md](README.md)

@@ -13,7 +13,7 @@ Check this chart against what the team expects. If one arrow is wrong, the plan 
 ```
 ╔════════════════════════════╦═══════════════════════════════╦════════════════════════════╗
 ║  RECEIVER                  ║  CABINET — on campus, online  ║  SERVER TEAM               ║
-║  student, own phone        ║  screen · boxes · sensor      ║  API + database, not us    ║
+║  student, own phone        ║  screen · boxes · on Wi-Fi    ║  API + database, not us    ║
 ╠════════════════════════════╬═══════════════════════════════╬════════════════════════════╣
 ║                            ║                               ║                            ║
 ║   ┌──────────────────┐     ║   ┌──────────────────────┐    ║   ┌────────────────────┐   ║
@@ -21,7 +21,7 @@ Check this chart against what the team expects. If one arrow is wrong, the plan 
 ║   │   « this repo »  │     ║   │    « this repo »     │    ║   │  the only door     │   ║
 ║   └──────────────────┘     ║   └──────────────────────┘    ║   └─────────┬──────────┘   ║
 ║                            ║   ┌──────────────────────┐    ║             │              ║
-║                            ║   │  BOXES  +  SENSOR    │    ║   ┌─────────▼──────────┐   ║
+║                            ║   │   BOXES  +  LOCKS    │    ║   ┌─────────▼──────────┐   ║
 ║                            ║   │  « hardware team »   │    ║   │      DATABASE      │   ║
 ║                            ║   └──────────────────────┘    ║   └────────────────────┘   ║
 ║                            ║                               ║                            ║
@@ -46,8 +46,8 @@ Check this chart against what the team expects. If one arrow is wrong, the plan 
 ║                            ║        │                      ║                            ║
 ║                            ║        ▼                      ║                            ║
 ║                            ║  parcel goes in               ║                            ║
-║                            ║  SENSOR sees it ──────────────╫──▶ parcel recorded         ║
-║                            ║                               ║    (not the door closing)  ║
+║                            ║  door shuts ──────────────────╫──▶ parcel recorded         ║
+║                            ║                               ║    « no sensor - ADR 6 »   ║
 ╟────────────────────────────╫───────────────────────────────╫────────────────────────────╢
 ║                            ║                               ║                            ║
 ║  BLOCK C — TELL            ║                               ║                            ║
@@ -69,7 +69,7 @@ Check this chart against what the team expects. If one arrow is wrong, the plan 
 ║   « code from the notice » ║   « no app needed »           ║    once, and not expired?  ║
 ║                            ║                               ║                            ║
 ║                            ║   door opens ◀────────────────╫─── open box 04             ║
-║                            ║   SENSOR sees it empty ───────╫──▶ marked collected        ║
+║                            ║   door shuts ─────────────────╫──▶ marked collected        ║
 ║                            ║                               ║                            ║
 ╚════════════════════════════╩═══════════════════════════════╩════════════════════════════╝
 
@@ -212,7 +212,8 @@ Identity comes from the **token**, not from the QR. So a photograph of the cabin
 
 Said by the team, in writing. These are decisions, not guesses.
 
-- **There is a sensor in each box.** A parcel is recorded when the sensor sees it, not when the door shuts. A shipper who opens a door and walks away holding the parcel records nothing.
+- **There is no sensor.** The door closing is the evidence. See [ADR 0006](../adr/0006-no-sensor.md), which records what that costs us and why we accept it.
+- **The cabinet is on Wi-Fi.** Confirmed by the team.
 - **Pickup has two paths:** scan the QR, or type a code. See D1 and D2 above.
 - **Free for students.** No payment, no wallet, no fee screen, anywhere.
 
@@ -240,17 +241,31 @@ Offline, a drop skips the name check — the cabinet cannot look anything up. It
 
 **What protects it:** the answer works once, the random number is thrown away after use, and wrong tries lock that box — with the count surviving a power cut. Six digits is only safe while guessing is limited.
 
-## Assumed, not confirmed
+## Settings — the numbers we guessed
 
-- **The cabinet is on the network.** We are building as if it is. Nobody from the hardware team has said so in writing yet. Assumption **A-09**, still `open`, and task **P0-01** still has to close it.
+Every value in this design that we chose rather than measured lives in **one settings file**, editable by a person, changeable without a new release. See [ADR 0005](../adr/0005-we-propose-they-object.md).
 
-  It is written here in plain sight because every arrow in the chart above depends on it. If the cabinet turns out to have no connection, this design does not degrade — it stops.
+| Setting | Our default | Change it when |
+| --- | --- | --- |
+| How long a QR session code lives | 60 seconds | Users say it expires before they can scan |
+| How often the cabinet screen redraws the QR | every 30 seconds | The screen flickers, or codes go stale too fast |
+| How long a receiver token lives | 30 days | People are asked to register again too often |
+| How long a typed pickup code lives | 48 hours | Parcels sit longer than that before collection |
+| How many digits in a typed pickup code | 6 | Never, without reading [ADR 0004](../adr/0004-offline-pickup.md) first |
+| Wrong tries before a box locks | 5 | Real users get locked out by accident |
+| How long a box stays locked | 15 minutes | — |
+| Days before an uncollected parcel is chased | 3 | Boxes fill up, or nobody complains |
+| Server address | — | Moving between test and real |
+| Notification route | push | SMS or Zalo turns out to be needed |
+
+**A number is a setting. A shape is not.** Changing `60` to `120` is editing this table. Changing *"the code works once"* to *"twice"* is a design decision and needs an ADR.
+
+Task **P0-15** builds the file. It exists before Phase 1 so no guess ever gets typed into source code.
 
 ## Open questions
 
 Move a line out of here when it is answered, and write the answer in the right doc.
 
-- What does the sensor actually report — "something is in the box", or a weight, or a beam broken? The answer decides what "parcel present" means. (blocks P0-10)
 - How does the receiver get the notice — push through the app, Zalo, or SMS? The code in block D2 travels the same way. (blocks P0-06)
 - How long does a QR session code live, and how often does the screen refresh it? (blocks P0-07)
 - How long does the **typed code** in D2 live, and how many wrong tries before the box locks? Different question from the one above, different answer. (blocks P0-11)
