@@ -4,6 +4,93 @@ Plain description of the whole system. Edit this file when reality changes.
 
 Product: a **parcel drop-off locker**. A shipper leaves a parcel in a box. The receiver picks it up with a phone. See [ADR 0003](../adr/0003-parcel-locker-product.md).
 
+## System overview
+
+A **swimlane block diagram**. Columns are who owns what. Blocks are stages. Arrows cross the boundaries between owners.
+
+Check this chart against what the team expects. If one arrow is wrong, the plan under it is wrong.
+
+```
+╔════════════════════════════╦═══════════════════════════════╦════════════════════════════╗
+║  RECEIVER                  ║  CABINET — on campus, Wi-Fi   ║  SERVER TEAM               ║
+║  student, own phone        ║  screen · boxes · sensor      ║  API + database, not us    ║
+╠════════════════════════════╬═══════════════════════════════╬════════════════════════════╣
+║                            ║                               ║                            ║
+║   ┌──────────────────┐     ║   ┌──────────────────────┐    ║   ┌────────────────────┐   ║
+║   │    PHONE APP     │     ║   │   CABINET SCREEN     │    ║   │     API SERVER     │   ║
+║   │   « this repo »  │     ║   │    « this repo »     │    ║   │  the only door     │   ║
+║   └──────────────────┘     ║   └──────────────────────┘    ║   └─────────┬──────────┘   ║
+║                            ║   ┌──────────────────────┐    ║             │              ║
+║                            ║   │  BOXES  +  SENSOR    │    ║   ┌─────────▼──────────┐   ║
+║                            ║   │  « hardware team »   │    ║   │      DATABASE      │   ║
+║                            ║   └──────────────────────┘    ║   └────────────────────┘   ║
+║                            ║                               ║                            ║
+╟────────────────────────────╫───────────────────────────────╫────────────────────────────╢
+║                            ║                               ║                            ║
+║  BLOCK A — REGISTER        ║                               ║                            ║
+║  P2-01 … P2-07             ║                               ║                            ║
+║                            ║                               ║                            ║
+║   phone number ────────────╫───────────────────────────────╫──▶ send one-time code      ║
+║   one-time code ◀──────────╫───────────────────────────────╫─── by SMS                  ║
+║   code back ───────────────╫───────────────────────────────╫──▶ token, stored in the    ║
+║                            ║                               ║    phone's secure store    ║
+╟────────────────────────────╫───────────────────────────────╫────────────────────────────╢
+║                            ║                               ║                            ║
+║                            ║  BLOCK B — DROP               ║                            ║
+║                            ║  P3-01 … P3-07                ║                            ║
+║                            ║                               ║                            ║
+║                            ║  shipper types phone no. ─────╫──▶ find the receiver       ║
+║                            ║  masked name ◀────────────────╫─── « Nguyễn V. A*** »      ║
+║                            ║  shipper confirms ────────────╫──▶ pick a free box         ║
+║                            ║  door opens ◀─────────────────╫─── open box 04             ║
+║                            ║        │                      ║                            ║
+║                            ║        ▼                      ║                            ║
+║                            ║  parcel goes in               ║                            ║
+║                            ║  SENSOR sees it ──────────────╫──▶ parcel recorded         ║
+║                            ║                               ║    (not the door closing)  ║
+╟────────────────────────────╫───────────────────────────────╫────────────────────────────╢
+║                            ║                               ║                            ║
+║  BLOCK C — TELL            ║                               ║                            ║
+║  P4-01 … P4-05             ║                               ║                            ║
+║                            ║                               ║                            ║
+║   « parcel in box 04 » ◀───╫───────────────────────────────╫─── push notice             ║
+║   My parcels screen        ║                               ║                            ║
+╟────────────────────────────╫───────────────────────────────╫────────────────────────────╢
+║                            ║                               ║                            ║
+║  BLOCK D — PICK UP         ║  the two paths meet here      ║                            ║
+║  P5-01 … P5-09             ║                               ║                            ║
+║                            ║                               ║                            ║
+║   ── D1 · SCAN THE QR ──   ║   shows a QR that changes ◀───╫─── session code            ║
+║   phone reads the screen ◀─╫───────────────────────────────╫    « which cabinet, when » ║
+║   token + session ─────────╫───────────────────────────────╫──▶ is this user owed a     ║
+║                            ║                               ║    box here?               ║
+║                            ║                               ║                            ║
+║   ── D2 · TYPE THE CODE ── ║   receiver types it ──────────╫──▶ is this code good,      ║
+║   « code from the notice » ║   « no app needed »           ║    once, and not expired?  ║
+║                            ║                               ║                            ║
+║                            ║   door opens ◀────────────────╫─── open box 04             ║
+║                            ║   SENSOR sees it empty ───────╫──▶ marked collected        ║
+║                            ║                               ║                            ║
+╚════════════════════════════╩═══════════════════════════════╩════════════════════════════╝
+
+   « this repo »  = the IT team builds it        ──▶  a request
+   « hardware »   = the hardware team builds it  ◀──  an answer
+   Free for students. No payment anywhere in this chart.
+```
+
+### The one thing to look at twice
+
+**D1 and D2 are not the same risk.**
+
+| | What the receiver shows | If somebody copies it |
+| --- | --- | --- |
+| **D1 — scan the QR** | Nothing. The cabinet shows the code, the phone reads it | **Nothing happens.** The QR only says *which cabinet, when*. Identity comes from the app login |
+| **D2 — type the code** | A code from the notice | **The box opens.** The code *is* the key |
+
+So D2 needs protection D1 does not: the code works **once**, it **expires**, and too many wrong tries locks the box for a while.
+
+D2 exists so a flat battery or a broken app does not trap a parcel. That is worth having. It is not the main path.
+
 ```
    ┌──────────────┐                                 ┌──────────────┐
    │  PHONE APP   │                                 │ CABINET SCREEN│
@@ -121,11 +208,19 @@ Identity comes from the **token**, not from the QR. So a photograph of the cabin
 5. **No secrets in a front-end.** Anything shipped inside the app or the cabinet build can be read by anyone who has it.
 6. **The cabinet screen is a public terminal.** Treat every screen on it as readable by a stranger. Never show a full name, a phone number, or a parcel list.
 
+## Settled by the team on 2026-08-05
+
+- **The cabinet is on Wi-Fi.** Confirmed. Assumption A-09 closed.
+- **There is a sensor in each box.** A parcel is recorded when the sensor sees it, not when the door shuts. A shipper who opens a door and walks away empty-handed records nothing.
+- **Pickup has two paths:** scan the QR, or type a code. See blocks D1 and D2 above.
+- **Free for students.** No payment, no wallet, no fee screen, anywhere.
+
 ## Open questions
 
 Move a line out of here when it is answered, and write the answer in the right doc.
 
-- Does the cabinet have its own network connection — SIM or Wi-Fi? Nothing here works without one. (blocks P0-03, and it is the most urgent question in the project)
-- How does the receiver get the notification — push through the app, Zalo, or SMS? (blocks P0-06)
+- What does the sensor actually report — "something is in the box", or a weight, or a beam broken? The answer decides what "parcel present" means. (blocks P0-10)
+- How does the receiver get the notice — push through the app, Zalo, or SMS? The code in block D2 travels the same way. (blocks P0-06)
 - How long does a QR session code live, and how often does the screen refresh it? (blocks P0-07)
-- Does the cabinet have a camera after all? Not needed for this design, but it would allow a no-app pickup later. (affects a future ADR only)
+- How long does the **typed code** in D2 live, and how many wrong tries before the box locks? Different question from the one above, different answer. (blocks P0-11)
+- Does the cabinet have a camera after all? Not needed for this design. It would only matter if we ever reversed [ADR 0003](../adr/0003-parcel-locker-product.md). (no task)
