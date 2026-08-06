@@ -81,9 +81,9 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 ## Phases
 
-- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `9/17`
+- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `11/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
-      **6 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). Two left: P0-12, P0-13.
+      **6 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **Nothing left that is ours** — every open task waits on another team.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9` · **CURRENT**
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
@@ -101,7 +101,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 12 / 75.**  ·  8 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 6 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 14 / 75.**  ·  8 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 6 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -111,12 +111,11 @@ Tick a phase box only when every task inside it is ticked **and** its Exit check
 
 **Phase 0 no longer gates Phase 1** — [ADR 0009](../adr/0009-start-phase-1-early.md) reversed that on 2026-08-06. Every open Phase 0 task waited on somebody outside this team, none of them moved, and the app they exist to serve had not been started. Six are now `⏸️ LATER`. Phase 0 stays open and its deferred tasks still count against the total.
 
-**One thing still gates the work: the shape of the API.** Which calls exist, what each is for, and which caller may make it. Agree that with the Server team before Phase 2. Everything else in the contract — paths, field names, numbers, error codes — changes one file, because every call goes through one network file (P1-04) and every guessed number lives in one settings file (P0-15).
+**One thing still gates the work: the shape of the API.** Which calls exist, what each is for, and which caller may make it. Agree that with the Server team before Phase 2. Everything else in the contract — paths, field names, numbers, error codes — changes one file, because every call goes through one network file (P1-04 ✅) and every guessed number lives in one settings file (P0-15 ✅).
 
-Two Phase 0 tasks are still live, and they are ours:
+**No Phase 0 task is ours any more.** P0-12 and P0-13 closed on 2026-08-07 — [ADR 0010](../adr/0010-c4-offline-exception.md) gave rule C4 a narrow offline exception, and the challenge–response exchange is written into `api-contract.md` as endpoints 16 and 17. Everything still open in Phase 0 waits on the hardware team, the Server team, or the group chat.
 
-1. **P0-13** — rule C4 says the front-end never decides; ADR 0004 has the cabinet deciding. Both cannot be true. Nothing offline gets built until this is settled.
-2. **P0-12** — the offline design is chosen (challenge and response), but not yet written into `api-contract.md`.
+> ⚠️ **P0-13 was decided under delegation, not at a team sitting.** The board asked for a team decision; the CSE lead made the call on 2026-08-07 so the work could move. The team still needs telling, and if they disagree, reversing it is one new ADR and no code — ADR 0004's Option A is a day's work.
 
 ## Order of work
 

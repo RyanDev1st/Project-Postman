@@ -1,20 +1,20 @@
 # 0004 — Working when the cabinet loses the network
 
-- **Status:** proposed. **Not decided.** Task **P0-12** settles the design. Task **P0-13** settles the rule conflict below
+- **Status:** **accepted**, 2026-08-07. The rule conflict below is settled by [ADR 0010](0010-c4-offline-exception.md) — C4 gains a narrow exception. Tasks **P0-12** and **P0-13** both close with it
 - **Date:** 2026-08-05
 - **Deciders:** IT team, with the hardware team
 
-## This ADR breaks a working rule, on purpose
+## This ADR breaks a working rule — and the rule has now been given an exception
 
 **Rule C4** in [working-rules.md](../reference/working-rules.md) says *"The server is the truth. The app never decides."*
 
 Everything proposed here has the cabinet checking an answer by itself and opening a door with **no server involved**. That is a front-end deciding. The two cannot both stand.
 
-This is not a reason to reject the idea, and it is not a reason to quietly reword C4 either. It is a real conflict, and it gets a real decision — **task P0-13**. Either C4 gains a written exception, or this ADR is rejected and the cabinet simply refuses everybody during an outage.
+**Settled on 2026-08-07 by [ADR 0010](0010-c4-offline-exception.md):** C4 gains a narrow written exception — *a front-end may verify a proof the server made possible; it may never decide something new.* Scoped to the cabinet, to a real outage, and to verification. Read ADR 0010 for the argument and the cost; it is not repeated here.
 
-The argument for the exception, for whoever decides: the cabinet is not forming an opinion. It is checking a proof that only the server's key could have made possible. The secret on the phone came from the server, and the key on the cabinet came from the server. Nothing new is being trusted — the trust is only being checked at a different moment. But the cabinet *does* hold key material, which is exactly the kind of thing C4's *why* was written to avoid, so this deserves a decision rather than an assumption.
+The reasoning that was offered to whoever decided, and which they accepted: the cabinet is not forming an opinion. It is checking a proof that only the server's key could have made possible. The secret on the phone came from the server, and the key on the cabinet came from the server. Nothing new is being trusted — the trust is only being checked at a different moment. But the cabinet *does* hold key material, which is exactly the kind of thing C4's *why* was written to avoid, so it got a decision rather than an assumption.
 
-**Nothing offline gets built until P0-13 is settled.**
+**The six non-negotiables at the end of this file are now requirements, not recommendations.**
 
 ## Context
 

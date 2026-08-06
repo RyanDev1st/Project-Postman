@@ -82,6 +82,49 @@ The cost of having no sensor is written down in ADR 0006: a driver can record a 
 
 **Endpoint 13 is the one call with no token behind it.** Everything else proves who the user is from a login. This one proves it from the code alone — so the code carries the whole weight, and the rules below are not optional.
 
+## Endpoints — when the network is gone
+
+Decided by [ADR 0004](../adr/0004-offline-pickup.md), permitted by [ADR 0010](../adr/0010-c4-offline-exception.md). Task **P0-12**.
+
+The cabinet is on Wi-Fi, and campus Wi-Fi drops. These two calls are what makes a pickup still work, and **neither of them happens during the outage** — that is the point. They set it up beforehand and settle it afterwards.
+
+| # | What the caller wants | Path we propose | Sends | Gets back |
+| --- | --- | --- | --- | --- |
+| 16 | Give this phone its offline secret | `POST /auth/offline-secret` | token, cabinet ref | the secret, and which cabinet it is for |
+| 17 | Here is what happened while I was offline | `POST /cabinet/reconcile` | cabinet key, a list of events | which were accepted |
+
+**Endpoint 16 is called once, at registration, per cabinet.** The server works out `secret = HMAC(cabinet key, phone number)` and the app stores it in the phone's secure store. The person never sees it. If a second cabinet is added, the app holds a second secret — assumption **A-12**.
+
+**Endpoint 17 is not optional.** An outage must never lose the record of who opened what. Everything the cabinet did alone is sent up the moment the network returns, and the server is the truth again from that instant.
+
+### The exchange itself — no server, no network
+
+Nothing here is an API call. Both sides already hold what they need.
+
+```
+   ①  she types her phone number on the cabinet
+   ②  cabinet picks a random challenge, shows it as a QR, remembers it
+   ③  her phone reads it → HMAC(her secret, challenge + box number) → 6 digits
+   ④  she types the 6 digits
+   ⑤  cabinet works out the same value and compares → the door opens
+   ⑥  that challenge is thrown away. It never works twice
+```
+
+| Rule | Value |
+| --- | --- |
+| Algorithm | **HMAC-SHA256**, truncated to the last 6 digits. *Fixed — published on purpose* |
+| What is signed | `challenge ‖ box number`. The box number is in it, so an answer for one box is not an answer for another |
+| Secret | `HMAC(cabinet key, phone number)`. One key **per cabinet**, never one shared master. *Fixed* |
+| Challenge | Fresh random per attempt, ≥ 128 bits, discarded after one use. *Fixed* |
+| Clocks | **Not used.** The cabinet supplies the randomness, so no clock has to agree with any other |
+| Wrong tries | The same `wrong_tries_before_lock` and `box_lock_minutes` as the typed code. **The count must survive a power cut** |
+
+**No secret algorithm.** It ships inside an app on students' phones and will be taken apart. Kerckhoffs's principle: the key is the secret, never the method. See ADR 0004, which records this as one of three things the first sketch got wrong.
+
+**A wrong answer says the same thing as a wrong-and-expired one** — the `CODE_REJECTED` rule below applies here unchanged.
+
+**Offline, a drop skips the name check.** The cabinet cannot look anything up, so it takes the number, opens a box, and endpoint 17 settles it later. The screen says so plainly, so the driver knows to read the number twice.
+
 ## Endpoints — both callers
 
 | # | What the caller wants | Path we propose | Sends | Gets back |

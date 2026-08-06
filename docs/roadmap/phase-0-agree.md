@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 9 / 17.**  ·  6 deferred `⏸️ LATER`
+**Progress: 11 / 17.**  ·  6 deferred `⏸️ LATER`
 
 Phase 0 is the cheapest phase and it prevents the most rework. **It no longer gates Phase 1** — see [ADR 0009](../adr/0009-start-phase-1-early.md).
 
@@ -108,15 +108,17 @@ They come back. This is who closes them when they do.
       - Verify: the length, the lifetime, and the number of wrong tries before a box locks are all written in `api-contract.md`, and all three are adjustable
       - Done: 2026-08-05 — Settled on a 6-digit code that lasts 48 hours, with the box locking for 15 minutes after 5 wrong tries. 48 hours because a parcel usually sits a day or two and nobody should be punished for being busy. The lockout matters more than it looks: 6 digits is one chance in a million per try, which is only safe while somebody cannot sit there guessing all night. All four numbers are in the settings list. What is **not** adjustable is that the code works once and never repeats — that is a design decision, not a number.
 
-- [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
-      - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
+- [x] **P0-12** — Decide how a pickup works when the cabinet loses the network
+      - Owner: Team · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
       - Verify: [ADR 0004](../adr/0004-offline-pickup.md) is `accepted`, and the chosen way is written in `api-contract.md`
-      - Notes: **the way is chosen — challenge and response, using cryptography**, per [ADR 0009](../adr/0009-start-phase-1-early.md). Not ticked, because the Verify asks for two more things: ADR 0004 marked `accepted`, and the exchange written into `api-contract.md`. Neither is done. Accepting ADR 0004 also breaks rule C4, which is **P0-13** — so that is the next thing to settle, not a later one
+      - Notes: **the way is chosen — challenge and response, using cryptography**, per [ADR 0009](../adr/0009-start-phase-1-early.md). Depended on P0-13, which [ADR 0010](../adr/0010-c4-offline-exception.md) settled
+      - Done: 2026-08-07 — Wrote down exactly how somebody collects a parcel when the cabinet has lost its internet, which until now was a plan nobody had written out. She types her number, the cabinet shows a random pattern, her phone turns that into six digits, she types them in, and the cabinet checks them on its own. It works because her phone was given a private number when she signed up, and the cabinet can work out the same one — so neither of them needs the internet at that moment. Two new messages were added to the list we are sending the Server team: one to hand a phone that private number when it registers, and one for the cabinet to report everything that happened while it was offline, so nothing is ever lost. The method itself is public on purpose; only the key is secret, because the app is on students' phones and anyone can take it apart.
 
-- [ ] **P0-13** — Settle whether rule C4 gains an offline exception  
-      - Owner: _unassigned_ · Needs: P0-12 · Blocks: —
+- [x] **P0-13** — Settle whether rule C4 gains an offline exception
+      - Owner: Ryan · Needs: P0-12 · Blocks: —
       - Verify: rule **C4** in `working-rules.md` either carries a written exception, or ADR 0004 is marked rejected. One or the other, decided by the team, not by whoever writes the code
-      - Notes: C4 says the front-end never decides. ADR 0004 has the cabinet opening a door with no server involved. Both cannot be true. **Nothing offline gets built until this is settled**
+      - Notes: settled by [ADR 0010](../adr/0010-c4-offline-exception.md) — C4 gains a **narrow** exception: a front-end may verify a proof the server made possible, never decide something new. Scoped to the cabinet, to a real outage, and to verification only. **Decided under delegation, not at a team sitting — see the ADR, and tell the team**
+      - Done: 2026-08-07 — Settled the sharpest disagreement on the board. One of our own rules says the app and the cabinet never decide anything themselves — they always ask the server. But the plan for working without internet has the cabinet deciding to open a door on its own. Both could not be true. The answer we chose: the cabinet is allowed to *check* an answer, because only a phone holding a number the server gave it can produce that answer — but it is never allowed to decide who somebody is, or which box is theirs, on its own. Three limits are written into the rule so this cannot quietly grow: the cabinet only, during a real outage only, checking only. Written up properly in its own decision file rather than by quietly editing the rule, because that exact quiet edit happened once before and had to be undone. Ryan made the call; the rest of the team still needs telling.
 
 - [x] **P0-14** — Pick the tech stack for the **cabinet screen**
       - Owner: Team · Needs: — · Blocks: P1-03

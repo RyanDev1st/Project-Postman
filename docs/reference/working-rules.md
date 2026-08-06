@@ -99,7 +99,19 @@ If a mock exists, it is labelled as a fixture and it lives in `tests/`.
 The app does not decide who you are, which box is yours, or whether a box is free. It asks.
 *Why:* one truth in one place. Also: an app on a phone can be modified. A server cannot.
 
-> ⚠️ **This rule is under challenge, and the challenge is not yet decided.** [ADR 0004](../adr/0004-offline-pickup.md) proposes that when the network is gone, the cabinet checks an answer by itself and opens a door with no server involved. That is a front-end deciding. Either C4 gains a written exception, or ADR 0004 does not get built. **Task P0-13 settles it.** Until then C4 stands as written, and nothing offline gets built.
+> **One exception, and only one.** [ADR 0010](../adr/0010-c4-offline-exception.md) grants it, and the argument and the cost are there — read it before relying on this paragraph.
+>
+> **A front-end may verify a proof the server made possible. It may never decide something new.**
+>
+> When the network is gone, the cabinet may check a one-time answer against the key it was given at setup, and open a box if it matches. It is checking arithmetic only a server-issued secret could produce — not forming an opinion.
+>
+> Three limits, all load-bearing. Drop any one and this becomes the general permission C4 exists to refuse:
+>
+> 1. **The cabinet only.** The phone app still decides nothing, ever.
+> 2. **During an actual outage only.** While the network is up, the server decides, every time.
+> 3. **Verification only.** Never deciding who somebody is, or which box is theirs, from nothing.
+>
+> Everything that happened offline goes to the server the moment the network returns.
 
 ---
 
