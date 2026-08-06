@@ -9,8 +9,9 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
 ## Tasks
 
 - [ ] **P2-01** — Screen: type a phone number, ask for a one-time code
-      - Owner: _unassigned_ · Needs: P0-04, P1-05 · Blocks: P2-02
+      - Owner: _unassigned_ · Needs: P1-05 · Blocks: P2-02
       - Verify: a real phone number is entered on the real Android phone and the server log shows the request
+      - Notes: P0-04 was dropped from the Needs by [ADR 0009](../adr/0009-start-phase-1-early.md) — we build against our own proposed contract, per [ADR 0005](../adr/0005-we-propose-they-object.md). **The shape of endpoints 1 and 2 must be agreed with the Server team before this is built**, because a shape change here rebuilds the screen. The field names and the path can change cheaply; the call existing at all cannot
 
 - [ ] **P2-02** — The one-time code arrives on the phone
       - Owner: _unassigned_ · Needs: P2-01 · Blocks: P2-03

@@ -45,6 +45,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0006-no-sensor.md](adr/0006-no-sensor.md) | No sensor. The door closing is the evidence | accepted |
 | [adr/0007-android-first.md](adr/0007-android-first.md) | Android MVP first. iOS deferred, not cancelled | accepted |
 | [adr/0008-cabinet-simulator.md](adr/0008-cabinet-simulator.md) | A simulated cabinet, and the line it must not cross | accepted |
+| [adr/0009-start-phase-1-early.md](adr/0009-start-phase-1-early.md) | Start Phase 1 before Phase 0 is finished. Cabinet screen is a web page | accepted |
 
 ## Findings — dated reports
 

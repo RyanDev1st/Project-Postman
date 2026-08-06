@@ -274,6 +274,8 @@ A fourth status, `dropped`, is for a row the product change made meaningless. Ne
 | A-15 | The cabinet holds 19 parcels, not the 20 the spec claims | — | 2026-08-05 | The drawing numbers doors 01-20 but 06 is the control panel, so counting gives 19. Ask whoever drew it (P0-02). It changes how many parcels a cabinet holds | open |
 | A-16 | A push notice arrives on a Vivo, Oppo, Xiaomi or Huawei phone that has been idle for hours | — | 2026-08-05 | These makers stop background apps hard to save battery, and the app is not exempt by default. Our main test phone is a Vivo. Leave the app shut overnight, send a parcel, see whether the notice arrives (P4-03) | open |
 | A-12 | One cabinet is enough for the first release | — | 2026-08-05 | Ask the team. Two cabinets means the notice must say *which* one, and the pickup must check it (P6-05 already assumes this) | open |
+| A-17 | `minSdk` 24 (Android 7.0) excludes nobody on the team | — | 2026-08-06 | Guessed instead of measured, by [ADR 0009](../adr/0009-start-phase-1-early.md), because asking was blocking the build. Lowering it later is safe; raising it drops users. Checks itself the first time a team member tries to install the app and cannot (P0-17) | open |
+| A-18 | A layout proved at 1280 × 800 and 1920 × 1080 will fit the real cabinet screen | — | 2026-08-06 | Nobody can say what the screen is (P0-02, deferred). Two sizes stand in for a spec. Open the finished screen on the real cabinet the day one exists (P8-03) | open |
 
 ---
 

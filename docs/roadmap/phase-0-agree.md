@@ -2,78 +2,75 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 8 / 17.**
+**Progress: 9 / 17.**  ·  6 deferred `⏸️ LATER`
 
-Phase 0 is the cheapest phase and it prevents the most rework. Do all of it before Phase 1.
+Phase 0 is the cheapest phase and it prevents the most rework. **It no longer gates Phase 1** — see [ADR 0009](../adr/0009-start-phase-1-early.md).
 
-## Start here
+## Where this phase stands
 
-Two tasks can start right now. Everything else is waiting on one of them.
+Nine ticked, six deferred, two left.
 
-| Start today | Why it is free to start |
+| Left to do | Why it is still here |
 | --- | --- |
-| **P0-17** — oldest team phone, and `minSdk` | Nothing blocks it. One question in the group chat |
-| **P0-16** — get a real cabinet | Long lead time, and no amount of simulator work replaces it |
+| **P0-13** — does rule C4 gain an offline exception? | The sharpest question on the board, and now the most urgent. Nothing offline gets built until it is settled |
+| **P0-12** — the offline design | The way is chosen (challenge and response). It needs writing into `api-contract.md`, and ADR 0004 marked `accepted` — which is what raises P0-13 |
 
-**P0-17 is now the only thing standing between us and Phase 1.** It is one question asked once: what Android version is everybody on?
-
-Everything else unlocks in this order:
+Both are ours. Neither waits on another team.
 
 ```
-   P0-01 ──┬──> P0-02 ──> P0-14 ──> (cabinet screen, Phase 1)
-           │
-           └──> P0-04 ──┬──> P0-05, P0-07, P0-08, P0-10
-                        │
-                        └──> P0-06 ──> P0-11 ──> P0-12 ──> P0-13
+   P0-03 ✅ ──> P0-15 ✅ ──┐
+   P0-09 ✅ ──────────────┼──> (phone app, Phase 1 — open)
+   P0-17 ⏸️ minSdk 24 ────┘
 
-   P0-03 ✅ ───> P0-15 ✅ ───────────> (phone app, Phase 1)
-   P0-09 ✅ ─────────────────────────> (phone app, Phase 1)
-   P0-17 ───────────────────────────> (phone app, Phase 1)
+   P0-14 ✅ web page ─────────> (cabinet screen, Phase 1 — open)
+   P0-02 ⏸️ size unknown, so the layout scales
+
+   P0-11 ✅ ──> P0-12 ──> P0-13   <- the only live chain left
 ```
 
-Those lines need nobody outside this team. Only **P0-17** is left on them.
+**Everything deferred was waiting on somebody else.** P0-02 and P0-16 on the hardware team, P0-04, P0-05 and P0-08 on the Server team, P0-17 on a group-chat answer. None of them moved in a day, and the app they exist to serve had not been started.
 
-**The longest chain is six deep: P0-01 → P0-04 → P0-06 → P0-11 → P0-12 → P0-13.** That chain is the length of Phase 0. Shortening it means answering P0-01 and P0-04 fast, not working harder later.
+## Who answers the deferred ones
 
-## Who actually answers each one
+They come back. This is who closes them when they do.
 
-Much of this phase is answers we need from other people. Grouped that way, it is three conversations plus our own decisions.
-
-| Who | Tasks | What to do |
+| Who | Tasks | What is needed |
 | --- | --- | --- |
-| **Hardware team** | P0-01, P0-02, and the sensor half of P0-10 | One message. Four questions. Send it today |
-| **Server team** | P0-04, and P0-05 · P0-06 · P0-07 · P0-08 · P0-10 · P0-11 which all hang off it | One meeting. P0-04 is the meeting; the other six are its agenda |
-| **Us, the IT team** | P0-03 ✅, P0-09 ✅, P0-15 ✅, P0-12, P0-13, P0-16, P0-17 | Ours alone. **P0-17 needs nobody** — do it now. P0-12 and P0-13 need the other columns first |
-| **Hardware, then us** | P0-14 | The cabinet stack, once P0-02 says what the screen runs |
-
-The Google Meet the team asked about covers the Server-team column in one sitting.
+| **Hardware team** | P0-02 ⏸️, P0-16 ⏸️ | A screen spec, and a cabinet we can touch |
+| **Server team** | P0-04 ⏸️, P0-05 ⏸️, P0-08 ⏸️ | Agree the **shape** of the API first — that one is not deferred. Then the key, then the masked format |
+| **Us, the IT team** | P0-12, P0-13 | Ours alone, and the only thing left running |
+| **The group chat** | P0-17 ⏸️ | One question, whenever somebody cannot install the app |
 
 ## Tasks
-P/s: P0.0 -> agree with the server team on the shape of the API
+
+**Six tasks here are now `⏸️ LATER`, by [ADR 0009](../adr/0009-start-phase-1-early.md).** Phase 0 stopped preventing rework and started preventing work — every open task waited on somebody outside this team, and none moved. Phase 1 no longer waits for them.
+
+**One thing still gates Phase 1: the shape of the API.** Which calls exist, what each is for, and which caller may make it. Not the paths, not the numbers, not the error codes — those change one file each. Change the shape after the screens exist and the screens are rebuilt.
+
 - [x] **P0-01** — Ask the hardware team: does the cabinet have its own network connection?
       - Owner: Team · Needs: — · Blocks: P0-02, P0-04, P0-12, P0-16, P1-03
       - Verify: a written answer from the hardware owner naming SIM or Wi-Fi, in `architecture.md`
       - Done: 2026-08-05 — The team confirmed the cabinet connects to Wi-Fi. That is now written into `architecture.md` as a fact rather than a guess, and the diagram says so. Everything in the plan needed this answer, so it unblocks most of the phase. Worth knowing the answer came from our own team rather than the hardware owner directly — if that turns out to be wrong, this is the first thing to re-check.
 
-- [ ] **P0-02** — Write down what the cabinet screen is: size, touch, what it runs   **unknown yet, do scaling instead**
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-14, P1-03
+- [ ] **⏸️ LATER — P0-02** — Write down what the cabinet screen is: size, touch, what it runs
+      - Owner: _unassigned_ · Needs: P0-01 · Blocks: —
       - Verify: the screen size, whether it takes touch, and its operating system are written in `architecture.md`
-      - Notes: a phone-sized screen and a tablet-sized screen need different layouts
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — unknown, and nobody can say when. The screen is built to **scale to any size** instead: no fixed pixel widths, readable on a small tablet and a large monitor. A size arriving late then costs a test, not a rewrite
 
 - [x] **P0-03** — Pick the tech stack for the **phone app**
       - Owner: Team · Needs: — · Blocks: P0-15, P1-01
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Done: 2026-08-05 — Chose to build the Android app natively, in Kotlin. Nobody on the team has used any of the options before, so the usual tie-breaker of "use what you already know" did not apply. Native won because when a beginner hits a problem the error message is Android's own and the first search result answers it — with a cross-platform tool the same problem arrives translated, and you cannot tell whose fault it is. The cost is real and we took it knowingly: an iPhone version later means writing the app a second time, not converting it. The design work carries over even though the code will not.
 
-- [ ] **P0-04** — Write the whole API contract as our proposal, and send it            **Unnecessary, marginal changes can be made later**
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P0-05, P0-08, P2-01, P3-01
+- [ ] **⏸️ LATER — P0-04** — Write the whole API contract as our proposal, and send it
+      - Owner: _unassigned_ · Needs: P0-01 · Blocks: —
       - Verify: `api-contract.md` has zero `TO AGREE` markers **and** it has been sent to the Server team with a date recorded here
-      - Notes: changed from *agree with them* to *propose to them* — see [ADR 0005](../adr/0005-we-propose-they-object.md). They have no API design yet, so a blank form would never come back. The document is written; **it still has to be sent**
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — marginal changes can be made later. The document is written and we build against it, per [ADR 0005](../adr/0005-we-propose-they-object.md): silence means agreement. **What is not deferred is the shape** — which calls exist and who may make them. Agree that with the Server team before Phase 2, or the screens get rebuilt
 
-- [ ] **P0-05** — Agree how the cabinet proves it is the cabinet       **keep simple, redefine later**
-      - Owner: _unassigned_ · Needs: P0-04 · Blocks: P1-06, P3-01
+- [ ] **⏸️ LATER — P0-05** — Agree how the cabinet proves it is the cabinet
+      - Owner: _unassigned_ · Needs: — · Blocks: —
       - Verify: the key type, how it is placed on the cabinet, and how it is replaced are written in `api-contract.md`
-      - Notes: get this wrong and a stolen cabinet opens every box. The key never enters this repo
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — keep it simple now, redefine before the cabinet is real. Until then the cabinet sends a plain key we issue ourselves, and it is a **test key, never a real one**. Get this wrong and a stolen cabinet opens every box, so this must be settled before any cabinet leaves a desk. The key never enters this repo
 
 - [x] **P0-06** — Decide how the receiver is told a parcel arrived
       - Owner: Team · Needs: — · Blocks: P0-11, P4-01
@@ -85,10 +82,10 @@ P/s: P0.0 -> agree with the server team on the shape of the API
       - Verify: the lifetime in seconds and the refresh rate are written down, and both are adjustable without a new release
       - Done: 2026-08-05 — Set the code on the cabinet screen to last 60 seconds, with the screen drawing a new one every 30 seconds. Both numbers are guesses, so both went into the settings list where anyone can change them. If people find it expires while they are still walking up, the number goes up; nothing else has to change. The code itself only says which cabinet and when, so a longer life is not dangerous the way the typed code would be.
 
-- [ ] **P0-08** — Agree what the shipper sees when he looks up a receiver  **Self-remind to redefine this later**
-      - Owner: _unassigned_ · Needs: P0-04 · Blocks: P3-03
+- [ ] **⏸️ LATER — P0-08** — Agree what the shipper sees when he looks up a receiver
+      - Owner: _unassigned_ · Needs: — · Blocks: —
       - Verify: the exact masked format is written in `api-contract.md` with a worked example, **and the Server team has confirmed they can produce it**
-      - Notes: never a full name, never a phone number. The cabinet screen is a public terminal. The Verify used to stop at "written down", which our own proposal already satisfied — a task called *Agree* needs the other side to agree
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — redefine when the Server team answers. We build `Nguyễn V. A***` meanwhile. **What is deferred is the shape of the mask, not the masking** — never a full name, never a phone number, because the cabinet screen is a public terminal
 
 - [x] **P0-09** — List the test devices, and stand up the cabinet simulator
       - Owner: Team · Needs: — · Blocks: P1-01
@@ -96,10 +93,10 @@ P/s: P0.0 -> agree with the server team on the shape of the API
       - Notes: Android only — [ADR 0007](../adr/0007-android-first.md). Simulator is [ADR 0008](../adr/0008-cabinet-simulator.md). **Not** a substitute for a real cabinet — that is P0-16
       - Done: 2026-08-05 — Named the test phone: a Vivo X200 Pro running OriginOS 6. The OS version is as reported, not yet read off the phone, so it is marked to confirm. Then ran the cabinet simulator in Blender: it built 19 doors with no door 06, exactly as the drawing shows. Asked it to open box 4 and door 04 turned, on its own, by 105 degrees — the other 18 did not move at all. So the thing that will later tell a real cabinet to open a box already talks to the model correctly. This does not prove anything about real metal; that is P0-16.
 
-- [ ] **P0-17** — Find the oldest Android phone on the team, and set `minSdk` **unnecessary, revisit when necessary**
-      - Owner: _unassigned_ · Needs: — · Blocks: P1-01
-      - Verify: every team member's Android version is listed, and the chosen `minSdk` is written in [ADR 0001](../adr/0001-tech-stack.md) with the phone that set it
-      - Notes: the goal is an MVP **everyone on the team can test**, so the oldest phone decides, not the newest. Raising `minSdk` later drops users; lowering it later means re-testing everything. Ask once, in the group chat, before P1-01 starts
+- [ ] **⏸️ LATER — P0-17** — Find the oldest Android phone on the team, and set `minSdk`
+      - Owner: _unassigned_ · Needs: — · Blocks: —
+      - Verify: every team member's Android version is listed, and the recorded `minSdk` in [ADR 0009](../adr/0009-start-phase-1-early.md) is confirmed to cover the oldest one
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md), which guesses **`minSdk` 24 — Android 7.0** instead of asking. Low enough that nobody on the team is likely to fall below it. Lowering it later is safe; raising it later drops users, which is the risk this task existed to avoid. Closes the first time someone tries to install and cannot
 
 - [x] **P0-10** — Decide what records a delivery, now that there is no sensor
       - Owner: Team · Needs: — · Blocks: P3-05, P5-04
@@ -111,20 +108,21 @@ P/s: P0.0 -> agree with the server team on the shape of the API
       - Verify: the length, the lifetime, and the number of wrong tries before a box locks are all written in `api-contract.md`, and all three are adjustable
       - Done: 2026-08-05 — Settled on a 6-digit code that lasts 48 hours, with the box locking for 15 minutes after 5 wrong tries. 48 hours because a parcel usually sits a day or two and nobody should be punished for being busy. The lockout matters more than it looks: 6 digits is one chance in a million per try, which is only safe while somebody cannot sit there guessing all night. All four numbers are in the settings list. What is **not** adjustable is that the code works once and never repeats — that is a design decision, not a number.
 
-- [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network **Use cryptography**
+- [ ] **P0-12** — Decide how a pickup works when the cabinet loses the network
       - Owner: _unassigned_ · Needs: P0-01, P0-11 · Blocks: P0-13, P6-06, P6-07
       - Verify: [ADR 0004](../adr/0004-offline-pickup.md) is `accepted`, and the chosen way is written in `api-contract.md`
-      - Notes: the team has no answer for this yet. Two options are written up in the ADR, which recommends the challenge-and-response one. Both a drop and a pickup can work offline — an earlier draft of the ADR said otherwise and was wrong
+      - Notes: **the way is chosen — challenge and response, using cryptography**, per [ADR 0009](../adr/0009-start-phase-1-early.md). Not ticked, because the Verify asks for two more things: ADR 0004 marked `accepted`, and the exchange written into `api-contract.md`. Neither is done. Accepting ADR 0004 also breaks rule C4, which is **P0-13** — so that is the next thing to settle, not a later one
 
 - [ ] **P0-13** — Settle whether rule C4 gains an offline exception  
       - Owner: _unassigned_ · Needs: P0-12 · Blocks: —
       - Verify: rule **C4** in `working-rules.md` either carries a written exception, or ADR 0004 is marked rejected. One or the other, decided by the team, not by whoever writes the code
       - Notes: C4 says the front-end never decides. ADR 0004 has the cabinet opening a door with no server involved. Both cannot be true. **Nothing offline gets built until this is settled**
 
-- [ ] **P0-14** — Pick the tech stack for the **cabinet screen**       **figure out later when hardware is defined**
-      - Owner: _unassigned_ · Needs: P0-02 · Blocks: P1-03
-      - Verify: [ADR 0001](../adr/0001-tech-stack.md) names the cabinet stack, and says whether it is the same as the phone app or different
-      - Notes: cannot be decided before P0-02 says what the screen is and what it runs. A different stack from the phone app is allowed — say so if it is
+- [x] **P0-14** — Pick the tech stack for the **cabinet screen**
+      - Owner: Team · Needs: — · Blocks: P1-03
+      - Verify: [ADR 0009](../adr/0009-start-phase-1-early.md) names the cabinet stack, and says whether it is the same as the phone app or different
+      - Notes: the Verify moved from ADR 0001 to ADR 0009 — an ADR is never edited, so the decision lives in the ADR that made it
+      - Done: 2026-08-06 — Chose to build the cabinet screen as a web page. Nobody can tell us yet what the screen is or what it runs, and a web page is the only choice that does not need that answer — it works on a tablet, a small computer, or anything with a browser. Until a cabinet exists it runs full-screen on a laptop, which is enough to build and show the whole shipper flow. This is a different tool from the phone app, on purpose. We nearly deferred this one too, and that would have stopped work on the drop and the pickup — which is the product.
 
 - [x] **P0-15** — Build the settings file, before any code is written  
       - Owner: Team · Needs: P0-03 · Blocks: P1-01, P1-08
@@ -132,10 +130,10 @@ P/s: P0.0 -> agree with the server team on the shape of the API
       - Notes: makes guessing safe — [ADR 0005](../adr/0005-we-propose-they-object.md). The "without a new release" half moved to **P1-08**: it needs a running app, and P0-15 blocks P1-01 which builds it
       - Done: 2026-08-05 — Made `config/settings.json`, holding all ten numbers we guessed. Anyone can open it and change one. The server address is left blank on purpose — the real one must never sit in this repo. Getting a changed number onto a phone without rebuilding is not done yet; that is P1-08.
 
-- [ ] **P0-16** — Get a real cabinet to test on  **pivot to simulator**
+- [ ] **⏸️ LATER — P0-16** — Get a real cabinet to test on
       - Owner: _unassigned_ · Needs: P0-01 · Blocks: —
       - Verify: a real cabinet, or at least one real door with a real lock and the real screen, is somewhere the team can physically reach it
-      - Notes: **the simulator does not close this task and cannot.** [ADR 0008](../adr/0008-cabinet-simulator.md) explains why a good simulator makes hardware feel less urgent, which is exactly the trap. Every Phase 3, 5 and 6 Verify line needs the real thing
+      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — no cabinet is coming soon enough to wait for, so we **build** against the simulator. **The simulator still does not close this task and cannot.** [ADR 0008](../adr/0008-cabinet-simulator.md) predicted that a good simulator would make hardware feel less urgent; that is now happening, which is the reason to keep this open rather than to close it. Every Phase 3, 5 and 6 Verify line that names real metal still names real metal
 
 ## Test devices
 
@@ -149,11 +147,11 @@ Fill this in during P0-09.
 | Real cabinet | *(P0-16 — not yet)* | — | — |
 | Cabinet simulator | Blender, `scripts/cabinet-sim/` | — | anyone |
 
-The X200 Pro is a 2024 flagship on the newest OS. It will find the fewest problems of any phone on the team. **The oldest team phone is the one that decides `minSdk`** — that is P0-17.
+The X200 Pro is a 2024 flagship on the newest OS. It will find the fewest problems of any phone on the team. `minSdk` is **24 — Android 7.0**, guessed rather than measured ([ADR 0009](../adr/0009-start-phase-1-early.md)). The oldest team phone confirms or lowers it — that is P0-17, deferred.
 
 ## Exit check
 
-- [ ] All seventeen tasks ticked
+- [ ] All seventeen tasks ticked — **6 are `⏸️ LATER`, so this phase cannot close yet, on purpose**
 - [x] `api-contract.md` has zero `TO AGREE` markers — done 2026-08-05
 - [x] [ADR 0001](../adr/0001-tech-stack.md) is `accepted` — Kotlin, native Android, done 2026-08-05
 - [x] The cabinet is confirmed to have a network connection — Wi-Fi, done 2026-08-05

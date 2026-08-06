@@ -19,8 +19,9 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Notes: deferred by [ADR 0007](../adr/0007-android-first.md). When iOS starts it gets its own phase, not a bolt-on here — that is how the deferred bugs stay a task instead of becoming a crisis
 
 - [ ] **P8-03** — Walk every screen on the real cabinet. Log every bug
-      - Owner: _unassigned_ · Needs: P7-03 · Blocks: P8-04
+      - Owner: _unassigned_ · Needs: P7-03, P1-03 · Blocks: P8-04
       - Verify: every cabinet screen was used at the cabinet, and the result is in the bug log
+      - Notes: **this is where the real cabinet becomes unavoidable.** [ADR 0009](../adr/0009-start-phase-1-early.md) let the screen be built in a browser; this task is the one that proves it on the real thing. Needs P0-16, which is deferred — so it cannot tick until a cabinet exists, and that is the point. First run on the real screen also settles assumption A-18
 
 - [ ] **P8-04** — Fix every logged bug, then test it again on the device that found it
       - Owner: _unassigned_ · Needs: P8-01, P8-03 · Blocks: P8-09
