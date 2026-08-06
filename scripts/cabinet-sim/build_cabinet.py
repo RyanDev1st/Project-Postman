@@ -19,6 +19,8 @@ Then drive it:
 import bpy
 import math
 
+from mathutils import Matrix
+
 # --- The drawing, in millimetres -------------------------------------------
 # Every number here comes from the design sheet. Change these, not the code.
 W, H, D = 1600, 1800, 450       # overall width, height, depth
@@ -53,6 +55,7 @@ PALETTE = {                      # from MATERIALS & FINISH on the drawing
     "door":  (0.600, 0.620, 0.630, 1),   # galvanized steel, light gray
     "panel": (0.012, 0.014, 0.016, 1),   # steel sheet, black
     "vent":  (0.020, 0.022, 0.025, 1),
+    "number": (0.01, 0.01, 0.012, 1),  # black paint, reads on the light door
 }
 
 SCREEN_STATES = {                # what the screen shows, and its colour
@@ -71,14 +74,15 @@ def mm(v):
     return v / 1000.0
 
 
-def _material(name, rgba, emit=None):
+def _material(name, rgba, emit=None, matte=False):
     mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = rgba
-    bsdf.inputs["Roughness"].default_value = 0.55
+    bsdf.inputs["Roughness"].default_value = 0.9 if matte else 0.55
     if "Metallic" in bsdf.inputs:
-        bsdf.inputs["Metallic"].default_value = 0.7 if emit is None else 0.0
+        # Painted markings are not steel; metallic black reads washed out.
+        bsdf.inputs["Metallic"].default_value = 0.0 if (matte or emit is not None) else 0.7
     if emit is not None and "Emission Color" in bsdf.inputs:
         bsdf.inputs["Emission Color"].default_value = (*emit, 1)
         bsdf.inputs["Emission Strength"].default_value = 2.0
@@ -148,16 +152,41 @@ def _door(number, x, z, w, h, mat):
                origin_shift=(-w / 2, 0, 0), material=mat)
     obj["box_number"] = number
     obj["state"] = "shut"
+    _door_number(obj, number, w, h)
+    return obj
+
+
+def _door_number(door, number, w, h):
+    """Stencil the box number on the door face, top-left, in dark paint.
+
+    The offset is worked out from the door's own geometry, never from
+    `matrix_world`. During build() the depsgraph has not evaluated yet, so
+    every object still reports an identity matrix - reading it put the numbers
+    at double their intended position, outside the cabinet entirely.
+
+    _box hinges the door on its left edge, so in door space:
+      x runs 0 (hinge) .. w,  y is -12 .. 12,  z is -h/2 .. h/2.
+    """
     label = bpy.data.objects.new(f"Label_{number:02d}",
                                  bpy.data.curves.new(f"L{number}", "FONT"))
     label.data.body = f"{number:02d}"
-    label.data.size = mm(46)
-    label.location = (mm(x + 34), mm(-D / 2 - 2), mm(z + h - 78))
-    label.rotation_euler = (math.radians(90), 0, 0)
-    label.parent = obj
-    label.matrix_parent_inverse = obj.matrix_world.inverted()
+    label.data.size = mm(72)
+    label.data.align_x = "LEFT"
+    label.data.align_y = "TOP"
+    # Thin flat text reads grey against the door. Give the strokes weight and
+    # a little depth so they catch light and stay legible from across a lobby.
+    label.data.extrude = mm(1.5)
+    label.data.offset = mm(1.2)
+    label.data.materials.append(_material("number", PALETTE["number"], matte=True))
+
     bpy.data.collections[COLLECTION].objects.link(label)
-    return obj
+    label.parent = door
+    label.matrix_parent_inverse = Matrix.Identity(4)
+
+    # Stand the text up to face the front, 4 mm proud so it never z-fights.
+    label.rotation_euler = (math.radians(90), 0, 0)
+    label.location = (mm(34), mm(-12 - 4), mm(h / 2 - 30))
+    return label
 
 
 def _panel(mat_panel):
