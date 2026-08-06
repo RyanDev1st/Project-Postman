@@ -53,7 +53,9 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 
 One file per report: `findings/YYYY-MM-DD-<topic>.md`. Never edited after the day. See [findings/README.md](findings/README.md).
 
-*(none yet)*
+| File | What it found |
+| --- | --- |
+| [findings/2026-08-07-overnight-sweep.md](findings/2026-08-07-overnight-sweep.md) | Every open task chains back to a server address we do not have. P0-04 is the critical path and was wrongly deferred |
 
 ## Legacy — docs that are no longer true
 
