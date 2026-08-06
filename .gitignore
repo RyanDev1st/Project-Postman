@@ -9,6 +9,11 @@ GoogleService-Info.plist
 .claude/settings.local.json
 .claude/worktrees/
 
+# The cabinet's own config: its key and its server address. Placed on the
+# device at setup, never committed. config.example.js shows the shape and is
+# the file that IS committed. See ADR 0004 - one key per cabinet.
+src/cabinet/config.js
+
 # Android build settings that belong to one machine, not to the team.
 # local.properties holds the absolute SDK path - here A:\Android\Sdk, which
 # exists on nobody else's computer.

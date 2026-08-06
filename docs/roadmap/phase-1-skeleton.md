@@ -37,10 +37,11 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Owner: _unassigned_ · Needs: P1-04 · Blocks: P1-07, P1-08, P2-01
       - Verify: the app calls one real endpoint and the server log shows the request arriving
 
-- [ ] **P1-06** — The cabinet reaches the real server with its key
+- [ ] **🔴 BLOCKED — P1-06** — The cabinet reaches the real server with its key
       - Owner: _unassigned_ · Needs: P1-03 · Blocks: P1-07, P3-01, P5-01
       - Verify: the cabinet calls one real endpoint and the server log shows it, identified as that cabinet
       - Notes: P0-05 was dropped from the Needs by [ADR 0009](../adr/0009-start-phase-1-early.md) — the key **type** is deferred, so this uses a simple test key we issue ourselves. The key is placed on the device, never built into the code, and the real design lands before any cabinet leaves a desk
+      - Notes: **the cabinet's half is built** — `src/cabinet/net.js` is its one door, and `config.example.js` shows where the key goes. `python scripts/checknet.py` proves nothing else in `src/cabinet/` touches the network. What is missing is a server: `server_base_url` is blank, because the contract has not been sent (P0-04). Blocked on the Server team, not on us
 
 - [ ] **P1-07** — No key, token or address inside either build
       - Owner: _unassigned_ · Needs: P1-05, P1-06 · Blocks: P8-07

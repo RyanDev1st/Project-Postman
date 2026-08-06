@@ -48,7 +48,15 @@
   </footer>
 </main>
 
+<!--
+  config.js holds this cabinet's key and server address. It is placed on the
+  device at setup and is git-ignored, so it is missing here and on any fresh
+  clone - that is correct, not broken. net.js says "this cabinet has no key
+  yet" rather than calling with nothing. See config.example.js.
+-->
+<script src="config.js" onerror="void 0"></script>
 <script src="version.js"></script>
+<script src="net.js"></script>
 <script src="screen.js"></script>
 </body>
 </html>

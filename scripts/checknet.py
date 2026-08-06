@@ -51,7 +51,15 @@ CABINET_NETWORK = [
 
 # P1-07. Things that must never be built into a shipped front-end.
 SECRETS = [
-    (r"https?://(?!schemas\.android\.com|www\.w3\.org)[a-z0-9.-]+\.[a-z]{2,}", "a hard-coded address"),
+    # Reserved names are exempt, and only reserved names. RFC 2606 and 6761
+    # set aside .invalid, .example, .test and .localhost precisely so that a
+    # documented example cannot become a live endpoint by accident. A
+    # template file is not exempt as a file - a real key pasted into
+    # config.example.js is still caught by the rules below it.
+    (r"https?://(?!schemas\.android\.com|www\.w3\.org)"
+     r"(?![a-z0-9.-]*\.(?:invalid|example|test|localhost)\b)"
+     r"[a-z0-9.-]+\.[a-z]{2,}",
+     "a hard-coded address"),
     (r"\bBearer\s+[A-Za-z0-9._~+/-]{16,}", "a bearer token"),
     # `\\?[\"']` because a secret inside a Kotlin or JS string literal reaches
     # us with its quotes escaped, and the first version of this pattern walked
