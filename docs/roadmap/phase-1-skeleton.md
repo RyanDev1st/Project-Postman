@@ -13,7 +13,7 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
 - [ ] **P1-01** — Empty app runs on the real Android phone
       - Owner: _unassigned_ · Needs: P0-03, P0-09, P0-15 · Blocks: P1-04
       - Verify: the app opens on the listed Android phone and shows one screen with its version number
-      - Notes: **every Need is ticked — this can start now.** P0-17 was dropped from the list by [ADR 0009](../adr/0009-start-phase-1-early.md); `minSdk` is 24, guessed. Set that in the build file when the project is created
+      - Notes: **every Need is ticked, and the toolchain is installed — this can start now.** P0-17 was dropped from the list by [ADR 0009](../adr/0009-start-phase-1-early.md); `minSdk` is **24**, guessed. Set that in the build file when the project is created, with `compileSdk` and `targetSdk` at **36**. Android Studio is at `A:\Android Studio`; the SDK is at `A:\Android\Sdk`, which is also `ANDROID_HOME`. Neither is on C:, so a guide that assumes the default path will point at the wrong place
 
 - [ ] **⏸️ LATER — P1-02** — Empty app runs on the real iPhone
       - Owner: _unassigned_ · Needs: P0-03, P0-09 · Blocks: —

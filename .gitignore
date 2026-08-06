@@ -9,6 +9,11 @@ GoogleService-Info.plist
 .claude/settings.local.json
 .claude/worktrees/
 
+# Android build settings that belong to one machine, not to the team.
+# local.properties holds the absolute SDK path - here A:\Android\Sdk, which
+# exists on nobody else's computer.
+local.properties
+
 # throwaways
 scratch_*
 
