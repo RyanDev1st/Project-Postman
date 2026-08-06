@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,16 +20,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ScreenFrame
+import vn.edu.vgu.smartlocker.ui.GlassPanel
+import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
 
 /** One waiting parcel. Made up, until endpoint 5 exists (task P4-04). */
 data class WaitingParcel(val cabinet: String, val box: String, val arrived: String)
 
 /**
- * Screen 3, the home screen.
+ * Screen 3, the home screen, and the first viewport of the whole app.
  *
  * **One parcel fills the screen.** At the cabinet the receiver wants one
- * button, not a list to read. A list appears only with two or more.
- * Decided with the team on 2026-08-06.
+ * button, not a list to read. A list appears only at two or more. Decided
+ * with the team on 2026-08-06.
+ *
+ * The box number sits on the app's only glass panel, lifted off the cabinet
+ * ground. Everything else on the screen is deliberately quiet so that the
+ * number and the button are the only two things the eye lands on.
  */
 @Composable
 fun WaitingScreen(
@@ -36,10 +44,15 @@ fun WaitingScreen(
     onHistory: () -> Unit,
     parcels: List<WaitingParcel> = listOf(WaitingParcel("Cabinet A1", "04", "14:32")),
 ) {
-    ScreenFrame(verticalArrangement = Arrangement.SpaceBetween) {
+    ScreenFrame(verticalArrangement = Arrangement.Top) {
         TextButton(onClick = onHistory, modifier = Modifier.align(Alignment.End)) {
-            Text(stringResource(R.string.history))
+            Text(stringResource(R.string.history), style = MaterialTheme.typography.labelLarge)
         }
+
+        // The card sits high, where the eye lands first. Centring it left a
+        // dead third at the top of the screen and pushed the number away
+        // from the thumb.
+        Spacer(Modifier.height(24.dp))
 
         when {
             parcels.isEmpty() -> NothingWaiting()
@@ -47,7 +60,9 @@ fun WaitingScreen(
             else -> ParcelList(parcels)
         }
 
-        // Everything tappable sits at the bottom, within thumb reach of a
+        Spacer(Modifier.weight(1f))
+
+        // Everything tappable sits at the bottom, in reach of a thumb on a
         // hand that is also holding a parcel.
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,15 +71,26 @@ fun WaitingScreen(
             Button(
                 onClick = onScan,
                 enabled = parcels.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                contentPadding = ButtonDefaults.ContentPadding,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 58.dp),
             ) {
-                Text(stringResource(R.string.scan_to_open))
+                Text(
+                    text = stringResource(R.string.scan_to_open),
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
 
             // Quiet text, not a second big button. It is the back door and
             // it should look like one - see api-contract.md.
             TextButton(onClick = onTypeCode, enabled = parcels.isNotEmpty()) {
-                Text(stringResource(R.string.cant_scan))
+                Text(
+                    text = stringResource(R.string.cant_scan),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -72,20 +98,35 @@ fun WaitingScreen(
 
 @Composable
 private fun OneParcel(parcel: WaitingParcel) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.a_parcel_is_waiting),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(24.dp))
-        Text(parcel.cabinet, style = MaterialTheme.typography.titleMedium)
 
-        // The box number is what the receiver looks for on the cabinet, so
-        // it is the biggest thing on the screen.
+        Spacer(Modifier.height(20.dp))
+
+        // The number the receiver hunts for along a row of identical doors.
+        // Nothing else in the app is set at this size.
         Text(
-            text = stringResource(R.string.box_n, parcel.box),
-            style = MaterialTheme.typography.displayMedium,
+            text = parcel.box,
+            style = MaterialTheme.typography.displayLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.box_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = parcel.cabinet,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = stringResource(R.string.arrived_at, parcel.arrived),
@@ -100,61 +141,64 @@ private fun ParcelList(parcels: List<WaitingParcel>) {
     Column(Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.n_parcels_waiting, parcels.size),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(16.dp))
+
         parcels.forEach { parcel ->
-            Text(
-                text = "${parcel.cabinet} — ${stringResource(R.string.box_n, parcel.box)}",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                text = stringResource(R.string.arrived_at, parcel.arrived),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(16.dp))
+            GlassPanel(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = parcel.box,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "${parcel.cabinet} · ${stringResource(R.string.arrived_at, parcel.arrived)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Spacer(Modifier.height(12.dp))
         }
     }
 }
 
-/** Its own state, not an empty list. An empty list looks broken. */
+/** Its own state, not an empty list. An empty list reads as broken. */
 @Composable
 private fun NothingWaiting() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(R.string.nothing_waiting),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.we_will_tell_you),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun WaitingOnePreview() {
-    MaterialTheme { WaitingScreen({}, {}, {}) }
+    PreviewTheme { WaitingScreen({}, {}, {}) }
 }
 
-@Preview(showBackground = true, name = "two parcels")
+@Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
-private fun WaitingManyPreview() {
-    MaterialTheme {
-        WaitingScreen({}, {}, {}, parcels = listOf(
-            WaitingParcel("Cabinet A1", "04", "14:32"),
-            WaitingParcel("Cabinet A1", "11", "Monday"),
-        ))
-    }
+private fun WaitingDarkPreview() {
+    PreviewTheme(dark = true) { WaitingScreen({}, {}, {}) }
 }
 
-@Preview(showBackground = true, name = "nothing waiting")
+@Preview(showBackground = true, heightDp = 780, name = "nothing waiting")
 @Composable
 private fun WaitingNonePreview() {
-    MaterialTheme { WaitingScreen({}, {}, {}, parcels = emptyList()) }
+    PreviewTheme { WaitingScreen({}, {}, {}, parcels = emptyList()) }
 }

@@ -27,6 +27,8 @@
     <string name="a_parcel_is_waiting">A parcel is waiting</string>
     <string name="n_parcels_waiting">%1$d parcels waiting</string>
     <string name="box_n">Box %1$s</string>
+    <string name="box_label">BOX</string>
+    <string name="box_is_open">is open</string>
     <string name="arrived_at">Arrived %1$s</string>
     <string name="scan_to_open">Scan to open</string>
     <string name="cant_scan">Can\'t scan? Use a code</string>

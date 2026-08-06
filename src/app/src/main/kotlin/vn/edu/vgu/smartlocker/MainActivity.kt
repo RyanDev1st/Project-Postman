@@ -5,15 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.fillMaxSize
 import vn.edu.vgu.smartlocker.auth.OneTimeCodeScreen
 import vn.edu.vgu.smartlocker.auth.PhoneNumberScreen
 import vn.edu.vgu.smartlocker.parcels.HistoryScreen
@@ -21,6 +17,7 @@ import vn.edu.vgu.smartlocker.parcels.WaitingScreen
 import vn.edu.vgu.smartlocker.pickup.OpenedScreen
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
 import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
+import vn.edu.vgu.smartlocker.ui.theme.SmartLockerTheme
 
 /** The seven screens, named in docs/reference/app-screens.md. */
 enum class Screen { PHONE, CODE, WAITING, SCAN, OPENED, TYPE_CODE, HISTORY }
@@ -40,10 +37,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    AppSkeleton()
-                }
+            SmartLockerTheme {
+                AppSkeleton()
             }
         }
     }

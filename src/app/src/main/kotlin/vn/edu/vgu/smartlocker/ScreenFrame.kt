@@ -12,26 +12,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.ui.LockerBackdrop
 
 /**
- * The edges every screen shares: keep content clear of the status bar and
- * the gesture bar, and off the edge of the glass.
+ * The ground every screen stands on, and the edges it keeps clear.
  *
- * App chrome, not feature code, which is why it sits beside MainActivity
- * rather than inside a feature folder.
+ * Content stays out from under the status bar, the gesture bar and the
+ * keyboard, and off the edge of the glass. App chrome, not feature code,
+ * which is why it sits beside MainActivity rather than in a feature folder.
  */
 @Composable
 fun ScreenFrame(
     verticalArrangement: Arrangement.Vertical = Arrangement.Center,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalArrangement = verticalArrangement,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        content = content,
-    )
+    LockerBackdrop {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalArrangement = verticalArrangement,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = content,
+        )
+    }
 }
