@@ -33,12 +33,13 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Notes: rule 1 in `architecture.md`. Doing this later means touching every screen. The search is `python scripts/checknet.py`, which also carries the P1-07 checks. No new libraries: Android already has everything this needed
       - Done: 2026-08-07 — Built the part of the app that talks to the server, and made it the only part that can. Every message the app will ever send now goes out through a single file, so the rules about it are decided once instead of once per screen: it refuses to talk over an unencrypted connection, it gives up rather than hanging forever, and it never writes anybody's login into a log. Wrote a checker that reads the whole app and fails if any other file tries to reach the network on its own — then deliberately added a bad file to make sure the checker actually caught it, which it did, before deleting it. Your login is kept in the locked-away store the phone provides, not as plain text. The app also carries our list of guessed numbers inside it now, copied straight from the one file we keep them in, so the two can never disagree. The app still talks to nobody, because the Server team has not given us an address yet — that is P1-05.
 
-- [ ] **P1-05** — The app reaches the real server over HTTPS
-      - Owner: _unassigned_ · Needs: P1-04 · Blocks: P1-07, P1-08, P2-01
+- [ ] **🔴 BLOCKED — P1-05** — The app reaches the real server over HTTPS
+      - Owner: _unassigned_ · Needs: P1-04, P0-04 · Blocks: P1-07, P1-08, P2-01
       - Verify: the app calls one real endpoint and the server log shows the request arriving
+      - Notes: **the app's half is built** — P1-04. It is blocked on there being a server to call: `server_base_url` in `config/settings.json` is empty and stays empty until P0-04 is sent and answered. P0-04 was added to Needs on 2026-08-07, because the dependency was always real and was not written down
 
 - [ ] **🔴 BLOCKED — P1-06** — The cabinet reaches the real server with its key
-      - Owner: _unassigned_ · Needs: P1-03 · Blocks: P1-07, P3-01, P5-01
+      - Owner: _unassigned_ · Needs: P1-03, P0-04 · Blocks: P1-07, P3-01, P5-01
       - Verify: the cabinet calls one real endpoint and the server log shows it, identified as that cabinet
       - Notes: P0-05 was dropped from the Needs by [ADR 0009](../adr/0009-start-phase-1-early.md) — the key **type** is deferred, so this uses a simple test key we issue ourselves. The key is placed on the device, never built into the code, and the real design lands before any cabinet leaves a desk
       - Notes: **the cabinet's half is built** — `src/cabinet/net.js` is its one door, and `config.example.js` shows where the key goes. `python scripts/checknet.py` proves nothing else in `src/cabinet/` touches the network. What is missing is a server: `server_base_url` is blank, because the contract has not been sent (P0-04). Blocked on the Server team, not on us

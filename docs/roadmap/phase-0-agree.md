@@ -2,7 +2,7 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 11 / 17.**  ·  6 deferred `⏸️ LATER`
+**Progress: 11 / 17.**  ·  5 deferred `⏸️ LATER`  ·  **P0-04 is the critical path for the whole board**
 
 Phase 0 is the cheapest phase and it prevents the most rework. **It no longer gates Phase 1** — see [ADR 0009](../adr/0009-start-phase-1-early.md).
 
@@ -28,7 +28,9 @@ Both are ours. Neither waits on another team.
    P0-11 ✅ ──> P0-12 ──> P0-13   <- the only live chain left
 ```
 
-**Everything deferred was waiting on somebody else.** P0-02 and P0-16 on the hardware team, P0-04, P0-05 and P0-08 on the Server team, P0-17 on a group-chat answer. None of them moved in a day, and the app they exist to serve had not been started.
+**Everything deferred was waiting on somebody else.** P0-02 and P0-16 on the hardware team, P0-05 and P0-08 on the Server team, P0-17 on a group-chat answer. None of them moved in a day, and the app they exist to serve had not been started.
+
+**P0-04 came back out of the deferred list on 2026-08-07.** Deferring it looked free because its `Blocks` line said `—`. It was wrong: no server address means no P1-05 and no P1-06, and every open task on the board chains back to one of those two. Sending the contract is now the single thing that unblocks the project.
 
 ## Who answers the deferred ones
 
@@ -37,8 +39,8 @@ They come back. This is who closes them when they do.
 | Who | Tasks | What is needed |
 | --- | --- | --- |
 | **Hardware team** | P0-02 ⏸️, P0-16 ⏸️ | A screen spec, and a cabinet we can touch |
-| **Server team** | P0-04 ⏸️, P0-05 ⏸️, P0-08 ⏸️ | Agree the **shape** of the API first — that one is not deferred. Then the key, then the masked format |
-| **Us, the IT team** | P0-12, P0-13 | Ours alone, and the only thing left running |
+| **Server team** | **P0-04 — send it**, then P0-05 ⏸️, P0-08 ⏸️ | P0-04 is no longer deferred and is the one thing holding up everything. Then the key, then the masked format |
+| **Us, the IT team** | — | P0-12 and P0-13 closed on 2026-08-07. Nothing in Phase 0 is ours any more |
 | **The group chat** | P0-17 ⏸️ | One question, whenever somebody cannot install the app |
 
 ## Tasks
@@ -62,10 +64,12 @@ They come back. This is who closes them when they do.
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Done: 2026-08-05 — Chose to build the Android app natively, in Kotlin. Nobody on the team has used any of the options before, so the usual tie-breaker of "use what you already know" did not apply. Native won because when a beginner hits a problem the error message is Android's own and the first search result answers it — with a cross-platform tool the same problem arrives translated, and you cannot tell whose fault it is. The cost is real and we took it knowingly: an iPhone version later means writing the app a second time, not converting it. The design work carries over even though the code will not.
 
-- [ ] **⏸️ LATER — P0-04** — Write the whole API contract as our proposal, and send it
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: —
+- [ ] **P0-04** — Write the whole API contract as our proposal, and send it
+      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P1-05, P1-06
       - Verify: `api-contract.md` has zero `TO AGREE` markers **and** it has been sent to the Server team with a date recorded here
-      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — marginal changes can be made later. The document is written and we build against it, per [ADR 0005](../adr/0005-we-propose-they-object.md): silence means agreement. **What is not deferred is the shape** — which calls exist and who may make them. Agree that with the Server team before Phase 2, or the screens get rebuilt
+      - Notes: was `⏸️ LATER`. **Un-deferred on 2026-08-07, and this is not a reversal of [ADR 0009](../adr/0009-start-phase-1-early.md) — it is the condition that ADR set.** It says to agree the shape *before Phase 2*, and Phase 2 is next: every open task on the whole board now chains back to P1-05 or P1-06, and both need a server address that only this task produces. `server_base_url` in `config/settings.json` is empty
+      - Notes: **the Blocks line used to say `—`, and that was the whole problem.** The dependency was real and unrecorded, so deferring this looked free. It is the critical path for 60 tasks
+      - Notes: the document itself is finished — 17 endpoints, every value chosen, zero blanks. What is left is a person sending it and writing the date here
 
 - [ ] **⏸️ LATER — P0-05** — Agree how the cabinet proves it is the cabinet
       - Owner: _unassigned_ · Needs: — · Blocks: —

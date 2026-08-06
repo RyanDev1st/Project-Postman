@@ -83,7 +83,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 - [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `11/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
-      **6 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **Nothing left that is ours** — every open task waits on another team.
+      **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9` · **CURRENT**
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
@@ -101,13 +101,24 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 14 / 75.**  ·  8 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 6 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 14 / 75.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
 ## Current phase
 
-**Phase 1 — Skeleton.** The first code. **P1-01 can start now.**
+**Phase 1 — Skeleton.** The first code.
+
+> ### The whole board is waiting on two people, not on code
+>
+> Checked on 2026-08-07 by walking every open task's dependencies to the root. **Every one of them ends at P1-05 or P1-06, and both need a server address.** Nothing else is in the way.
+>
+> | # | What | Who | Unblocks |
+> | --- | --- | --- | --- |
+> | 1 | **Send `api-contract.md` to the Server team** — P0-04. It is finished: 17 endpoints, every value chosen, no blanks. It needs sending, and an address back | Somebody with their contact | ~60 tasks. Phases 2 to 8 |
+> | 2 | **Install the app on the Vivo and look at it** — P1-01. The APK is built and waiting | Somebody holding that phone | Closes Phase 1's last human step |
+>
+> Both front-ends already have everything that does not need a server: one network door each, the token store, the settings file, and seven screens.
 
 **Phase 0 no longer gates Phase 1** — [ADR 0009](../adr/0009-start-phase-1-early.md) reversed that on 2026-08-06. Every open Phase 0 task waited on somebody outside this team, none of them moved, and the app they exist to serve had not been started. Six are now `⏸️ LATER`. Phase 0 stays open and its deferred tasks still count against the total.
 
