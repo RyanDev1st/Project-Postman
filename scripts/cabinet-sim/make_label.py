@@ -13,7 +13,7 @@ a phone number - the cabinet screen is a public terminal.
 import os
 import random
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1000, 640
 INK = (17, 17, 17, 255)
@@ -42,22 +42,43 @@ def _barcode(d, x, y, w, h, seed):
 
 
 def _qr(d, x, y, size, seed):
+    """A QR that has real structure: finders, separators, timing tracks.
+
+    Random noise in a square reads as wrong even to someone who cannot decode
+    it - the eye knows the corners and the dotted tracks should be there.
+    """
     rng = random.Random(seed)
     n = 25
     c = size / n
     d.rectangle([x, y, x + size, y + size], fill=(255, 255, 255, 255))
-    for r in range(n):
-        for col in range(n):
-            if rng.random() < 0.48:
-                d.rectangle([x + col * c, y + r * c, x + (col + 1) * c, y + (r + 1) * c],
-                            fill=INK)
+
+    def cell(col, row, on=True):
+        d.rectangle([x + col * c, y + row * c, x + (col + 1) * c, y + (row + 1) * c],
+                    fill=INK if on else (255, 255, 255, 255))
+
+    reserved = set()
     for fx, fy in ((0, 0), (n - 7, 0), (0, n - 7)):
-        d.rectangle([x + fx * c, y + fy * c, x + (fx + 7) * c, y + (fy + 7) * c],
-                    fill=(255, 255, 255, 255))
-        d.rectangle([x + fx * c, y + fy * c, x + (fx + 7) * c, y + (fy + 7) * c],
-                    outline=INK, width=max(2, int(c)))
-        d.rectangle([x + (fx + 2) * c, y + (fy + 2) * c,
-                     x + (fx + 5) * c, y + (fy + 5) * c], fill=INK)
+        for dx in range(-1, 8):
+            for dy in range(-1, 8):
+                col, row = fx + dx, fy + dy
+                if 0 <= col < n and 0 <= row < n:
+                    reserved.add((col, row))
+        for dx in range(7):
+            for dy in range(7):
+                edge = dx in (0, 6) or dy in (0, 6)
+                core = 2 <= dx <= 4 and 2 <= dy <= 4
+                cell(fx + dx, fy + dy, edge or core)
+
+    for i in range(8, n - 8):          # timing tracks
+        cell(i, 6, i % 2 == 0)
+        cell(6, i, i % 2 == 0)
+        reserved.add((i, 6))
+        reserved.add((6, i))
+
+    for row in range(n):               # payload
+        for col in range(n):
+            if (col, row) not in reserved and rng.random() < 0.47:
+                cell(col, row)
 
 
 def _shopee_mark(d, x, y, s):
@@ -125,9 +146,36 @@ def make(path, courier="SPX Express", tracking="SPXVN0451882913",
     d.text((44, 584), "Scan the cabinet screen to collect",
            font=font(20), fill=FAINT)
 
+    im = _weather(im, seed=hash(tracking) & 0xFFFF)
     im.save(path)
     print("wrote", path)
     return path
+
+
+def _weather(im, seed):
+    """Make it read as thermal print on paper, not as vector art.
+
+    A pure-white sticker with razor edges sitting on a photographed parcel is
+    what makes a decal look pasted on. Warm the paper very slightly, add a
+    little print grain, and take the edge off.
+    """
+    rng = random.Random(seed)
+    im = im.convert("RGB")
+    px = im.load()
+    w, h = im.size
+
+    # Thermal stock is not white; it is a touch warm and grey.
+    for y in range(h):
+        for x in range(0, w, 2):        # every other pixel is enough at this size
+            r, g, b = px[x, y]
+            if r > 200:                 # paper, not ink
+                n = rng.randint(-6, 3)
+                px[x, y] = (max(0, min(255, 250 + n)),
+                            max(0, min(255, 248 + n)),
+                            max(0, min(255, 243 + n)))
+
+    im = im.filter(ImageFilter.GaussianBlur(0.4))   # printer dot spread
+    return im
 
 
 # One label per parcel prop. Box numbers are real slots in GRID.
