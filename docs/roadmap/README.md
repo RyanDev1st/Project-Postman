@@ -71,8 +71,9 @@ Nothing else. No half-ticks.
 2. It passes → change `- [ ]` to `- [x]`.
 3. **Add the `Done:` line.** The date, then what you did and what you saw, in plain words.
 4. Update the phase file's **Progress** line.
-5. Update this file's count in the table below.
-6. Commit with the ID: `feat(P2-03): send the one-time code`.
+5. Update this file's count in the table below, and the **Total** line.
+6. Run `python scripts/checkboard.py`. It must print `board is consistent`.
+7. Commit with the ID: `feat(P2-03): send the one-time code`.
 
 All in the same change. A tick with a stale count is a broken board. A tick with no `Done` line is worse — nobody can tell what was proved.
 
@@ -84,9 +85,9 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `0/8`
       Empty app on both phones, empty screen on the cabinet, both reach the server.
-- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/8`
+- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
       A receiver registers with a phone number and stays logged in.
-- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/8`
+- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
       The cabinet screen. A shipper finds the receiver and a box opens.
 - [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/5`
       The notification arrives and the parcel shows in the app.

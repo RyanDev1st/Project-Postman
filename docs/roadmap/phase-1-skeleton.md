@@ -42,7 +42,7 @@ No feature in this phase. Only proof that the pipes exist.
 - [ ] **P1-08** — A changed setting reaches a phone without a new release
       - Owner: _unassigned_ · Needs: P0-15, P1-05 · Blocks: —
       - Verify: change one number in `config/settings.json`, do **not** rebuild the app, and the phone behaves by the new number
-      - Notes: design is in [config/README.md](../../config/README.md). Needs a Server-team endpoint we have not proposed yet — add it to `api-contract.md` before the meeting. Until this is ticked, every guessed number is frozen at whatever shipped
+      - Notes: design is in [config/README.md](../../config/README.md). The server side is endpoint 15 in `api-contract.md`, proposed 2026-08-06 — it goes to the Server team with P0-04. Until this is ticked, every guessed number is frozen at whatever shipped
 
 ## Exit check
 

@@ -1,6 +1,6 @@
 # API contract — front-ends ↔ server
 
-**Status: OUR PROPOSAL. Sent, not yet answered.**
+**Status: OUR PROPOSAL. Written, not yet sent.** Sending it is task **P0-04**.
 
 The Server team does not have an API design yet. So this is not a form with blanks for them to fill — it is **our complete draft**, with every value chosen. Their job is to read it and say what is wrong. See [ADR 0005](../adr/0005-we-propose-they-object.md).
 
@@ -82,6 +82,26 @@ The cost of having no sensor is written down in ADR 0006: a driver can record a 
 
 **Endpoint 13 is the one call with no token behind it.** Everything else proves who the user is from a login. This one proves it from the code alone — so the code carries the whole weight, and the rules below are not optional.
 
+## Endpoints — both callers
+
+| # | What the caller wants | Path we propose | Sends | Gets back |
+| --- | --- | --- | --- | --- |
+| 15 | Get the current settings | `GET /settings` | token, or cabinet key | `settings_version`, and the numbers below it |
+
+Every number in this contract is a guess we expect to correct. Endpoint 15 is how a correction reaches a phone that is already installed. Without it, every number is frozen at whatever shipped. Task **P1-08**.
+
+| Rule | Value |
+| --- | --- |
+| What it returns | The same keys as `config/settings.json`, minus the ones marked fixed below |
+| Which copy wins | The one with the higher `settings_version` |
+| If the call fails | Keep the last good copy. Never fall back to nothing |
+| First run, no network | The copy that shipped with the app |
+| `server_base_url` | **Never returned.** *Fixed — not a setting the server may set* |
+
+**`server_base_url` is the one key the server may not send.** The app has to know the address before it can ask, so a server-set address is circular. Worse, it hands anybody who answers that call the power to point the app somewhere else. It stays in the shipped file and changes only with a release.
+
+**This endpoint carries numbers, never rules.** `qr_session_seconds` may change from 60 to 120. "The typed code works once" may not — that is a shape, and a shape change is a contract change needing both teams. The keys marked *Fixed* in this file are the list.
+
 ## The typed code — what protects it
 
 Path D2 in [architecture.md](architecture.md). It exists so a flat battery does not trap a parcel. It is the back door, and it is defended like one.
@@ -127,4 +147,4 @@ Not blanks. Three things only they can answer, and one thing we need a yes to.
 3. **What does endpoint 10 return when two people share one phone number?** Rare, but it decides whether the shipper sees a list or an error. (blocks P3-03)
 4. **Confirm the masked-name format.** We propose `Nguyễn V. A***`. If your data cannot produce that shape, tell us what it can. (blocks P0-08)
 
-Everything else in this file is a number, and every number lives in the settings file. Want a different value? Change the setting. No meeting needed.
+Everything else in this file is a number, and every number lives in the settings file. Want a different value? Change the setting. No meeting needed — once endpoint 15 exists and task **P1-08** is ticked. Until then a changed number needs a new release, so endpoint 15 is worth building early.

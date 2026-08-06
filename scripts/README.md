@@ -1,6 +1,6 @@
 # scripts
 
-Build, release and helper scripts. Empty for now.
+Build, release and helper scripts.
 
 ## Rules
 
@@ -10,4 +10,5 @@ Build, release and helper scripts. Empty for now.
 
 | Script | What it does | When to run it |
 | --- | --- | --- |
-| | | |
+| `checkboard.py` | Reads every roadmap file and checks the counts, the IDs and the dependency links agree | Every time you tick a task, before you commit. It exits non-zero if the board is wrong |
+| `cabinet-sim/` | Builds the Blender cabinet and opens its doors. **Never evidence** — [ADR 0008](../docs/adr/0008-cabinet-simulator.md) | When you need to see the cabinet without having one |
