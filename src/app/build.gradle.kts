@@ -72,6 +72,48 @@ android {
     }
 }
 
+/**
+ * Ship `config/settings.json` inside the app, without a second copy of it.
+ *
+ * The app needs those numbers before it has ever reached the server, so they
+ * have to be in the APK. Committing a duplicate under res/raw would mean two
+ * files that must agree and will not: somebody corrects one, ships, and the
+ * phone keeps using the other. So the real file is copied in at build time
+ * into build/, which git ignores.
+ *
+ * Wired through the **variant API**, not `sourceSets[...].res.srcDir(...)`.
+ * AGP 9 rejects a Provider there outright - it cannot tell a generated
+ * directory from a hand-edited one, and the task dependency would not be
+ * carried. `addGeneratedSourceDirectory` says both things at once.
+ */
+abstract class CopySettingsTask : DefaultTask() {
+    @get:InputFile
+    abstract val settingsFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val raw = outputDir.get().asFile.resolve("raw")
+        raw.mkdirs()
+        settingsFile.get().asFile.copyTo(raw.resolve("settings.json"), overwrite = true)
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val copySettings = tasks.register<CopySettingsTask>(
+            "copySettings${variant.name.replaceFirstChar { it.uppercase() }}",
+        ) {
+            settingsFile.set(rootProject.file("config/settings.json"))
+        }
+        variant.sources.res?.addGeneratedSourceDirectory(
+            copySettings, CopySettingsTask::outputDir,
+        )
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

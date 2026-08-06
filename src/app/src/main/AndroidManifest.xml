@@ -2,11 +2,19 @@
 <!--
     P1-01: the empty app. One screen, a version number, nothing else.
 
-    There is no INTERNET permission here on purpose. The skeleton does not
-    talk to the server - that is P1-05 - and a permission is easier to add
-    when it is needed than to explain when it is not.
+    INTERNET arrives with P1-04, the network layer. It is the only permission
+    here: no camera yet - that is asked for on the scan screen, where the need
+    is obvious, never on first open - and no notifications yet.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        Lets the app tell "no network" apart from "the server is down", so it
+        can say which. Neither is a success, but they are different sentences.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:label="@string/app_name"

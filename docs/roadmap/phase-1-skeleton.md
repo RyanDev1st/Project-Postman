@@ -2,7 +2,7 @@
 
 **Goal:** an empty app runs on the real Android phone, an empty cabinet screen runs in a browser, and both reach the real server.
 
-**Progress: 2 / 9.**  ·  **OPEN — P1-01 is built and waiting on a phone**
+**Progress: 3 / 9.**  ·  **OPEN — P1-01 is built and waiting on a phone**
 
 No feature in this phase. Only proof that the pipes exist.
 
@@ -27,10 +27,11 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Notes: was *"on the real cabinet"*. There is no cabinet, and P0-16 is deferred — [ADR 0009](../adr/0009-start-phase-1-early.md). The two sizes stand in for a screen spec nobody can give us yet, so the layout is proved to scale before anything is built on it. **Running it on the real cabinet is now P8-03**, and that Verify still names real hardware
       - Done: 2026-08-06 — Built the first cabinet screen and opened it in Chrome at both sizes the task asks for. It shows the locker name in English and Vietnamese, says plainly that it is not in service yet, and prints its version — v0.1.0 — along the bottom. Nothing was cut off and nothing needed scrolling sideways. Also tried it small, at 800 by 480, in case the real cabinet screen turns out to be a little tablet: everything still fit and stayed readable. The screen says "Cabinet not set" because no cabinet exists to name it, which is honest rather than broken. It does not talk to the server yet — that is P1-06.
 
-- [ ] **P1-04** — One network file in the app. Every call goes through it
-      - Owner: _unassigned_ · Needs: P1-01 · Blocks: P1-05
+- [x] **P1-04** — One network file in the app. Every call goes through it
+      - Owner: Team · Needs: P1-01 · Blocks: P1-05
       - Verify: a search of the app source finds no HTTP call outside that one file
-      - Notes: rule 1 in `architecture.md`. Doing this later means touching every screen
+      - Notes: rule 1 in `architecture.md`. Doing this later means touching every screen. The search is `python scripts/checknet.py`, which also carries the P1-07 checks. No new libraries: Android already has everything this needed
+      - Done: 2026-08-07 — Built the part of the app that talks to the server, and made it the only part that can. Every message the app will ever send now goes out through a single file, so the rules about it are decided once instead of once per screen: it refuses to talk over an unencrypted connection, it gives up rather than hanging forever, and it never writes anybody's login into a log. Wrote a checker that reads the whole app and fails if any other file tries to reach the network on its own — then deliberately added a bad file to make sure the checker actually caught it, which it did, before deleting it. Your login is kept in the locked-away store the phone provides, not as plain text. The app also carries our list of guessed numbers inside it now, copied straight from the one file we keep them in, so the two can never disagree. The app still talks to nobody, because the Server team has not given us an address yet — that is P1-05.
 
 - [ ] **P1-05** — The app reaches the real server over HTTPS
       - Owner: _unassigned_ · Needs: P1-04 · Blocks: P1-07, P1-08, P2-01
