@@ -14,6 +14,11 @@ scratch_*
 
 # generated artifacts
 graphify-out/
+# Blender scenes and generated 3D props. The cabinet is rebuilt from
+# build_cabinet.py; parcels come from Hunyuan. Never commit the binary.
+*.blend
+*.blend[0-9]
+scripts/cabinet-sim/props/
 
 # caches / build
 __pycache__/
