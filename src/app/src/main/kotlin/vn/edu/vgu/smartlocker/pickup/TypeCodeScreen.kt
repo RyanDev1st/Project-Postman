@@ -3,6 +3,8 @@ package vn.edu.vgu.smartlocker.pickup
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -38,11 +40,18 @@ fun TypeCodeScreen(onAccepted: () -> Unit) {
     var code by remember { mutableStateOf("") }
 
     ScreenFrame {
+        // Held in from the screen edge so the heading breaks into two lines
+        // instead of filling the full width to both margins.
         Text(
             text = stringResource(R.string.type_the_code),
             style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp),
         )
+
+        Spacer(Modifier.height(10.dp))
+
         Text(
             text = stringResource(R.string.code_is_in_the_notice),
             style = MaterialTheme.typography.bodyMedium,
@@ -65,9 +74,15 @@ fun TypeCodeScreen(onAccepted: () -> Unit) {
         Button(
             onClick = onAccepted,
             enabled = code.length == 6,
-            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 58.dp),
         ) {
-            Text(stringResource(R.string.open_my_box))
+            Text(
+                text = stringResource(R.string.open_my_box),
+                style = MaterialTheme.typography.labelLarge,
+            )
         }
     }
 }

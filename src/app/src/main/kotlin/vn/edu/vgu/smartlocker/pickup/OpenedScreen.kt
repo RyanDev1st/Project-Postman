@@ -1,6 +1,8 @@
 package vn.edu.vgu.smartlocker.pickup
 
+import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +20,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +55,8 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
  */
 @Composable
 fun OpenedScreen(box: String = "04", onDone: () -> Unit) {
+    LightBarsOnAmber()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,6 +120,33 @@ fun OpenedScreen(box: String = "04", onDone: () -> Unit) {
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
+        }
+    }
+}
+
+/**
+ * Dark clock and battery icons while this screen is up, and the theme's own
+ * back when it leaves.
+ *
+ * Every other screen lets the system bars follow the light or dark scheme.
+ * This one does not have a scheme - it is always amber - so in dark mode the
+ * phone drew white icons on a bright yellow ground and the clock became hard
+ * to read. The bar has to follow what is actually behind it.
+ */
+@Composable
+private fun LightBarsOnAmber() {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+
+    val wasDark = isSystemInDarkTheme()
+    DisposableEffect(Unit) {
+        val window = (view.context as Activity).window
+        val bars = WindowCompat.getInsetsController(window, view)
+        bars.isAppearanceLightStatusBars = true
+        bars.isAppearanceLightNavigationBars = true
+        onDispose {
+            bars.isAppearanceLightStatusBars = !wasDark
+            bars.isAppearanceLightNavigationBars = !wasDark
         }
     }
 }
