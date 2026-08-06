@@ -24,6 +24,9 @@ graphify-out/
 *.blend
 *.blend[0-9]
 scripts/cabinet-sim/props/
+# Rendered video. Rebuilt from the shot scripts in film/; the MP4 is output,
+# not source, and a few hundred kB of binary per render does not belong here.
+scripts/cabinet-sim/film/out/
 
 # caches / build
 __pycache__/
