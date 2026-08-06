@@ -1,9 +1,12 @@
 """Stick a readable shipping label on each parcel prop.
 
 Hunyuan bakes text into the texture as unreadable mush - inherent to how it
-reconstructs from a photo, and regenerating does not fix it. So the label goes
-on as a separate flat plane, drawn by make_label.py, floating just above the
-parcel's top face.
+reconstructs from a photo, and regenerating at higher resolution does not fix
+it. So the label goes on as a decal, drawn by make_label.py.
+
+The decal is a subdivided grid with a shrinkwrap modifier, not a flat quad. A
+quad sits at the top of the bounding box and juts into the air wherever the
+parcel curves away, which on a soft mailer is nearly everywhere.
 
 Run inside Blender after the parcels are imported:
     exec(open(r'scripts/cabinet-sim/apply_labels.py').read())
@@ -17,10 +20,11 @@ HERE = os.path.dirname(os.path.abspath(__file__)) if "__file__" in dir() else \
     r"C:\Users\admin\Project Postman\scripts\cabinet-sim"
 PROPS = os.path.join(HERE, "props")
 
-# Fraction of the parcel's top face the label covers. It must be generous:
-# the decal has to bury the gibberish Hunyuan baked into the texture, not sit
-# beside it. Anything under ~0.8 leaves the old label showing at the edges.
-COVERAGE = 0.94
+# Fraction of the bounding box the label covers. The real top face of a soft
+# parcel is smaller than its bounding box - it curves away at every edge - so
+# keep the label on the flat part or the wrap drags it down the sides.
+COVERAGE = 0.74
+GRID_N = 24            # grid divisions, so the label can bend over a shoulder
 LABEL_RATIO = 640 / 1000.0        # make_label.py renders 1000 x 640
 
 
@@ -74,30 +78,61 @@ def apply(parcel_name, png=None):
     if old:
         bpy.data.objects.remove(old, do_unlink=True)
 
-    # Build the quad by hand at the origin. primitive_plane_add + a baked
-    # transform_apply folds the spawn offset into the mesh, which puts the
-    # geometry somewhere the object's own location does not admit to.
-    hw, hh = width / 2, height / 2
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata([(-hw, -hh, 0), (hw, -hh, 0), (hw, hh, 0), (-hw, hh, 0)],
-                     [], [(0, 1, 2, 3)])
-    uvs = [(0, 0), (1, 0), (1, 1), (0, 1)]
-    mesh.uv_layers.new(name="UVMap")
-    for loop, uv in zip(mesh.uv_layers[0].data, uvs):
-        loop.uv = uv
-    mesh.update()
+    # A grid, not a single quad: the label has to bend down over the parcel's
+    # rounded shoulders. Built by hand at the origin - primitive_grid_add plus
+    # a baked transform_apply folds the spawn offset into the mesh, which puts
+    # the geometry somewhere the object's own location does not admit to.
+    mesh = _grid_mesh(name, width, height, GRID_N)
 
     plane = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(plane)
-
     plane.data.materials.append(_label_material(f"{name}_mat", png))
 
     # Left unparented, in world space, on purpose. Hunyuan imports each parcel
     # rotated 90 degrees on X, so any parenting scheme maps the label into that
     # rotated frame and lands it on edge. Move a parcel and re-run apply_all().
-    plane.location = centre + Vector((0, 0, 0.0015))   # 1.5 mm proud
+    plane.location = centre + Vector((0, 0, 0.02))   # start clear, then shrink on
+
+    # Wrap it onto the real surface. Without this the label sits flat at the
+    # top of the bounding box and juts into the air wherever the parcel curves
+    # away - which is most of the way round on a soft mailer.
+    mod = plane.modifiers.new("Wrap", "SHRINKWRAP")
+    mod.target = ob
+    mod.wrap_method = "PROJECT"
+    mod.use_project_z = True
+    mod.use_negative_direction = True
+    mod.use_positive_direction = False
+    mod.offset = 0.0012                     # 1.2 mm proud, no z-fighting
+
     print(f"{name}: {round(width*1000)} x {round(height*1000)} mm on {parcel_name}")
     return plane
+
+
+def _grid_mesh(name, width, height, n):
+    """Flat n x n grid centred on the origin, UV-mapped 0..1."""
+    hw, hh = width / 2, height / 2
+    verts, uvs_by_vert = [], []
+    for row in range(n + 1):
+        for col in range(n + 1):
+            u, v = col / n, row / n
+            verts.append((-hw + u * width, -hh + v * height, 0))
+            uvs_by_vert.append((u, v))
+
+    faces = []
+    for row in range(n):
+        for col in range(n):
+            a = row * (n + 1) + col
+            faces.append((a, a + 1, a + n + 2, a + n + 1))
+
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.uv_layers.new(name="UVMap")
+    uv_data = mesh.uv_layers[0].data
+    for poly in mesh.polygons:
+        for loop_i in poly.loop_indices:
+            uv_data[loop_i].uv = uvs_by_vert[mesh.loops[loop_i].vertex_index]
+    mesh.update()
+    return mesh
 
 
 def apply_all():
