@@ -1,0 +1,5 @@
+Phase 1 skeleton. Seven screens you can tap through. Nothing talks to a
+server yet, so every parcel on screen is made up.
+
+What to look at: does the box number read from arm's length, and is the
+button reachable with one thumb?
