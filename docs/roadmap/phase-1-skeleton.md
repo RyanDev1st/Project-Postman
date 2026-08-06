@@ -2,7 +2,7 @@
 
 **Goal:** an empty app runs on the real Android phone, an empty cabinet screen runs in a browser, and both reach the real server.
 
-**Progress: 0 / 8.**  ·  **OPEN — P1-01 can start now**
+**Progress: 1 / 8.**  ·  **OPEN — P1-01 can start now**
 
 No feature in this phase. Only proof that the pipes exist.
 
@@ -20,10 +20,11 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Verify: the app opens on the listed iPhone and shows one screen with its version number
       - Notes: deferred by [ADR 0007](../adr/0007-android-first.md) — Android MVP first. Needs a Mac and an Apple developer account, which is now the rest of the team's item. Do not let this hold up P1-04
 
-- [ ] **P1-03** — Empty cabinet screen runs in a browser
-      - Owner: _unassigned_ · Needs: P0-01, P0-14 · Blocks: P1-06, P8-03
+- [x] **P1-03** — Empty cabinet screen runs in a browser
+      - Owner: Team · Needs: P0-01, P0-14 · Blocks: P1-06, P8-03
       - Verify: the page opens full-screen in a browser and shows one screen with its version number, readable at **1280 × 800 and at 1920 × 1080** without a sideways scrollbar
       - Notes: was *"on the real cabinet"*. There is no cabinet, and P0-16 is deferred — [ADR 0009](../adr/0009-start-phase-1-early.md). The two sizes stand in for a screen spec nobody can give us yet, so the layout is proved to scale before anything is built on it. **Running it on the real cabinet is now P8-03**, and that Verify still names real hardware
+      - Done: 2026-08-06 — Built the first cabinet screen and opened it in Chrome at both sizes the task asks for. It shows the locker name in English and Vietnamese, says plainly that it is not in service yet, and prints its version — v0.1.0 — along the bottom. Nothing was cut off and nothing needed scrolling sideways. Also tried it small, at 800 by 480, in case the real cabinet screen turns out to be a little tablet: everything still fit and stayed readable. The screen says "Cabinet not set" because no cabinet exists to name it, which is honest rather than broken. It does not talk to the server yet — that is P1-06.
 
 - [ ] **P1-04** — One network file in the app. Every call goes through it
       - Owner: _unassigned_ · Needs: P1-01 · Blocks: P1-05

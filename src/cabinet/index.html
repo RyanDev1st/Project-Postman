@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VGU Smart Locker — Cabinet</title>
+
+<!--
+  The cabinet screen. A shipper uses this. It has no login, and anyone can
+  walk up to it.
+
+  P1-03: this is the skeleton. One screen, a version number, nothing else.
+  No network call yet - that is P1-06.
+
+  Nobody can tell us what screen this runs on (P0-02 is deferred), so the
+  layout may never assume a size. Every measurement here is relative:
+  clamp() against the viewport, never a fixed pixel width. Proved at
+  1280x800 and 1920x1080 - see ADR 0009.
+-->
+
+<link rel="stylesheet" href="screen.css">
+</head>
+<body>
+
+<main class="screen">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"></div>
+    <div class="names">
+      <h1>VGU Smart Locker</h1>
+      <p class="sub">Tủ gửi hàng thông minh</p>
+    </div>
+  </div>
+
+  <!--
+    A skeleton is honest about being a skeleton. A public terminal showing a
+    dead "Deliver a parcel" button teaches a shipper it is broken. This says
+    what it is until P3-01 puts the real button here.
+  -->
+  <div class="slot">
+    <p class="waiting">Not in service yet</p>
+    <p class="hint">Chưa hoạt động</p>
+  </div>
+
+  <footer class="foot">
+    <span class="cabinet-id">Cabinet <b id="cabinet-id">—</b></span>
+    <span class="version">v<b id="version">—</b></span>
+    <span class="size" id="size">—</span>
+  </footer>
+</main>
+
+<script src="version.js"></script>
+<script src="screen.js"></script>
+</body>
+</html>
