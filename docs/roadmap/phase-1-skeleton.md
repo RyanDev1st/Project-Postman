@@ -10,10 +10,11 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
 
 ## Tasks
 
-- [ ] **P1-01** — Empty app runs on the real Android phone
-      - Owner: _unassigned_ · Needs: P0-03, P0-09, P0-15 · Blocks: P1-04
+- [ ] **🟡 DOING — P1-01** — Empty app runs on the real Android phone
+      - Owner: Team · Needs: P0-03, P0-09, P0-15 · Blocks: P1-04
       - Verify: the app opens on the listed Android phone and shows one screen with its version number
-      - Notes: **every Need is ticked, and the toolchain is installed — this can start now.** P0-17 was dropped from the list by [ADR 0009](../adr/0009-start-phase-1-early.md); `minSdk` is **24**, guessed. Set that in the build file when the project is created, with `compileSdk` and `targetSdk` at **36**. Android Studio is at `A:\Android Studio`; the SDK is at `A:\Android\Sdk`, which is also `ANDROID_HOME`. Neither is on C:, so a guide that assumes the default path will point at the wrong place
+      - Notes: **the app is built. `app-debug.apk` exists and reads back as `vn.edu.vgu.smartlocker` v0.1.0, minSdk 24, targetSdk 36.** What is left is the half that needs a person: plug the Vivo in with USB debugging on, install it, and look at the screen. Nothing else blocks it. Build it again with `gradlew assembleDebug`; install with `adb install -r src/app/build/outputs/apk/debug/app-debug.apk`
+      - Toolchain: Android Studio `A:\Android Studio`, SDK `A:\Android\Sdk` (`ANDROID_HOME`), Gradle `A:\gradle`, caches `A:\gradle-home`. **None of it is on C:**, so a guide assuming the default path points at nothing
 
 - [ ] **⏸️ LATER — P1-02** — Empty app runs on the real iPhone
       - Owner: _unassigned_ · Needs: P0-03, P0-09 · Blocks: —

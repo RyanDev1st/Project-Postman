@@ -1,0 +1,35 @@
+# Every dependency version, in one place.
+#
+# A version is only ever written here. A number typed into a build file
+# instead is how two modules end up on two versions of the same library.
+#
+# Checked against Google's and Maven Central's own listings on 2026-08-06,
+# not from memory. Newest stable of each, no alpha, beta or rc.
+
+[versions]
+agp = "9.3.1"
+kotlin = "2.4.10"
+# Not 1.19.0, which is newer. 1.19.0 demands compileSdk 37, and the
+# android-37 platform is not published yet - only its build-tools are. Raise
+# this the day platforms;android-37 appears in sdkmanager.
+coreKtx = "1.18.0"
+activityCompose = "1.13.0"
+composeBom = "2026.06.01"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+# The BOM sets the version of every Compose library below it, so they can
+# never drift apart. That is why none of them carry a version.
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

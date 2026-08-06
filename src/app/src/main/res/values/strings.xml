@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VGU Smart Locker</string>
+    <string name="tagline">Tủ gửi hàng thông minh</string>
+
+    <!-- The skeleton says what it is. An empty screen with a logo reads as
+         a broken app; this reads as an unfinished one, which is true. -->
+    <string name="not_ready">Not in service yet</string>
+    <string name="not_ready_vi">Chưa hoạt động</string>
+</resources>
