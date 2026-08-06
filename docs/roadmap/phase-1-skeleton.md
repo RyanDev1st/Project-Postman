@@ -2,7 +2,7 @@
 
 **Goal:** an empty app runs on the real Android phone, an empty cabinet screen runs in a browser, and both reach the real server.
 
-**Progress: 1 / 8.**  ·  **OPEN — P1-01 can start now**
+**Progress: 2 / 9.**  ·  **OPEN — P1-01 is built and waiting on a phone**
 
 No feature in this phase. Only proof that the pipes exist.
 
@@ -51,9 +51,15 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Verify: change one number in `config/settings.json`, do **not** rebuild the app, and the phone behaves by the new number
       - Notes: design is in [config/README.md](../../config/README.md). The server side is endpoint 15 in `api-contract.md`, proposed 2026-08-06 — it goes to the Server team with P0-04. Until this is ticked, every guessed number is frozen at whatever shipped
 
+- [x] **P1-09** — Name every screen in the app, and what it must never show
+      - Owner: Team · Needs: P1-01 · Blocks: P2-01, P4-04, P5-02
+      - Verify: `docs/reference/app-screens.md` names every screen, says what leads where, and says what each must never show — **and** every named screen exists as an empty Compose screen the app builds with
+      - Notes: wireframes and flow only. Colour, type, icons and motion are deliberately left out — the API shape is not agreed yet, and styling a screen the contract may still reshape is work done twice. **The home screen shows one parcel full-screen**, not a list; a list appears only with two or more. Decided with the team on 2026-08-06
+      - Done: 2026-08-06 — Drew the whole app on paper first: seven screens, what each one is for, which button leads where, and — the part that matters most — what each screen must never show. A stranger can always see over your shoulder, so the app never puts a full name or somebody else's phone number on screen, and even your own number is masked. Then built all seven as real screens you can tap through, with made-up parcels and no server behind them. The app compiles with no warnings. **Nobody has seen these on a real phone yet** — that needs the Vivo, the same as P1-01. What we have is the shape agreed before anyone spends a week building the wrong one.
+
 ## Exit check
 
-- [ ] All eight tasks ticked
+- [ ] All nine tasks ticked
 - [ ] The app runs on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs on the real cabinet
 - [ ] Both front-ends appear in the server log

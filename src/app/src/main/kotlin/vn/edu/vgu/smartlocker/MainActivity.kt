@@ -2,31 +2,38 @@ package vn.edu.vgu.smartlocker
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxSize
+import vn.edu.vgu.smartlocker.auth.OneTimeCodeScreen
+import vn.edu.vgu.smartlocker.auth.PhoneNumberScreen
+import vn.edu.vgu.smartlocker.parcels.HistoryScreen
+import vn.edu.vgu.smartlocker.parcels.WaitingScreen
+import vn.edu.vgu.smartlocker.pickup.OpenedScreen
+import vn.edu.vgu.smartlocker.pickup.ScanScreen
+import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
+
+/** The seven screens, named in docs/reference/app-screens.md. */
+enum class Screen { PHONE, CODE, WAITING, SCAN, OPENED, TYPE_CODE, HISTORY }
 
 /**
- * The whole app, for now.
+ * The app.
  *
- * P1-01 asks for one thing: the app opens on a real Android phone and shows
- * its version number. Everything else waits for a later task.
+ * P1-09: every screen exists and can be walked through, with made-up data
+ * and no server. It is here to be looked at and argued with, not used.
+ *
+ * Moving between screens is a variable and a `when`. No navigation library:
+ * seven screens do not need one, and the real routes arrive with the real
+ * screens in Phase 2. Rule J - the simplest thing that solves it.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +42,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    StartScreen(version = BuildConfig.VERSION_NAME)
+                    AppSkeleton()
                 }
             }
         }
@@ -43,55 +50,49 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun StartScreen(version: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            // Keep text out from under the status bar and the gesture bar.
-            // The test phone is a tall Vivo with both.
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.tagline),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+fun AppSkeleton() {
+    var screen by remember { mutableStateOf(Screen.PHONE) }
 
-        Text(
-            text = stringResource(R.string.not_ready),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 32.dp),
-        )
-        Text(
-            text = stringResource(R.string.not_ready_vi),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        // The one thing P1-01 has to prove. It comes from the build file, so
-        // the number on the screen is the build that is running - never a
-        // string somebody remembered to update.
-        Text(
-            text = "v$version",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 24.dp),
-        )
+    // Back goes where the flow diagram says it goes, so walking the skeleton
+    // on a phone tells you whether the flow is right.
+    BackHandler(enabled = screen != Screen.PHONE) {
+        screen = when (screen) {
+            Screen.CODE -> Screen.PHONE
+            Screen.SCAN, Screen.TYPE_CODE, Screen.HISTORY -> Screen.WAITING
+            Screen.OPENED -> Screen.WAITING
+            else -> Screen.WAITING
+        }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun StartScreenPreview() {
-    MaterialTheme {
-        StartScreen(version = "0.1.0")
+    when (screen) {
+        Screen.PHONE -> PhoneNumberScreen(
+            version = BuildConfig.VERSION_NAME,
+            onSend = { screen = Screen.CODE },
+        )
+
+        Screen.CODE -> OneTimeCodeScreen(
+            onDone = { screen = Screen.WAITING },
+        )
+
+        Screen.WAITING -> WaitingScreen(
+            onScan = { screen = Screen.SCAN },
+            onTypeCode = { screen = Screen.TYPE_CODE },
+            onHistory = { screen = Screen.HISTORY },
+        )
+
+        Screen.SCAN -> ScanScreen(
+            onScanned = { screen = Screen.OPENED },
+            onTypeCode = { screen = Screen.TYPE_CODE },
+        )
+
+        Screen.TYPE_CODE -> TypeCodeScreen(
+            onAccepted = { screen = Screen.OPENED },
+        )
+
+        Screen.OPENED -> OpenedScreen(
+            onDone = { screen = Screen.WAITING },
+        )
+
+        Screen.HISTORY -> HistoryScreen()
     }
 }

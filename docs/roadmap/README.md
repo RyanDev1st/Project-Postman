@@ -84,7 +84,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `9/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
       **6 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). Two left: P0-12, P0-13.
-- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `1/8` · **CURRENT**
+- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `2/9` · **CURRENT**
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
       A receiver registers with a phone number and stays logged in.
@@ -101,7 +101,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 10 / 74.**  ·  8 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 6 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 11 / 75.**  ·  8 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 6 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

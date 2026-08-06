@@ -1,10 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Every word the receiver reads.
+
+    They live here, not in the code, so the wording can be argued over
+    without touching Kotlin - and so a Vietnamese translation is a second
+    file, not a rewrite.
+
+    Refusal wording is fixed by api-contract.md. Never invent it per screen.
+-->
 <resources>
     <string name="app_name">VGU Smart Locker</string>
     <string name="tagline">Tủ gửi hàng thông minh</string>
 
-    <!-- The skeleton says what it is. An empty screen with a logo reads as
-         a broken app; this reads as an unfinished one, which is true. -->
-    <string name="not_ready">Not in service yet</string>
-    <string name="not_ready_vi">Chưa hoạt động</string>
+    <!-- 1. Phone number -->
+    <string name="your_phone_number">Your phone number</string>
+    <string name="send_me_a_code">Send me a code</string>
+    <string name="why_a_code">We text you a code to check it is your number.</string>
+
+    <!-- 2. One-time code -->
+    <string name="enter_the_code">Enter the code</string>
+    <string name="we_sent_it_to">We sent it to %1$s</string>
+    <string name="check_the_code">Check the code</string>
+    <string name="send_again_in">Send it again in %1$s</string>
+
+    <!-- 3. Waiting -->
+    <string name="a_parcel_is_waiting">A parcel is waiting</string>
+    <string name="n_parcels_waiting">%1$d parcels waiting</string>
+    <string name="box_n">Box %1$s</string>
+    <string name="arrived_at">Arrived %1$s</string>
+    <string name="scan_to_open">Scan to open</string>
+    <string name="cant_scan">Can\'t scan? Use a code</string>
+    <string name="nothing_waiting">Nothing waiting</string>
+    <string name="we_will_tell_you">We will tell you when a parcel arrives.</string>
+    <string name="history">History</string>
+
+    <!-- 4. Scan -->
+    <string name="point_at_the_screen">Point at the cabinet screen</string>
+    <string name="camera_goes_here">The camera goes here — tap to pretend it worked</string>
+
+    <!-- 5. Opened -->
+    <string name="is_open">is open</string>
+    <string name="take_and_close">Take your parcel and close the door.</string>
+    <string name="done">Done</string>
+
+    <!-- 6. Type the code -->
+    <string name="type_the_code">Type the code from your message</string>
+    <string name="code_is_in_the_notice">The code is in the notice about your parcel.</string>
+    <string name="open_my_box">Open my box</string>
+
+    <!-- 7. History -->
+    <string name="my_parcels">My parcels</string>
 </resources>

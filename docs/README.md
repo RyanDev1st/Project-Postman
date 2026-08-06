@@ -26,6 +26,7 @@ Edit these in place. No date in the name.
 | [reference/working-rules.md](reference/working-rules.md) | **How this team works.** Evidence, small batches, verify, review, restraint. Holds the assumption log |
 | [reference/architecture.md](reference/architecture.md) | The parts of the system and how they connect. Two front-ends |
 | [reference/api-contract.md](reference/api-contract.md) | Every request each front-end sends and every answer it expects. **Draft** |
+| [reference/app-screens.md](reference/app-screens.md) | The phone app: every screen, what leads where, what each must never show |
 | [reference/how-it-works.html](reference/how-it-works.html) | **One chart** of the whole process, for anyone. Open it in a browser |
 | [reference/glossary.md](reference/glossary.md) | Plain-English meaning of every term used in this repo |
 | [reference/bug-log.md](reference/bug-log.md) | Running list of bugs found on real devices |

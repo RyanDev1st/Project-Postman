@@ -33,11 +33,21 @@ src/
 │   └── collect/      the typed backup code (P5-08, P5-09)
 │
 └── app/              the receiver's phone app — Kotlin
-    ├── api/          one door — every network call goes through here (P1-04)
-    ├── auth/         register by phone number, keep the token (P2-01..07)
-    ├── parcels/      what is waiting, and where (P4-04)
-    ├── scan/         read the QR on the cabinet screen (P5-02)
-    └── history/      past parcels (P7-01)
+    └── src/main/kotlin/vn/edu/vgu/smartlocker/
+        ├── MainActivity.kt   which screen is showing
+        ├── ScreenFrame.kt    the edges every screen shares
+        ├── auth/             phone number, one-time code (P2-01..07)
+        ├── parcels/          what is waiting, and history (P4-04, P7-01)
+        ├── pickup/           scan, typed code, opened (P5-02, P5-08)
+        └── api/              one door — every network call (P1-04)
 ```
+
+The seven screens, and the rule each one follows, are in
+[docs/reference/app-screens.md](../docs/reference/app-screens.md). They exist
+and can be tapped through; none of them talks to a server yet.
+
+`src/app/` is a Gradle module, so its own sources sit under `src/app/src/main/`.
+That doubling is Gradle's layout, kept on purpose — a team learning Android
+from zero should find the paths that every tutorial shows.
 
 **The cabinet screen never gets a login, a parcel list, or a full name.** Anyone can walk up to it.
