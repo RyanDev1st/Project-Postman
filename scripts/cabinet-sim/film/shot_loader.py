@@ -36,38 +36,55 @@ BOX = 4
 HOUSING = (0.812, 0.796, 0.761)     # #CFCBC2; see DESIGN.md
 
 FPS = 30
-DURATION_S = 4.5
-LAST = int(FPS * DURATION_S)         # 135
+DURATION_S = 3.4
+LAST = int(FPS * DURATION_S)         # 102
 RES = (720, 1280)                    # 9:16, phone native, small file
 
 PARCEL = "Parcel_ShopeeBox_HY"
 OPEN_ANGLE = 105                     # matches build_cabinet.OPEN_ANGLE
 
-# The wrist, frame by frame: (frame, x, y, z). The cabinet face is at
-# y = -0.225, so the reach is a straight run along y at one x and one height.
-# x = 0.58 is the centre of box 04's opening.
-REACH = [
-    (1,   0.580, -0.440, 1.375),     # box held in front of the open door
-    (28,  0.580, -0.300, 1.405),
-    (58,  0.580, -0.075, 1.440),     # inside, box down on the shelf
+# --- The carry, described by where the PARCEL is ------------------------
+#
+# (frame, x, y, bottom-of-parcel z). The parcel is what the audience watches
+# and the thing that has to land on the shelf, so it is what the path
+# describes; the wrist that carries it is solved from this. Doing it the other
+# way round - a fixed offset from the wrist - is what left the box floating
+# 200 mm above the shelf, because how far the hand sits from the wrist depends
+# on the arm's pose and changes all the way through the reach.
+#
+# **It goes in at mid-aperture, not at the lip.** Box 04's opening runs from
+# z 1.44 to 1.77. Travelling in at 1.44 dragged the wrist and forearm straight
+# through the bottom edge of the hole and the door frame. 1.56 clears it by
+# 120 mm and still leaves room above.
+CARRY = [
+    # Chest height, not shoulder. At 1.43 the box crossed the figure's head in
+    # frame - they do not overlap in space, but the camera looks slightly down
+    # and projects one onto the other, which reads as the box growing out of
+    # its neck. Starting low also gives the move somewhere to travel.
+    (1,   0.580, -0.660, 1.270),     # held at chest, clear of the head
+    (7,   0.580, -0.715, 1.262),     # anticipation: a small pull back first
+    (36,  0.580, -0.060, 1.560),     # lifted, and driven in at mid-height
+    (45,  0.580, -0.020, 1.440),     # lowered onto the shelf
 ]
-WITHDRAW = [
-    (68,  0.580, -0.160, 1.465),     # let go, then straight back out
-    (84,  0.580, -0.440, 1.420),
-    (100, 0.614, -0.627, 0.790),     # arm back down at the figure's side
-]
-RELEASE = 60                          # frame the parcel stops following
+RELEASE = 48                          # frame the parcel stops following
 
-# The parcel rides on the palm and its origin is its own bottom face, so it
-# sits this far above the middle of the hand bone. Everything else about the
-# carry is measured off the rig at each keyframe rather than guessed - the
-# wrist is what IK drives, and the hand reaches a further 165 mm past it.
+# The wrist, after it lets go. In wrist space now, because there is no longer
+# a parcel to describe.
+WITHDRAW = [
+    (56,  0.580, -0.200, 1.610),     # lift off the box before pulling back
+    (72,  0.580, -0.660, 1.560),     # straight back out, the way it came
+    (86,  0.614, -0.627, 0.790),     # arm back down at the figure's side
+]
+
+# The parcel's origin is its own bottom face, so it sits this far above the
+# middle of the hand bone while it is being carried.
 PARCEL_LIFT = 0.022
 
-# The door only starts to close once the hand is out of the box. Swinging it
-# while the arm was still on its way out drove the door through the wrist.
-DOOR_CLOSE = (88, 110)
-FADE_START, FADE_END = 116, LAST
+# The door only starts to close once the hand is clear in y. Swinging it while
+# the arm was still on its way out drove the door through the wrist - the door
+# sweeps through x 0.29 to 0.77 as it shuts, and the hand withdraws at 0.58.
+DOOR_CLOSE = (76, 96)
+FADE_START, FADE_END = 96, LAST
 
 # The camera has to sit to the right. The door is hinged on the left edge of
 # the opening and swings out to the front left, so from the left it stands in
@@ -257,6 +274,65 @@ def _palm():
     return (arm.matrix_world @ bone.matrix) @ Vector((0.0, bone.length * 0.55, 0.0))
 
 
+def _wrist_for(x, y, parcel_bottom):
+    """Where the wrist has to be for the parcel to sit at `parcel_bottom`.
+
+    Solved rather than assumed. IK drives the wrist, the hand runs a further
+    165 mm past it, and how much of that is height depends on the arm's pose -
+    so a fixed offset is right in one frame and wrong in the next. This nudges
+    the wrist until the measured palm puts the parcel where it is wanted, which
+    converges in three or four steps because palm height rises with wrist
+    height over the range the arm actually moves through.
+    """
+    hand = bpy.data.objects["IK_Hand"]
+    z = parcel_bottom + 0.02
+    for _ in range(10):
+        hand.location = (x, y, z)
+        error = parcel_bottom - (_palm().z + PARCEL_LIFT)
+        if abs(error) < 0.0015:
+            break
+        z += error
+    return (x, y, z)
+
+
+def _fcurves(obj):
+    """Every F-curve on an object, on old and new action layouts alike.
+
+    Blender 4.4 moved F-curves out of `action.fcurves` and into
+    layers -> strips -> channelbags. Reading only the old place finds nothing
+    on 5.x and every easing call silently does nothing.
+    """
+    ad = obj.animation_data
+    if not ad or not ad.action:
+        return []
+    action = ad.action
+    found = []
+    for layer in getattr(action, "layers", []):
+        for strip in getattr(layer, "strips", []):
+            for bag in getattr(strip, "channelbags", []):
+                found.extend(bag.fcurves)
+    return found or list(action.fcurves)
+
+
+def _ease(obj, frame, interpolation="CUBIC", easing="EASE_OUT", path=None):
+    """Shape the curve leaving one keyframe.
+
+    Blender's interpolation belongs to the segment *after* a key, the same way
+    a GSAP tween's ease belongs to the tween it is declared on. So an arrival
+    that should decelerate is EASE_OUT on the key it departs from.
+
+    Default is a cubic ease-out - GSAP's `power3.out` - because almost
+    everything here is a hand or a door arriving somewhere and stopping.
+    """
+    for curve in _fcurves(obj):
+        if path and curve.data_path != path:
+            continue
+        for key in curve.keyframe_points:
+            if abs(key.co.x - frame) < 0.5:
+                key.interpolation = interpolation
+                key.easing = easing
+
+
 def _animate():
     door = _door()
     hand = bpy.data.objects["IK_Hand"]
@@ -269,39 +345,63 @@ def _animate():
     _key(door, 1, rot_z=-OPEN_ANGLE)
     _key(door, DOOR_CLOSE[0], rot_z=-OPEN_ANGLE)
     # Swings fast, then latches. It cannot overshoot past zero - that would
-    # drive the door through the carcass - so the settle is on the near side.
+    # drive the door through the carcass - so the settle is on the near side:
+    # most of the travel happens quickly, and the last seven degrees take a
+    # fifth of a second. That reads as weight, where a single linear sweep
+    # reads as a door on a spring.
     _key(door, DOOR_CLOSE[1] - 6, rot_z=-7)
     _key(door, DOOR_CLOSE[1], rot_z=0)
+    _ease(door, DOOR_CLOSE[0], "QUINT", "EASE_IN")       # slow to start moving
+    _ease(door, DOOR_CLOSE[1] - 6, "SINE", "EASE_OUT")   # then ease into the latch
 
-    # Where the parcel ends up: centred in the opening, on the shelf. Taken
-    # from the door's own geometry, so it cannot drift out of agreement with
-    # the cabinet the way a typed-in height would.
-    x0, x1, shelf_top, _ = _cell_bounds()
-    rest = ((x0 + x1) / 2, 0.015, shelf_top)
+    # The shelf, read from the door's own geometry so it cannot drift out of
+    # agreement with the cabinet the way a typed-in height would.
+    _, _, shelf_top, _ = _cell_bounds()
 
-    # Measure every palm position first, then key. Once an object owns an
-    # fcurve the animation system rewrites its location on each depsgraph
-    # update, so measuring and keying in one pass reads back poses that the
+    # Solve every wrist position first, then key. Once an object owns an
+    # F-curve the animation system rewrites its location on each depsgraph
+    # update, so solving and keying in one pass reads back poses that the
     # keyframes just overwrote.
-    carried = []
-    for frame, x, y, z in REACH[:-1]:
-        hand.location = (x, y, z)
-        palm = _palm()
-        carried.append((frame, (palm.x, palm.y, palm.z + PARCEL_LIFT)))
+    beats = []
+    for frame, x, y, z in CARRY:
+        want = shelf_top if frame == CARRY[-1][0] else z
+        beats.append((frame, _wrist_for(x, y, want), (x, y, want)))
 
-    for frame, x, y, z in REACH:
-        _key(hand, frame, loc=(x, y, z))
-    for frame, at in carried:
+    for frame, wrist, at in beats:
+        _key(hand, frame, loc=wrist)
         _key(parcel, frame, loc=at)
-    _key(parcel, REACH[-1][0], loc=rest)            # arrive exactly on the shelf
 
     # After the release the parcel holds still. Two identical keys, so nothing
     # drifts while the hand pulls away.
+    rest = beats[-1][2]
     _key(parcel, RELEASE, loc=rest)
     _key(parcel, LAST, loc=rest)
 
     for frame, x, y, z in WITHDRAW:
         _key(hand, frame, loc=(x, y, z))
+
+    # --- The timing ----------------------------------------------------
+    #
+    # Four ideas, borrowed straight from how a GSAP timeline would be built:
+    #
+    #   anticipation - a small move against the main one before it starts
+    #   power3.out   - fast off the mark, decelerating into the target
+    #   power2.inOut - a travel move that both starts and stops softly
+    #   settle       - the last few millimetres taken slowly
+    #
+    # Nothing here is linear. Constant velocity is the single thing that makes
+    # animation read as a machine playing back keyframes.
+    anticipation, drive, place = CARRY[0][0], CARRY[1][0], CARRY[2][0]
+    _ease(hand, anticipation, "SINE", "EASE_IN_OUT")     # ease into the pull-back
+    _ease(hand, drive, "CUBIC", "EASE_OUT")              # then commit, and settle
+    _ease(hand, place, "SINE", "EASE_IN_OUT")            # lower it gently
+    _ease(parcel, anticipation, "SINE", "EASE_IN_OUT")
+    _ease(parcel, drive, "CUBIC", "EASE_OUT")
+    _ease(parcel, place, "SINE", "EASE_IN_OUT")
+
+    _ease(hand, CARRY[-1][0], "SINE", "EASE_IN_OUT")     # let go, lift off
+    _ease(hand, WITHDRAW[0][0], "CUBIC", "EASE_IN_OUT")  # pull back out
+    _ease(hand, WITHDRAW[1][0], "SINE", "EASE_IN_OUT")   # arm drops to the side
 
 
 def _fade_out():
@@ -362,19 +462,44 @@ def setup():
     scene.frame_start, scene.frame_end = 1, LAST
     scene.render.film_transparent = False
 
+    # The loader is shot in a studio corner, not at the campus gate. If
+    # scene_gate.py has been run this session its canopy posts stand in front
+    # of the cabinet and its forecourt replaces the app-coloured ground, so
+    # the fade at the end lands on the wrong colour.
+    #
+    # Looked up in bpy.data rather than by calling scene_gate's show_gate().
+    # These files are exec'd, not imported, so whether one can see another's
+    # functions depends on how the caller set up its namespace - and it
+    # silently did not here, which left the canopy standing in the shot.
+    gate = bpy.data.collections.get("Gate")
+    if gate:
+        for obj in gate.objects:
+            obj.hide_render = obj.hide_viewport = True
+
     scene.world.use_nodes = True
+    scene.view_settings.view_transform = "AgX"
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.0
     bg = scene.world.node_tree.nodes["Background"]
+    # If a sky HDRI has been loaded for the long film it is wired into this
+    # socket, and a socket with a link ignores its default value entirely -
+    # so setting the colour here would silently do nothing and the loader
+    # would be lit by a sunset.
+    for link in list(scene.world.node_tree.links):
+        if link.to_socket == bg.inputs["Color"]:
+            scene.world.node_tree.links.remove(link)
     bg.inputs["Color"].default_value = (0.55, 0.56, 0.58, 1)
     bg.inputs["Strength"].default_value = 0.6
 
-    # Only the parcel being delivered is in shot. The other five props sit on
-    # the floor where they were imported, and a loader is not a shop window.
-    for name in ("BlackWrap", "BubbleWrap", "PolyMailer", "Tube", "YellowBag"):
-        for prefix in ("Parcel_", "Label_"):
-            obj = bpy.data.objects.get(
-                f"{prefix}{name}_HY" if prefix == "Parcel_" else f"{prefix}{name}")
-            if obj:
-                obj.hide_render = obj.hide_viewport = True
+    # Only the parcel being delivered is in shot. staging.py owns where the
+    # rest live - a corner behind the cabinet - so this no longer carries a
+    # hand-written list of names that goes stale the moment a prop is added.
+    for short in ("BlackWrap", "BubbleWrap", "PolyMailer", "Tube", "YellowBag"):
+        spare = bpy.data.objects.get(f"Parcel_{short}_HY")
+        if spare:
+            spare.hide_render = spare.hide_viewport = True
+    hero = bpy.data.objects[PARCEL]
+    hero.hide_render = hero.hide_viewport = False
 
     _ground()
     _shelf()
