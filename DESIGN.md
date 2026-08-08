@@ -292,6 +292,53 @@ Two faults had to be fixed to get there, and the first was a real bug:
 
 The empty band is the one deliberate exception: it does **not** cover. Cropping it showed three of the six free doors plus the control panel — the most saturated thing on the cabinet and the one part that is not a door — which undercuts the only fact that screen exists to state. The whole cabinet stands in a taller band with all six marks visible, as an object on the ground. Same reading as the sign-in hero, and it can afford the height because that screen has no button.
 
+## The lit door keeps its own number
+
+The highlight used to fill the door with flat amber at 82% and **redraw the number on top** — a mono glyph at 42% of the door's short side, centred on the projected box. Wrong twice:
+
+- **It is not the real number.** The stencil on the render has a size, a position and the cabinet's own lighting on it. The redrawn one is bigger, flatter, in a different face, and sits dead-centre where the real one does not. The eye catches the mismatch before it can name it.
+- **It is a lie about the object.** The entire argument for building this app around a render is that the receiver is looking at the thing they will walk up to. Painting over that thing and re-lettering it gives the argument away for a highlight.
+
+`mix-blend-mode: color` takes hue and saturation from the fill and **luminance from the backdrop**. The door goes amber; the stencil, the shadow in the door gap and the specular along the top edge all keep the exact values the render already had. Nothing is covered, so nothing has to be redrawn.
+
+Two things make it work, and both are load-bearing:
+
+- **The tint is its own layer.** `<svg id="tint">` carries the blend mode and `.holder` is `isolation: isolate`. A blend composites against the backdrop of its parent stacking context, so the layer has to sit above the `<img>` inside a group that contains it.
+- **The bloom is masked out of the door.** A blurred amber blob centred on the door becomes part of the backdrop the tint then blends against, and it washes out exactly the values the blend exists to preserve. Knocked out, it is what it was always meant to be — a halo *around* a lit door.
+
+Home's door crops use the same two layers, as `.f` (tint) over the image and `.r` (lit edge) above it in normal blend.
+
+## More than one box can be yours
+
+`YOUR_BOX = 4` was a single number, so the cabinet tab could light exactly one door and the heading could only ever read *Box 04*. Two parcels at one cabinet is a Tuesday, not an edge case — and it is the moment the flow is quietest about, because *which box opens when I scan?* has no answer in it.
+
+Doors are a list now, each carrying when it was dropped and how long is left. Every door that is yours lights, `0.09s` apart, in order of urgency. The **picker** under the render carries one chip per box — number, time left — and choosing one moves the frame, the heading and the button together. Lit doors and chips are built from the same array, so they cannot disagree.
+
+Copy follows the count: *Box 04 is yours* at one, *Two boxes are yours* at more, and the heading becomes *Door 07 · Dropped 21:40 yesterday · 31h left* once a chip is chosen.
+
+## The push is a control, not a film
+
+It used to fire at `1.50s` on arrival, unasked, every time. Two faults:
+
+- **It answers a question that has not been asked.** Arriving already pushed into door 04 hides the other seventeen doors and — worse — hides the fact that door 07 is also yours. The wide shot is the one that says *here is the cabinet, and these two are yours*.
+- **It cannot be undone.** The receiver is standing in front of the real cabinet and wants to look at one door, then the other, then back out.
+
+Tap a chip or tap the door itself; tap the one you are on and the frame goes wide. `0.72s` on `power2.inOut` either way.
+
+`zoomFor` now solves the pan with **the origin fixed at the centre** instead of moving `transform-origin` onto the door. It has to: with a per-door origin, going wide or switching doors means interpolating the origin as well, and a moving origin under a moving scale sends the image on a curve nobody asked for. Fixed origin makes every state a plain `(scale, x, y)`, and any two of those tween cleanly. With `translate(t) scale(k)` about the centre, an image point `p` lands at `0.5 + k(p − 0.5) + t`, so `t = −k(c − 0.5)` puts `c` in the middle.
+
+## Where on campus
+
+*Back gate* is a name, and a name only works on someone who already knows the campus. A first-year with a parcel does not, and neither does a courier reading the same words on the cabinet screen. So Home carries a plan: the perimeter road, the academic quadrangle, the lake, the running track, both cabinets, and a pin on the southern road where Ryan marked the back gate.
+
+It is also the only wide, pictorial, non-parcel block on the screen — Home was a column of type and small crops, and a map is a different *kind* of thing to look at.
+
+Three decisions inside it:
+
+- **Drawn, not traced.** The published VGU master plan is Machado Silvetti's drawing and not ours to reproduce, and a plan claiming survey accuracy would be a lie at this size. It carries the amount a phone map needs — which side of campus to walk to — and no more.
+- **Monochrome.** The first version drew the planting in `--free`. Green in this app means *a box is free*, and spending it on grass, the largest area on the card, is precisely how a signal stops being a signal. The plan is built from `--ink` alone and the only colour on it is the pin.
+- **The label is a plate, not glass.** Glass was the obvious choice and was tried — the app's own rule is that glass floats over content, and the map is the one piece of content on Home. But `liquid.js` builds a warp span and two ring layers inside every `.lg`, sized at init, and inside an absolutely-positioned label on a button the whole rail came back blurred. The material is for chrome spanning a screen edge, not a 90px chip pinned inside a card. It sits top **right**: on the left it covered the quadrangle, the lake and the pin — the half that answers the question.
+
 ## Three materials, three jobs
 
 Glass was the only material this app had, and glass floats. Everything that was not floating chrome had to be either a card or nothing, which is why a field, a number chip and an icon well all looked like the same flat grey square with a hairline round it.
