@@ -130,6 +130,16 @@ Nothing here is an API call. Both sides already hold what they need.
 | # | What the caller wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
 | 15 | Get the current settings | `GET /settings` | token, or cabinet key | `settings_version`, and the numbers below it |
+| 18 | **Which boxes at a cabinet are free** | `GET /cabinet/free` | token, cabinet ref | how many boxes exist, and **which numbers are free** |
+
+**Endpoint 18 is new, and the app cannot draw its cabinet screen without it.** The receiver's Cabinet tab shows the real cabinet with the free doors marked, so a student can tell a shipper *"use the back gate one, it has room"* before the shipper walks over. Endpoint 5 lists only that receiver's own parcels, which cannot answer it. Task **P4-06**.
+
+Two rules on what it may return, both from [architecture.md](architecture.md) rule 6:
+
+| Rule | Why |
+| --- | --- |
+| **A free box number, or nothing.** Never who is in a taken box, never a name, never a phone number | A door that is taken is drawn as taken and nothing more. The list of free numbers is the whole answer |
+| **A count is enough when the cabinet is full** | Returning nineteen taken numbers tells an attacker the cabinet's occupancy pattern over time. `free: []` says all that is needed |
 
 Every number in this contract is a guess we expect to correct. Endpoint 15 is how a correction reaches a phone that is already installed. Without it, every number is frozen at whatever shipped. Task **P1-08**.
 
@@ -164,18 +174,20 @@ The scanned path (endpoint 6) needs none of this, because its QR is not a key â€
 
 Every failure the server can send, with the code we propose and the exact words the screen shows. The words are the only part of this file a user ever reads, so they are ours to get right.
 
+**Shortened on 2026-08-07, before this contract was sent.** The first draft explained each failure in a sentence and a half. Nobody reads a sentence and a half on a phone they are holding while walking, and the cabinet screen is read at arm's length by somebody with a parcel under one arm. Every line below now says what happened and what to do, in that order, and stops. What did not change is what each one is *allowed* to say â€” see the two rules underneath.
+
 | Code | Means | Who sees it | What the screen says |
 | --- | --- | --- | --- |
-| `PHONE_NOT_REGISTERED` | Phone number is not registered | Cabinet | "This number has not signed up yet. Ask them to install the app first." |
-| `NO_FREE_BOX` | No free box of that size | Cabinet | "No free box this size right now. Try a smaller one, or come back later." |
-| `BOX_FAULTY` | Box faulty or offline | Both | "That box is out of order. Staff have been told." |
-| `BOX_ALREADY_FULL` | A box thought to be free is occupied | Cabinet | "Something is already in that box. Please tell staff." |
-| `SESSION_EXPIRED` | QR session code expired | App | "That code has expired. Scan the screen again." |
-| `NO_PARCEL_HERE` | No parcel for you at this cabinet | App | "You have nothing waiting at this cabinet." |
+| `PHONE_NOT_REGISTERED` | Phone number is not registered | Cabinet | "Not signed up yet. Ask them to install the app." |
+| `NO_FREE_BOX` | No free box of that size | Cabinet | "No box this size. Try a smaller one." |
+| `BOX_FAULTY` | Box faulty or offline | Both | "That box is out of order. Staff know." |
+| `BOX_ALREADY_FULL` | A box thought to be free is occupied | Cabinet | "That box is not empty. Tell staff." |
+| `SESSION_EXPIRED` | QR session code expired | App | "Code expired. Scan again." |
+| `NO_PARCEL_HERE` | No parcel for you at this cabinet | App | "Nothing waiting here." |
 | `TOKEN_EXPIRED` | Token expired | App | *(send to register, no message)* |
-| `WRONG_CODE` | Wrong one-time code, at register | App | "That code is not right. Check the message and try again." |
-| `CODE_REJECTED` | Wrong, used, or expired pickup code | Cabinet | "That code did not work. Open the app and scan the screen instead." |
-| `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many wrong codes. This box unlocks again at 14:35." |
+| `WRONG_CODE` | Wrong one-time code, at register | App | "Wrong code. Try again." |
+| `CODE_REJECTED` | Wrong, used, or expired pickup code | Cabinet | "That code did not work. Scan with the app instead." |
+| `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many tries. Unlocks at 14:35." |
 
 **`CODE_REJECTED` covers three different failures on purpose.** Wrong, already used, and expired all return the same code and the same words. Splitting them would let somebody at the keypad work out which codes are real.
 

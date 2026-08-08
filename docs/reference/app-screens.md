@@ -4,7 +4,7 @@ Parent: none
 
 What the receiver's app is made of. Every screen, what leads where, and what each one must never show.
 
-**Wireframes and flow only.** No colour, no type scale, no icons, no motion. The API shape is not agreed yet, and styling a screen the contract may still reshape is work done twice. Task **P1-09**.
+**Flow and rules only.** This file says what each screen is for, what leads where, and what it must never show. How it looks — colour, type, motion, the cabinet render — is [DESIGN.md](../../DESIGN.md). The two are kept apart so a look can change without re-arguing the flow.
 
 Product is [ADR 0003](../adr/0003-parcel-locker-product.md). The cabinet screen is a different front-end and a different document — it shares nothing with this but the API.
 
@@ -20,28 +20,33 @@ Everything below follows from that. The current parcel is a screen, not a row in
 | --- | --- | --- | --- |
 | 1 | **Phone number** | first open, or a dead token | 2 |
 | 2 | **One-time code** | 1 | 3 |
-| 3 | **Waiting** — the home screen | 2, the notice, or reopening the app | 4, 6, 7 |
-| 4 | **Scan** | 3 | 5, or back to 3 |
+| 3 | **Home** | 2, the notice, or reopening the app | 4, 6, 8, 9 |
+| 4 | **Scan** | 3, or 8 | 5, or back |
 | 5 | **Opened** | 4, or 6 | 3 |
-| 6 | **Type the code** | 3, or 4 when scanning fails | 5, or back to 3 |
-| 7 | **History** | 3 | — |
+| 6 | **Type the code** | 3, or 4 when scanning fails | 5, or back |
+| 7 | ~~History~~ | — | folded into **3**, see below |
+| 8 | **Cabinet** | the tab bar | 4, 6 |
+| 9 | **Settings** | the tab bar | — |
 
-Seven screens. Two are register, one is home, three are the pickup, one is history.
+Eight screens. Two are register, three are tabs, three are the pickup.
+
+**Three tabs: Home, Cabinet, Settings.** Decided 2026-08-07.
+
+- **History is not a screen any more.** It is a section on Home, under the parcels. It is glanced at, not visited, and on a Home with nothing waiting it is what stops the screen looking broken. A full list stays reachable behind *All*.
+- **Settings takes the freed tab.** PIN code, password, notices, language, theme. It had nowhere to live before.
+- Screen number 7 is retired, not reused. A number is never given to a second thing.
 
 ```
    1 Phone number ──> 2 One-time code ──┐
                                         v
-   notice tapped ──────────────────> 3 Waiting ──> 7 History
-                                     │      │
-                              scan ──┘      └── can't scan
-                                     │             │
-                                     v             v
-                                4 Scan ──────> 6 Type the code
-                                     │             │
-                                     └──> 5 Opened <┘
-                                            │
-                                            v
-                                        3 Waiting
+   notice tapped ──────────────────> 3 Home ◄──── 9 Settings
+                                     │  ▲  │            ▲
+                              scan ──┘  │  └── 8 Cabinet ┤
+                                     │  │        │       │
+                                     v  │        v       │
+                                4 Scan ─┼──> 6 Type the code
+                                     │  │        │
+                                     └──┴> 5 Opened
 ```
 
 ## 1 — Phone number
@@ -181,22 +186,58 @@ Seven screens. Two are register, one is home, three are the pickup, one is histo
 - A wrong code says the same thing whether it is wrong, used or expired — **`CODE_REJECTED`** in [api-contract.md](api-contract.md). Anything else lets somebody at the keypad work out which codes are real.
 - Endpoint 13. Tasks **P5-08**, **P5-09**.
 
-## 7 — History
+## 7 — History (retired as a screen)
 
-```
-+----------------------------+
-|  <   My parcels            |
-+----------------------------+
-| Box 04 - collected         |
-| Tue 14:35                  |
-+----------------------------+
-| Box 11 - collected         |
-| Mon 09:12                  |
-+----------------------------+
-```
+Folded into Home on 2026-08-07. It is the **Collected** section under the parcel cards, showing the last few, with *All* leading to the full list.
 
 - Read-only. Nothing here opens a door.
-- Endpoint 7. Task **P7-01**.
+- Endpoint 7. Task **P7-01**, unchanged — the data is the same, only where it is drawn moved.
+
+## 8 — Cabinet
+
+```
++----------------------------+
+|  <    Back gate            |
+|  Box 04                    |
+|  Ready - 14:32             |
+|  +----------------------+  |
+|  | [ the cabinet, with  |  |
+|  |   your door lit, and |  |
+|  |   the screen pushing |  |
+|  |   into it ]          |  |
+|  +----------------------+  |
+|  +----------------------+  |
+|  |     SCAN TO OPEN     |  |
+|  +----------------------+  |
++----------------------------+
+```
+
+- **This is where the app answers "which door?"** A render of the real cabinet, your door lit, then the screen pushes into that door. How it is drawn is [DESIGN.md](../../DESIGN.md).
+- **With nothing waiting it shows free boxes instead**, in green, so the receiver can tell a shipper the cabinet has room before they walk over. No motion in this state.
+- **Never shows another person's parcel.** A door that is taken is drawn as taken, with nothing about who by.
+- Free-box counts need an endpoint that does not exist yet — see [api-contract.md](api-contract.md) endpoint 18.
+
+## 9 — Settings
+
+```
++----------------------------+
+|         Settings           |
+|  Minh Nguyen  0912 345 678 |
+|  ACCOUNT                   |
+|   PIN code            Set >|
+|   Change password        > |
+|  NOTICES                   |
+|   Parcel arrived      [on] |
+|   SMS backup         [off] |
+|  APP                       |
+|   Language     Tieng Viet >|
+|   Theme            System >|
++----------------------------+
+```
+
+- Nothing here opens a door.
+- The PIN is a local screen lock, not a parcel code. It never travels to the server.
+- **Theme is a setting, not a guess.** System, Light, Dark.
 
 ## Rules that hold on every screen
 

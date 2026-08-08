@@ -52,6 +52,24 @@ val NightOnPrimary  = Color(0xFF10191F)
 val DoorLight   = Color(0xFFFFB200)
 val OnDoorLight = Color(0xFF241A00)
 
+// --- a free box -----------------------------------------------------------
+
+/**
+ * A door nobody has taken, on the cabinet map, and nowhere else.
+ *
+ * This is the app's second colour, and it exists under one condition: it can
+ * never share a screen with [DoorLight]. Free doors are drawn only when the
+ * receiver has nothing waiting; the amber is drawn only when they have. The
+ * two states cannot both be true, so the "one saturated colour" rule survives
+ * as the rule that matters - one colour at a time. See ADR 0011.
+ *
+ * Unlike the amber it has a light and a dark value. A free box is a fact
+ * about the cabinet, not about a door standing open in a dark corridor, and
+ * it is read indoors on a phone the receiver is already looking at.
+ */
+val FreeBoxLight = Color(0xFF1F7A5A)
+val FreeBoxDark  = Color(0xFF57C79B)
+
 // --- refusal --------------------------------------------------------------
 
 /** A wrong code, a faulty box. Legible on both grounds. */

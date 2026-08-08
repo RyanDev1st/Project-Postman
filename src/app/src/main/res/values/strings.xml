@@ -13,45 +13,69 @@
     <string name="tagline">Tủ gửi hàng thông minh</string>
 
     <!-- 1. Phone number -->
-    <string name="your_phone_number">Your phone number</string>
-    <string name="send_me_a_code">Send me a code</string>
-    <string name="why_a_code">We text you a code to check it is your number.</string>
+    <string name="your_phone_number">Phone number</string>
+    <string name="send_me_a_code">Send code</string>
+    <string name="why_a_code">We'll text you a code.</string>
 
     <!-- 2. One-time code -->
-    <string name="enter_the_code">Enter the code</string>
+    <string name="enter_the_code">Enter code</string>
     <string name="we_sent_it_to">We sent it to %1$s</string>
-    <string name="check_the_code">Check the code</string>
-    <string name="send_again_in">Send it again in %1$s</string>
+    <string name="check_the_code">Continue</string>
+    <string name="send_again_in">Resend in %1$s</string>
 
-    <!-- 3. Waiting -->
-    <string name="a_parcel_is_waiting">A parcel is waiting</string>
-    <string name="n_parcels_waiting">%1$d parcels waiting</string>
+    <!-- 3. Home -->
+    <string name="hello">Chào %1$s</string>
+    <string name="n_ready">%1$d parcels ready</string>
+    <string name="one_ready">1 parcel ready</string>
+    <string name="nothing_waiting">Nothing waiting</string>
+    <string name="we_will_tell_you">We'll tell you when one arrives.</string>
+    <string name="collected">Collected</string>
+    <string name="see_all">All</string>
+    <string name="open_it">Open</string>
     <string name="box_n">Box %1$s</string>
     <string name="box_label">BOX</string>
-    <string name="box_is_open">is open</string>
-    <string name="arrived_at">Arrived %1$s</string>
+    <string name="ready_at">Ready · %1$s</string>
     <string name="scan_to_open">Scan to open</string>
-    <string name="cant_scan">Can\'t scan? Use a code</string>
-    <string name="nothing_waiting">Nothing waiting</string>
-    <string name="we_will_tell_you">We will tell you when a parcel arrives.</string>
-    <string name="history">History</string>
+    <string name="cant_scan">Use a code</string>
+
+    <!-- tabs -->
+    <string name="home">Home</string>
+    <string name="cabinet">Cabinet</string>
+    <string name="settings">Settings</string>
+
+    <!-- 8. Cabinet -->
+    <plurals name="free_boxes">
+        <item quantity="one">%1$d box free</item>
+        <item quantity="other">%1$d boxes free</item>
+    </plurals>
+    <string name="room_for_a_drop">Room for a drop</string>
+    <string name="cabinet_is_full">Cabinet full</string>
+    <string name="try_another_cabinet">Try another cabinet</string>
+
+    <!-- 9. Settings -->
+    <string name="account">Account</string>
+    <string name="pin_code">PIN code</string>
+    <string name="change_password">Change password</string>
+    <string name="notices">Notices</string>
+    <string name="notice_parcel_arrived">Parcel arrived</string>
+    <string name="notice_sms_backup">SMS backup</string>
+    <string name="language">Language</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
 
     <!-- 4. Scan -->
-    <string name="point_at_the_screen">Point at the cabinet screen</string>
-    <string name="camera_goes_here">The camera goes here — tap to pretend it worked</string>
+    <string name="point_at_the_screen">Scan the cabinet</string>
+    <string name="camera_goes_here">Tap to pretend it worked</string>
 
     <!-- 5. Opened -->
-    <string name="is_open">is open</string>
-    <string name="take_and_close">Take your parcel and close the door.</string>
+    <string name="is_open">IS OPEN</string>
+    <string name="take_and_close">Close the door when done.</string>
     <string name="done">Done</string>
 
     <!-- 6. Type the code -->
-    <string name="type_the_code">Type the code from your message</string>
-    <string name="code_is_in_the_notice">The code is in the notice about your parcel.</string>
-    <string name="open_my_box">Open my box</string>
-
-    <!-- 7. History -->
-    <string name="my_parcels">My parcels</string>
+    <string name="type_the_code">Enter code</string>
+    <string name="code_is_in_the_notice">From your parcel notice</string>
+    <string name="open_my_box">Open box</string>
 
     <!--
         Refusals — the exact words in api-contract.md.
@@ -63,16 +87,16 @@
         TOKEN_EXPIRED has no string. It is never shown - the app sends the
         person back to register, quietly, once.
     -->
-    <string name="refused_session_expired">That code has expired. Scan the screen again.</string>
-    <string name="refused_no_parcel_here">You have nothing waiting at this cabinet.</string>
-    <string name="refused_box_faulty">That box is out of order. Staff have been told.</string>
-    <string name="refused_wrong_code">That code is not right. Check the message and try again.</string>
-    <string name="refused_unknown">Something went wrong. Please try again.</string>
+    <string name="refused_session_expired">Code expired. Scan again.</string>
+    <string name="refused_no_parcel_here">Nothing waiting here.</string>
+    <string name="refused_box_faulty">That box is out of order. Staff know.</string>
+    <string name="refused_wrong_code">Wrong code. Try again.</string>
+    <string name="refused_unknown">Something went wrong. Try again.</string>
 
     <!--
         When the app does not know what happened - the network dropped
         mid-request. Never shown as success, and never as a plain failure
         either. Rule 4 in architecture.md.
     -->
-    <string name="unclear_result">We could not tell if that worked. Check the cabinet before trying again.</string>
+    <string name="unclear_result">We could not tell if that worked. Check the cabinet first.</string>
 </resources>

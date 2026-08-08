@@ -170,7 +170,11 @@ def _door_number(door, number, w, h):
     label = bpy.data.objects.new(f"Label_{number:02d}",
                                  bpy.data.curves.new(f"L{number}", "FONT"))
     label.data.body = f"{number:02d}"
-    label.data.size = mm(72)
+    # 100 mm digits. Raised from 72 on 2026-08-07: at 72 the number was hard
+    # to read from a metre away at the real cabinet, and illegible in the app,
+    # which shows this cabinet at about 300 px wide. hero.py keeps its own
+    # copy of this number - see NUMBER_MM there, and change both together.
+    label.data.size = mm(100)
     label.data.align_x = "LEFT"
     label.data.align_y = "TOP"
     # Thin flat text reads grey against the door. Give the strokes weight and
