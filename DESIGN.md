@@ -167,7 +167,19 @@ Every colour token is registered with `@property`, so a theme change interpolate
 
 ### The accent
 
-`#7FA8FF → #3D74F0` dark, `#2A5FE0 → #1B44B8` light. Every control. From the Stitch drafts, and it stays.
+**Dark leads blue. Light leads terracotta.** `#7FA8FF → #3D74F0` dark; `#A8482A → #93401F` light. Every control.
+
+The light side changed on 2026-08-08 at Ryan's call — Anthropic's warmth rather than a second blue. It is the one token whose *hue* differs between schemes, which is unusual and deliberate: the cool steel ground of the light scheme has nothing to push against from another blue, and a warm control on cold metal is the whole reason the light design exists.
+
+Picked against the surfaces, not by eye:
+
+| | contrast | verdict |
+| --- | --- | --- |
+| `#A8482A` on the ground `#D3DBE3` | 4.14:1 | large type and controls |
+| `#A8482A` on a white card | 5.79:1 | small type passes |
+| white on `#93401F` | 7.4:1 | the filled button |
+
+**It is red-brown, not yellow, and that is the constraint.** The door light is `#FFB200`, and the rule this palette will not break is that amber means *this door is yours* and nothing else. A terracotta control and a yellow door light cannot be mistaken for each other; a golden control and a golden door could. Anything that pulls the light accent toward yellow breaks the one colour the product actually needs to teach.
 
 ### The door light
 
