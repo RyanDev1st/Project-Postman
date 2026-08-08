@@ -23,7 +23,7 @@ Three tabs: **Home**, **Cabinet**, **Settings**.
 | Screen | Arrangement |
 | --- | --- |
 | **Sign in** | The cabinet, cropped and bleeding off three edges. Then three lines of 40px type with the last word in the accent. Then the form, on no panel at all |
-| **Home** | Greeting, ready count, a card per waiting parcel, then **Collected** underneath. History is a section here, not a tab — it is glanced at, not visited, and on a Home with nothing waiting it is what stops the screen looking broken |
+| **Home** | State as the headline, greeting demoted above it. A card per waiting parcel, each led by a **crop of the real cabinet with its door lit**, and carrying how long is left as a bar. Then **Collected** underneath |
 | **Cabinet** | The render, filling the middle. Status pill floating over it. One button |
 | **Settings** | Account card, then grouped rows: account, notices, app |
 
@@ -248,9 +248,43 @@ Strings live in `res/values/strings.xml`, never in Kotlin.
 
 **Refusal wording is fixed by [api-contract.md](docs/reference/api-contract.md)** and shared with the cabinet. Shortened there on 2026-08-07, before the contract was sent.
 
+## Home carries information now
+
+Home used to lead with **Chào Minh** at 25px and put the only fact on the screen — how many parcels are waiting — underneath it in 13px grey. A greeting is warmth, not news, and nobody opens this app to be greeted. The two swapped.
+
+Three things were missing, and they are why it read as bland: **bland and uninformative were the same fault.**
+
+| Was | Now | Why |
+| --- | --- | --- |
+| Two parcel cards, visually identical | Each carries **how long is left**, as a label and a bar | One parcel may be six hours from expiring and the other thirty-one. Identical cards say those are the same thing. The typed code lives 48 hours — that is real product truth from PRODUCT.md and it was nowhere on the screen |
+| A tinted chip with the box number | A **crop of the actual cabinet, that door lit** | `04` tells you what to look for. A picture of the wall of doors with yours lit tells you *where to look*, which is the question you are standing there asking. Placed from the same projected corners the cabinet tab uses, off a clone of the one `<img>` — no extra bytes, and it cannot drift out of alignment with the render |
+| Empty Home: a dashed box, *"We'll tell you when one arrives"* | **6 boxes free**, with those doors marked green on a cabinet crop | A placeholder admitting there is nothing to show. But there is: whether this cabinet has room, so someone can be sent to it today |
+
+The amber on a Home card means what it always means — *this door is yours*. A parcel not yet collectable is marked in the accent instead, never the amber, and free doors in the free-box green. One colour at a time survives.
+
 ## Motion
 
-One authored moment, and it is the point of the app.
+**GSAP 3.15 core, inlined at build time.** The artifact CSP blocks every runtime request, so nothing is fetched; the library is embedded as a script by `build.py`, which costs 71KB on a 1.8MB page.
+
+### The philosophy, and it is short
+
+A receiver opens this app about twice per parcel, for under twenty seconds, one-handed, often walking. That is the whole brief, and three rules fall out of it.
+
+**1. Motion has to answer a question faster than stillness would** — not decorate the answer, *be* the answer. The cabinet sequence exists because *which of those doors is mine* is hard to say in words and trivial to say by lighting one and pushing into it. The expiry bars **drain** rather than appear, because the useful thing is not the number of hours but the sense that one parcel is nearly out of time and the other is not. Anything that fails this test is deleted, not shortened.
+
+**2. One authored moment per screen. Everything else is feedback.** Feedback confirms a tap and leaves — under 200ms, no overlap, no sequence. The authored moment gets a second and a half, and there is exactly one.
+
+**3. Nothing bounces.** `back` and `elastic` are banned, and not on taste grounds: this interface opens a locker holding someone's property, and an overshoot reads as *approximate*. Metal that springs is metal that is not latched. The single exception is the theme toggle, which is a supplied component carrying its own overshoot — a switch is allowed to feel sprung.
+
+`power3.out` throughout, `power2.inOut` for anything that travels far. Both are already the loader film's curves, so the app and the film move the same way.
+
+### Why GSAP and not CSS
+
+The cabinet sequence was four `setTimeout`s driving CSS transitions. That works until something has to be interrupted, reversed, slowed for inspection, or kept in step — and all four were needed. A timeline is one object with a playhead: `.timeScale(0.25)` is the slow-motion control for free, and `.kill()` on a mode switch is a guarantee rather than four `clearTimeout`s and a hope. It also removes a bug class this build has paid for twice — a transition that silently never runs because its "before" style was never established in its own frame. GSAP records the start value itself.
+
+`gsap.matchMedia()` handles `prefers-reduced-motion`, and reduced motion is **not the same animation slowed down**: nothing travels, nothing fades, and the bars are simply drawn at their real value — which is the information the motion existed to carry.
+
+### The one authored moment
 
 | At | What |
 | --- | --- |
@@ -286,7 +320,13 @@ Two earlier versions and what each got wrong: **`.theming *`** put a seven-prope
 
 **One rule falls out of this, and it is general: anything that varies with the theme goes in `background-color`; the shape of the shading goes in a `background-image` of fixed white and black alphas.** Chrome does not interpolate `background-image` between two gradients — `getAnimations()` on a card returned six running transitions with `background-image` absent, so borders, shadow and text animated while the fill jumped.
 
-Elsewhere: the app-init screen is the `ThinkingOrb` canvas particle system in its `ring` / breathing state.
+### The loading orb is a globe, not a ring
+
+Three attempts. The first was three blurred blobs — a lava lamp, not the component. The second read the component's parameters correctly and then invented the geometry: flat concentric circles with a faked depth value. Right numbers, wrong shape, which is the worst kind of wrong because the numbers make it look researched.
+
+The third transcribed the real renderer — and revealed that the literal answer was also wrong. The component maps `breathing → "ring"`, and `breathing` is labelled *"Thinking…"*. But `ring` renders a thin hoop of dashes, and that is not a porting bug: when `faceOn` is set the basis is built at pitch `−c` and the projector at `+c`, so the two cancel and every band collapses onto `(cos θ, sin θ) · r / √(1+I²)`. Eleven bands at 0.075 spacing span only `0.936r` to `r`. **It is called `ring` because it is one.**
+
+The spheres are `globe` — latitude rings whose dot count follows `|cos(latitude)|`, so they crowd at the equator and converge at the poles, spun on a yaw with a highlight sweeping round. That is what this screen uses, and it is the better fit anyway: the caption is *Checking your parcels*, which is a search, not a thought.
 
 ## What this system will not do
 
