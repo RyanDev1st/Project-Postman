@@ -167,19 +167,28 @@ Every colour token is registered with `@property`, so a theme change interpolate
 
 ### The accent
 
-**Dark leads blue. Light leads terracotta.** `#7FA8FF → #3D74F0` dark; `#A8482A → #93401F` light. Every control.
+**Dark leads blue. Light leads burnt orange.** Changed 2026-08-08 at Ryan's call — warmth rather than a second blue. It is the one token whose *hue* differs between schemes, which is deliberate: the cool steel ground of the light design has nothing to push against from another blue, and a warm control on cold metal is the reason that scheme exists at all.
 
-The light side changed on 2026-08-08 at Ryan's call — Anthropic's warmth rather than a second blue. It is the one token whose *hue* differs between schemes, which is unusual and deliberate: the cool steel ground of the light scheme has nothing to push against from another blue, and a warm control on cold metal is the whole reason the light design exists.
+| Token | Dark | Light | Carries |
+| --- | --- | --- | --- |
+| `--accent` | `#7FA8FF` | `#C2410C` | the colour, wherever it is large or sits on a card |
+| `--accent-deep` | `#3D74F0` | `#B83E0B` | the filled button |
+| `--accent-ink` | `#7FA8FF` | `#98380A` | small accent text on the ground |
 
-Picked against the surfaces, not by eye:
+**Three values, not one, because orange is lighter than a red at the same chroma** and loses contrast against a mid-steel ground. No orange worth calling orange clears 4.5:1 on `#D3DBE3`. Measured:
 
-| | contrast | verdict |
+| | contrast | |
 | --- | --- | --- |
-| `#A8482A` on the ground `#D3DBE3` | 4.14:1 | large type and controls |
-| `#A8482A` on a white card | 5.79:1 | small type passes |
-| white on `#93401F` | 7.4:1 | the filled button |
+| `#C2410C` on the ground `#D3DBE3` | 3.70:1 | large type and fills only |
+| `#C2410C` on a white card | 5.18:1 | small type passes |
+| `#98380A` on the ground | 5.17:1 | small type passes here too |
+| white on `#B83E0B` | 5.63:1 | the button |
 
-**It is red-brown, not yellow, and that is the constraint.** The door light is `#FFB200`, and the rule this palette will not break is that amber means *this door is yours* and nothing else. A terracotta control and a yellow door light cannot be mistaken for each other; a golden control and a golden door could. Anything that pulls the light accent toward yellow breaks the one colour the product actually needs to teach.
+`--accent-ink` exists for one element: the 10px `See all` link, the only accent text that sits on the ground rather than on a card. `--accent-deep` will not serve — in dark it is `#3D74F0`, which is 4.26:1 on `#090B0E`, so using it there would fix light by breaking dark.
+
+**The button fill is deliberately not pushed darker.** A first pass filled it with `#98380A`; at that value the largest orange area on the screen goes brown, and the button is what decides whether the scheme reads as orange at all. A prior pass at `#A8482A` was rejected the same day for the same reason — red-brown, not orange.
+
+**And it stays off yellow, which is the constraint rather than the taste.** The door light is `#FFB200` at hue 42°; this sits at hue 17°, 25° away and much darker. Amber means *this door is yours* and nothing else. A burnt-orange control and a yellow door light are never read as the same colour; a golden control beside a golden door would be. Anything that pulls this accent toward yellow closes that gap and breaks the one colour the product has to teach.
 
 ### The door light
 
