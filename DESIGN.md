@@ -262,6 +262,64 @@ Three things were missing, and they are why it read as bland: **bland and uninfo
 
 The amber on a Home card means what it always means — *this door is yours*. A parcel not yet collectable is marked in the accent instead, never the amber, and free doors in the free-box green. One colour at a time survives.
 
+## Home, relaid out: one door owns the screen
+
+Adding facts to the cards did not stop Home being boring, because the fault was never the content. It was the **shape**: a heading, two parcel cards and three history cards — **five rounded rectangles of near-identical height, stacked, on one gap.** Every fact on the screen was set in the same box at the same weight, so the eye had nowhere to land and nothing to do but read top to bottom. That is what bland means structurally, and no amount of material fixes it, because what the layout was saying is that nothing on it matters more than anything else.
+
+The product does make that claim, and it was already decided: with a parcel waiting, the receiver sees **one parcel**. So Home now has three ranks, and nothing on it is the same size, shape or material as anything else.
+
+| Rank | What | Material |
+| --- | --- | --- |
+| 1 | **The arrival.** A picture of the actual door running edge to edge, the door number at 27px, the time left, a full-width meter, and the button | None — the image bleeds and the type stands on the ground under it. Not a card |
+| 2 | **Also waiting.** One row, tappable, clearly second | `.recess` — set into the ground |
+| 3 | **Collected.** A hairline ledger, no fill, no border, no radius | None — a rule between entries |
+
+Consequences worth stating:
+
+- **The greeting moved into the app bar.** It was an 11px uppercase eyebrow over the headline, and an eyebrow is a label apologising for a heading that should carry itself. The name still belongs on Home — it is how you confirm this is your account — and an app bar is where that context lives. `VGU Locker` was not earning the slot; you know which app you opened.
+- **`Open` stopped being a text link.** The primary action of the whole product was 12.5px accent text inside a card, with a 25px tap target. It is now a full-width filled button that names the door it opens.
+- **The empty Home is the same screen.** Same band, same lockup, same ledger — different news. It was a second design; now it is one screen with a count instead of a countdown, and the ledger runs longer because there is room for it.
+- **Amber stopped being ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the palette: the nearest legible amber is hue 28 and the light accent is hue 17, so the two would read as one colour. So amber became a **surface** — `#FFB200` on `#241A00`, the pairing the Opened screen already fills a whole screen with, at 11.5:1, identical in both schemes.
+
+### The band always covers
+
+A band that bleeds to both screen edges has a requirement the 62px square thumbnails never had: **no corner of it may be empty.** Metal stopping two thirds of the way across does not read as *the cabinet ends here*, it reads as a broken image.
+
+Two faults had to be fixed to get there, and the first was a real bug:
+
+- **`paintDoorshot` scaled width and height independently.** `imgW = w * scale, imgH = h * scale` is only aspect-correct while `w === h`, and it was, for as long as every crop was square. On a 306×138 band it stretched the render to 2.2:1 — doors twice as wide as the real thing, in a picture whose entire job is to show you what to look for. It is one square side now, fitted; a square box gets exactly what it got before.
+- **Per-band `fill` constants cannot work.** `fill` sizes the *marked* doors, and those are a different shape every time — one door on Home, six scattered ones on the empty Home — so the number that fills one band leaves a hole in the other, and both drift the moment a band's height changes. `fit: "cover"` sizes from the full run of doors instead and clamps the centre so the metal never pulls away from an edge. The same rule `background-size: cover` follows, and the same clamp the cabinet tab's push-in uses.
+
+The empty band is the one deliberate exception: it does **not** cover. Cropping it showed three of the six free doors plus the control panel — the most saturated thing on the cabinet and the one part that is not a door — which undercuts the only fact that screen exists to state. The whole cabinet stands in a taller band with all six marks visible, as an object on the ground. Same reading as the sign-in hero, and it can afford the height because that screen has no button.
+
+## Three materials, three jobs
+
+Glass was the only material this app had, and glass floats. Everything that was not floating chrome had to be either a card or nothing, which is why a field, a number chip and an icon well all looked like the same flat grey square with a hairline round it.
+
+| Material | Gesture | Where |
+| --- | --- | --- |
+| `.lg` | Floats **over** content | the nav bar, the app-bar buttons |
+| `.card` | A plane lifted **off** the ground | grouped rows, the profile |
+| `.recess` | Set **into** the ground | fields, code boxes, number chips, icon wells, the second parcel |
+
+A recess costs two shadows and nothing else: the ground's own shade thrown inward from the top edge, and a lit return along the bottom where the surface comes back up. That is the honest version of soft UI — no outer shadow, no fake extrusion, no pair of grey blurs on both sides of a floating lozenge. Both shadows are tokens, so a theme change interpolates them with everything else, and the light scheme **swaps their roles** rather than reusing the dark numbers at a lower alpha.
+
+**A recess must be darker than what it is cut into, and in light mode it was not.** Measured: ground `rgb(211,219,227)`, `--field` `rgb(231,237,244)` — twenty points *up*. Every recessed thing in the light scheme was reading as a raised white chip with two shadows painted on it, which is exactly the mistake the material was written to avoid. `--field` is now `#C6D0DA`, thirteen points down, and still carries `--ink-2` at 4.67:1.
+
+### Defects found and fixed in the same pass
+
+| Defect | Fix |
+| --- | --- |
+| The Settings avatar had **no CSS rule at all** — `.parcel .num` was deleted when the parcel cards became door crops, and the initials had been unstyled text on the card ever since | A real `.me .avatar`, accent-tinted with an inset ring |
+| The nav's selected pill was a 34% accent wash under a 55% accent shadow spreading 8px — colour under colour is a glow, and the glow is what made it look cheap | Fill down to 24%, the coloured shadow replaced by a neutral offset one, the lit top edge up. Edge first, shadow second, fill last — the same order as `.card`. The `Open` button's own accent glow went for the same reason |
+| Three different nav icon sets across three screens, and the replacement gear read as a **sun** at 17px | One sliders icon everywhere |
+| `aria-selected` on plain buttons; toggle switches were `<div>`s with no name or state | `role="tablist"`/`role="tab"`, and `<button role="switch" aria-checked>` |
+| The OTP and add-phone screens centred their heading, leaving a 180px hole between the question and the answer | `.authmid` sits the heading just above the form |
+| Two app bars used a `visibility:hidden` spacer instead of the `.side` structure the others use | `.side` |
+| Section spacing lived as three different inline `padding-top`s (20, 22, 18) and no rule at all on the other two | One `.slabel` rule, more space above than below |
+| Dead CSS: `.field*`, `.badge`, `.statuspill` + its keyframes, `.tokens`/`.swatch`/`.scale`, `.row*`, `.parcel*`, `.freeboard`, `.hello`, and a `.dot-btn` background that `.lg` had always overridden | Removed |
+| The Loading caption still described the orb's `breathing` ring state after the renderer was changed to `globe` | Corrected |
+
 ## Motion
 
 **GSAP 3.15 core, inlined at build time.** The artifact CSP blocks every runtime request, so nothing is fetched; the library is embedded as a script by `build.py`, which costs 71KB on a 1.8MB page.
