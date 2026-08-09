@@ -1,5 +1,7 @@
 package otp
 
+import java.util.Collections
+import java.util.concurrent.CyclicBarrier
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -119,5 +121,81 @@ class AuthStoreTest {
         val (s, _) = store()
         assertNull(s.phoneOf("nope"))
         assertNull(s.refresh("nope"))
+    }
+
+    @Test
+    fun concurrentWrongGuessesLockTheCode() {
+        repeat(30) {
+            val (s, sms) = store()
+            s.requestCode("+84908619328")
+            val code = Regex("\\d{6}").find(sms.lastContent!!)!!.value
+            val results = Collections.synchronizedList(mutableListOf<String?>())
+            val barrier = CyclicBarrier(20)
+            val threads = (1..20).map {
+                Thread {
+                    try {
+                        barrier.await()
+                    } catch (_: Exception) {
+                    }
+                    results.add(s.verifyCode("+84908619328", "000000"))
+                }
+            }
+            threads.forEach { it.start() }
+            threads.forEach { it.join() }
+            assertEquals(20, results.size)
+            assertTrue(results.all { it == "WRONG_CODE" })
+            // Exactly the tries cap was consumed: the correct code is refused.
+            assertEquals("WRONG_CODE", s.verifyCode("+84908619328", code))
+        }
+    }
+
+    @Test
+    fun concurrentWrongGuessesConsumeNoMoreThanMaxTries() {
+        repeat(30) {
+            val (s, sms) = store()
+            s.requestCode("+84908619328")
+            val code = Regex("\\d{6}").find(sms.lastContent!!)!!.value
+            val results = Collections.synchronizedList(mutableListOf<String?>())
+            val barrier = CyclicBarrier(5)
+            val threads = (1..5).map {
+                Thread {
+                    try {
+                        barrier.await()
+                    } catch (_: Exception) {
+                    }
+                    results.add(s.verifyCode("+84908619328", "000000"))
+                }
+            }
+            threads.forEach { it.start() }
+            threads.forEach { it.join() }
+            // Every guess is refused, and with the cap at 5 the code is now gone:
+            assertEquals(5, results.count { it == "WRONG_CODE" })
+            assertEquals("WRONG_CODE", s.verifyCode("+84908619328", code))
+        }
+    }
+
+    @Test
+    fun concurrentCorrectVerificationIsSingleUse() {
+        repeat(50) {
+            val (s, sms) = store()
+            s.requestCode("+84908619328")
+            val code = Regex("\\d{6}").find(sms.lastContent!!)!!.value
+            val results = Collections.synchronizedList(mutableListOf<String?>())
+            val barrier = CyclicBarrier(2)
+            val threads = (1..2).map {
+                Thread {
+                    try {
+                        barrier.await()
+                    } catch (_: Exception) {
+                    }
+                    results.add(s.verifyCode("+84908619328", code))
+                }
+            }
+            threads.forEach { it.start() }
+            threads.forEach { it.join() }
+            // Exactly one verification wins; the other is refused.
+            assertEquals(1, results.count { it == null })
+            assertEquals(1, results.count { it == "WRONG_CODE" })
+        }
     }
 }

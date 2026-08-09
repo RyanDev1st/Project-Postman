@@ -4,6 +4,8 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Codes and tokens, in memory, with every rule from the spec:
@@ -39,14 +41,23 @@ class AuthStore(
      * stored in that case).
      */
     fun requestCode(phoneE164: String): String? {
-        val existing = codes[phoneE164]
-        if (existing != null && now() - existing.sentAtMs < COOLDOWN_MS) {
-            return "RATE_LIMITED"
-        }
         val value = "%06d".format(java.util.Locale.ROOT, random.nextInt(1_000_000))
         val content = "Mã xác thực của bạn là $value. Có hiệu lực trong 5 phút."
-        if (!provider.send(phoneE164, content)) return "SEND_FAILED"
-        codes[phoneE164] = Code(value, now(), now() + CODE_TTL_MS, MAX_TRIES)
+        val fresh = AtomicBoolean(false)
+        codes.compute(phoneE164) { _, existing ->
+            if (existing != null && now() - existing.sentAtMs < COOLDOWN_MS) {
+                existing
+            } else {
+                fresh.set(true)
+                val t = now()
+                Code(value, t, t + CODE_TTL_MS, MAX_TRIES)
+            }
+        }
+        if (!fresh.get()) return "RATE_LIMITED"
+        if (!provider.send(phoneE164, content)) {
+            codes.remove(phoneE164)
+            return "SEND_FAILED"
+        }
         return null
     }
 
@@ -56,30 +67,41 @@ class AuthStore(
      * wrong answer says the same thing as a wrong-and-expired one.
      */
     fun verifyCode(phoneE164: String, code: String): String? {
-        val entry = codes[phoneE164] ?: return "WRONG_CODE"
-        if (now() >= entry.expiresAtMs) {
-            codes.remove(phoneE164)
-            return "WRONG_CODE"
+        val outcome = AtomicReference<String?>()
+        codes.compute(phoneE164) { _, entry ->
+            when {
+                entry == null -> {
+                    outcome.set("WRONG_CODE")
+                    null
+                }
+                now() >= entry.expiresAtMs -> {
+                    outcome.set("WRONG_CODE")
+                    null
+                }
+                MessageDigest.isEqual(
+                    entry.value.toByteArray(Charsets.UTF_8),
+                    code.toByteArray(Charsets.UTF_8),
+                ) -> {
+                    outcome.set(null)
+                    null
+                }
+                else -> {
+                    outcome.set("WRONG_CODE")
+                    val left = entry.triesLeft - 1
+                    if (left <= 0) null else entry.copy(triesLeft = left)
+                }
+            }
         }
-        val matches = MessageDigest.isEqual(
-            entry.value.toByteArray(Charsets.UTF_8),
-            code.toByteArray(Charsets.UTF_8),
-        )
-        if (!matches) {
-            entry.triesLeft -= 1
-            if (entry.triesLeft <= 0) codes.remove(phoneE164)
-            return "WRONG_CODE"
-        }
-        codes.remove(phoneE164)
-        return null
+        return outcome.get()
     }
 
     /** Mint a fresh token for a phone. */
     fun issueToken(phoneE164: String): Token {
         val value = Base64.getUrlEncoder().withoutPadding()
             .encodeToString(random.generateSeed(32))
-        sessions[value] = Session(phoneE164, now() + TOKEN_TTL_MS)
-        return Token(value, now() + TOKEN_TTL_MS)
+        val t = now()
+        sessions[value] = Session(phoneE164, t + TOKEN_TTL_MS)
+        return Token(value, t + TOKEN_TTL_MS)
     }
 
     /** The phone behind a token, or null when unknown or expired. */
@@ -94,9 +116,19 @@ class AuthStore(
 
     /** Swap a live token for a fresh one; null when the old one is dead. */
     fun refresh(token: String): Token? {
-        val phone = phoneOf(token) ?: return null
-        sessions.remove(token)
-        return issueToken(phone)
+        val phone = AtomicReference<String?>()
+        sessions.compute(token) { _, session ->
+            when {
+                session == null -> null
+                now() >= session.expiresAtMs -> null
+                else -> {
+                    phone.set(session.phone)
+                    null
+                }
+            }
+        }
+        val p = phone.get() ?: return null
+        return issueToken(p)
     }
 
     /** Forget a token. */
