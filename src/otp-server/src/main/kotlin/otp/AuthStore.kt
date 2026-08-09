@@ -37,25 +37,29 @@ class AuthStore(
 
     /**
      * Send a fresh code. Null on success; [RATE_LIMITED] within the cooldown;
-     * [SEND_FAILED] when the provider did not confirm delivery (nothing is
-     * stored in that case).
+     * [SEND_FAILED] when the provider did not confirm delivery (only the code
+     * this call placed is removed in that case).
      */
     fun requestCode(phoneE164: String): String? {
         val value = "%06d".format(java.util.Locale.ROOT, random.nextInt(1_000_000))
         val content = "Mã xác thực của bạn là $value. Có hiệu lực trong 5 phút."
         val fresh = AtomicBoolean(false)
+        val placed = AtomicReference<Code>()
         codes.compute(phoneE164) { _, existing ->
             if (existing != null && now() - existing.sentAtMs < COOLDOWN_MS) {
                 existing
             } else {
                 fresh.set(true)
                 val t = now()
-                Code(value, t, t + CODE_TTL_MS, MAX_TRIES)
+                Code(value, t, t + CODE_TTL_MS, MAX_TRIES).also { placed.set(it) }
             }
         }
         if (!fresh.get()) return "RATE_LIMITED"
         if (!provider.send(phoneE164, content)) {
-            codes.remove(phoneE164)
+            // Remove-if-equal: only delete the code this call placed. A later
+            // send may have replaced it; that newer code must survive.
+            placed.get() ?: return "SEND_FAILED"
+            codes.remove(phoneE164, placed.get())
             return "SEND_FAILED"
         }
         return null

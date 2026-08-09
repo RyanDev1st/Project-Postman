@@ -1,7 +1,10 @@
 package otp
 
 import java.util.Collections
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -48,6 +51,40 @@ class AuthStoreTest {
         assertEquals("SEND_FAILED", s.requestCode("+84908619328"))
         // Nothing stored: the code the user never received must not be usable.
         assertEquals("WRONG_CODE", s.verifyCode("+84908619328", "000000"))
+    }
+
+    @Test
+    fun failedSendDoesNotRemoveCodePlacedByLaterRequest() {
+        var t = 1_000_000L
+        val sendStarted = CountDownLatch(1)
+        val releaseSend = CountDownLatch(1)
+        val sendContents = Collections.synchronizedList(mutableListOf<String>())
+        val provider = object : SmsProvider {
+            override fun send(toE164: String, content: String): Boolean {
+                sendContents.add(content)
+                if (sendContents.size == 1) {
+                    // First send stalls until the main thread has replaced the entry.
+                    sendStarted.countDown()
+                    releaseSend.await(5, TimeUnit.SECONDS)
+                    return false
+                }
+                return true
+            }
+        }
+        val s = AuthStore(provider) { t }
+        val t1Result = AtomicReference<String?>()
+        val t1 = Thread { t1Result.set(s.requestCode("+84908619328")) }
+        t1.start()
+        assertTrue(sendStarted.await(5, TimeUnit.SECONDS))
+        // Past the 60s cooldown: a second request replaces E1 with E2 and sends fine.
+        t += 61_000
+        assertNull(s.requestCode("+84908619328"))
+        val secondCode = Regex("\\d{6}").find(sendContents[1])!!.value
+        // The stalled first send now fails; it must not delete E2.
+        releaseSend.countDown()
+        t1.join(5_000)
+        assertEquals("SEND_FAILED", t1Result.get())
+        assertNull(s.verifyCode("+84908619328", secondCode))
     }
 
     @Test
