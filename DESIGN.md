@@ -257,40 +257,47 @@ Three things were missing, and they are why it read as bland: **bland and uninfo
 | Was | Now | Why |
 | --- | --- | --- |
 | Two parcel cards, visually identical | Each carries **how long is left**, as a label and a bar | One parcel may be six hours from expiring and the other thirty-one. Identical cards say those are the same thing. The typed code lives 48 hours — that is real product truth from PRODUCT.md and it was nowhere on the screen |
-| A tinted chip with the box number | A **crop of the actual cabinet, that door lit** | `04` tells you what to look for. A picture of the wall of doors with yours lit tells you *where to look*, which is the question you are standing there asking. Placed from the same projected corners the cabinet tab uses, off a clone of the one `<img>` — no extra bytes, and it cannot drift out of alignment with the render |
-| Empty Home: a dashed box, *"We'll tell you when one arrives"* | **6 boxes free**, with those doors marked green on a cabinet crop | A placeholder admitting there is nothing to show. But there is: whether this cabinet has room, so someone can be sent to it today |
+| A tinted chip with the box number | A **crop of the actual cabinet, that door lit** | `04` tells you what to look for; a picture of the wall of doors with yours lit tells you *where* to look. Superseded — see *Home is a claim ticket* below. The reasoning was sound and the conclusion was wrong: that question belongs to the Cabinet tab, and answering it three times on Home is what made every block the same grey rectangle |
+| Empty Home: a dashed box, *"We'll tell you when one arrives"* | **6 boxes free** | A placeholder admitting there is nothing to show. But there is: whether this cabinet has room, so someone can be sent to it today |
 
 The amber on a Home card means what it always means — *this door is yours*. A parcel not yet collectable is marked in the accent instead, never the amber, and free doors in the free-box green. One colour at a time survives.
 
-## Home, relaid out: one door owns the screen
+## Home is a claim ticket
 
-Adding facts to the cards did not stop Home being boring, because the fault was never the content. It was the **shape**: a heading, two parcel cards and three history cards — **five rounded rectangles of near-identical height, stacked, on one gap.** Every fact on the screen was set in the same box at the same weight, so the eye had nowhere to land and nothing to do but read top to bottom. That is what bland means structurally, and no amount of material fixes it, because what the layout was saying is that nothing on it matters more than anything else.
+The first relayout gave Home three ranks and fixed the shape — a heading, two parcel cards and three history cards had been five rounded rectangles of near-identical height on one gap, and no material fixes a layout that says nothing on it matters more than anything else. That much held. What did not hold is what went **in** the ranks.
 
-The product does make that claim, and it was already decided: with a parcel waiting, the receiver sees **one parcel**. So Home now has three ranks, and nothing on it is the same size, shape or material as anything else.
+Three of the seven blocks were crops of the same render: the hero band, the second parcel's thumbnail, and the free-boxes band. That is a screen organised around an **asset**, not around a fact, and it shows — every block ends up the same rounded rectangle with a different piece of grey metal in it. The picture of the wall of doors belongs on the Cabinet tab, which is the tab whose entire job is *which of those doors is mine*. Home's job is different and simpler: **you have a claim on a thing in a box.**
+
+So Home is built like a claim ticket. A cloakroom tag, a luggage stub, a lottery slip — all of them are a big number, a seam and a time, and everyone alive can read one without being taught.
 
 | Rank | What | Material |
 | --- | --- | --- |
-| 1 | **The arrival.** A picture of the actual door running edge to edge, the door number at 27px, the time left, a full-width meter, and the button | None — the image bleeds and the type stands on the ground under it. Not a card |
-| 2 | **Also waiting.** One row, tappable, clearly second | `.recess` — set into the ground |
-| 3 | **Collected.** A hairline ledger, no fill, no border, no radius | None — a rule between entries |
+| 1 | **The ticket.** Cabinet name, `04` at 76px mono, the time left beside it on the same baseline, a cut seam, the two times on the stub, and the remaining time as a rule along the foot | `.card`, with the hairline moved from `border` to an inset ring |
+| 1b | **The button**, naming the door it opens | Filled accent |
+| 2 | **Also waiting.** The same ticket, one row high — same number face, same drain rule, a quarter of the height | `.card` |
+| 3 | **Where to walk.** The campus plan | A bordered map card |
+| 4 | **Collected.** A hairline ledger, no fill, no border, no radius | None — a rule between entries |
 
-Consequences worth stating:
+- **The number is the hero because the number is what you carry.** It is the thing you repeat to yourself on the walk over. Not a photograph of where it is; the thing itself, set as large as the screen allows.
+- **`04` and `6h left` share one baseline.** The pill started in the header, which left two thirds of the number row empty — and an oversized ghost numeral was put there to fill it, which read as a smudged duplicate rather than as an ornament. The space did not need decorating, it needed the other half of the sentence. The ghost was deleted.
+- **The seam is a real cut**, not a divider rule: two circular bites out of the card edges with the ground showing through, and a dashed line between them. Two pseudo-elements, no images, and it is the one shape on this screen that could not belong to any other app.
+- **The empty Home is the same ticket with a different number.** `06` in the free-box green where the door number goes, labelled *Boxes free*. Six boxes free is a fact worth a whole screen — it is what lets you tell a courier to send one today. Nothing is redesigned for the empty case.
+- **Grey means there is time; amber means there is not.** The drain rule's calm fill was `--accent`, which is `#C2410C` in light — so the parcel with 31 hours on it drew a two-thirds-width burnt-orange bar, louder than the 12% amber dash beside it and near enough to the primary button to read as a second alarm. The calm state has to be genuinely calm or the urgent one carries nothing.
+- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the palette: the nearest legible amber is hue 28 and the light accent is hue 17, so the two would read as one colour. So amber is a **surface** — `#FFB200` on `#241A00`, at 11.5:1, identical in both schemes.
 
-- **The greeting moved into the app bar.** It was an 11px uppercase eyebrow over the headline, and an eyebrow is a label apologising for a heading that should carry itself. The name still belongs on Home — it is how you confirm this is your account — and an app bar is where that context lives. `VGU Locker` was not earning the slot; you know which app you opened.
-- **`Open` stopped being a text link.** The primary action of the whole product was 12.5px accent text inside a card, with a 25px tap target. It is now a full-width filled button that names the door it opens.
-- **The empty Home is the same screen.** Same band, same lockup, same ledger — different news. It was a second design; now it is one screen with a count instead of a countdown, and the ledger runs longer because there is room for it.
-- **Amber stopped being ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the palette: the nearest legible amber is hue 28 and the light accent is hue 17, so the two would read as one colour. So amber became a **surface** — `#FFB200` on `#241A00`, the pairing the Opened screen already fills a whole screen with, at 11.5:1, identical in both schemes.
+### The notch is why the hairline moved layers
 
-### The band always covers
+`overflow: hidden` clips children to the **padding** box — inside the border — so a circle placed on the card edge came back as a bite with the border still drawn across it, which reads as a hole punched in the wrong layer. An inset ring is painted on the element's own background and a child paints above it, so the bite covers the edge exactly the way a punch does. Same 1px, same token, same look; only which layer draws it. Written `.ticket.card` because glass.css is concatenated after screens.css and would otherwise win on source order.
 
-A band that bleeds to both screen edges has a requirement the 62px square thumbnails never had: **no corner of it may be empty.** Metal stopping two thirds of the way across does not read as *the cabinet ends here*, it reads as a broken image.
+## A bare button takes the phone's ink, not the machine's
 
-Two faults had to be fixed to get there, and the first was a real bug:
+Ryan photographed the map label reading *Back gate* as invisible in light mode, and the plate under it was never the cause.
 
-- **`paintDoorshot` scaled width and height independently.** `imgW = w * scale, imgH = h * scale` is only aspect-correct while `w === h`, and it was, for as long as every crop was square. On a 306×138 band it stretched the render to 2.2:1 — doors twice as wide as the real thing, in a picture whose entire job is to show you what to look for. It is one square side now, fitted; a square box gets exactly what it got before.
-- **Per-band `fill` constants cannot work.** `fill` sizes the *marked* doors, and those are a different shape every time — one door on Home, six scattered ones on the empty Home — so the number that fills one band leaves a hole in the other, and both drift the moment a band's height changes. `fit: "cover"` sizes from the full run of doors instead and clamps the centre so the metal never pulls away from an edge. The same rule `background-size: cover` follows, and the same clamp the cabinet tab's push-in uses.
+`:root` declares `color-scheme: dark light` for the **page**, so Chrome resolves the UA default `color: buttontext` from the operating system's scheme — white, on a machine set to dark. The phone's own `data-theme` has no say in it. So on a dark-set machine every button inside the light phone that did not name a colour drew white text: `.whereto`'s *Back gate* was white on a white plate, while its sibling lines — which carry `var(--ink-2)` explicitly — were fine. Two schemes disagreeing about one word is not something a designer can see coming, and it would recur on every button added from here.
 
-The empty band is the one deliberate exception: it does **not** cover. Cropping it showed three of the six free doors plus the control panel — the most saturated thing on the cabinet and the one part that is not a door — which undercuts the only fact that screen exists to state. The whole cabinet stands in a taller band with all six marks visible, as an object on the ground. Same reading as the sign-in hero, and it can afford the height because that screen has no button.
+Fixed once, at the source: `:where(.screen) button { color: inherit }`. `:where()` contributes **zero** specificity, so the rule is `(0,0,1)` — weaker than any class, and every button that names its own colour still wins without being listed. A plain `.screen button` selector would have been `(0,1,1)` and would have silently turned the primary button's white label to ink.
+
+The plate was raised anyway, because it was also weak: a white fill on a `#E8EEF3` map is a 1.19:1 difference. Two surfaces of similar value are told apart by the **edge** between them, not by the fill — which is why raising the fill alone never fixed this and a defined edge plus a real drop shadow did. The map card's own ground goes seven points of ink darker so the plate has something to stand on.
 
 ## The lit door keeps its own number
 
@@ -346,7 +353,9 @@ Tap a chip or tap the door itself; tap the one you are on and the frame goes wid
 
 Home shipped with a blank top half, and it looked correct on every local screenshot. `paintDoorshot` sizes the crop from `el.clientWidth` and `el.clientHeight`, and it ran once, inline, at the bottom of the script. A published artifact renders inside an iframe that is sized *after* the document loads: at script time the box measured 0, `side` came out 0, the image and the marks were appended at 0×0, and the band was empty. Nothing threw. There was simply nothing to see.
 
-That is the worst shape of defect this build keeps producing — correct on the machine it was written on, wrong on the only surface anyone looks at. The fix removes the assumption rather than the symptom: a **`ResizeObserver`** per crop, painting the first time the box has a size and repainting whenever it changes. Verified by collapsing the phone to `display: none` and restoring it — the crop repaints at 408px on a 260px phone and back to 543px, from nothing.
+That is the worst shape of defect this build keeps producing — correct on the machine it was written on, wrong on the only surface anyone looks at. The fix removed the assumption rather than the symptom: a **`ResizeObserver`** per crop, painting the first time the box has a size and repainting whenever it changes. Verified by collapsing the phone to `display: none` and restoring it — the crop repainted at 408px on a 260px phone and back to 543px, from nothing.
+
+The crops are gone now — Home is a ticket, and no part of it is a picture measured in JavaScript — and the painters went with them. **The rule outlives the code:** anything sized from `clientWidth` at script time is guessing, because the box it measures may not have been laid out yet, and a zero measurement throws nothing.
 
 ## Two defects worth writing down
 
@@ -436,9 +445,20 @@ Both halves are Ryan's supplied components, in `docs/designs/wireframe/mobile/co
 
 The knob crosses in 300ms and the world catches up over 500ms behind it. Flattened onto one curve — which is what a paraphrase of the component did — the knob drifts across in convoy with the background, and that is the soft, laggy motion. Both curves have a negative `y1`, so each dips back before it goes: that is the wind-up, and it is why the knob has weight. Only `--toggle-size` is changed, 30px → 10px, which the component's own `em` sizing scales cleanly.
 
-**The wipe** is one pass, upward. The component ships two — fall 550, swap, rise 550 — with `transformOrigin: "top"` in both phases, so it drops from the top, retracts back to the top, and nothing happens at all for the first 550ms. `duration` is a documented prop, so setting it is sanctioned. Here: the curtain is filled with the **outgoing** colour and held, the theme swaps underneath it, and it then shrinks toward its own top edge — so its bottom edge travels up and reveals the new ground from the floor. **480ms, against 1100.**
+**The wipe** is one pass. The component ships two — fall 550, swap, rise 550 — with `transformOrigin: "top"` in both phases, so it drops from the top, retracts back to the top, and nothing happens at all for the first 550ms. `duration` is a documented prop, so setting it is sanctioned. Here: the curtain is filled with the **outgoing** colour and held, the theme swaps underneath it, and it then shrinks away. **480ms, against 1100.**
 
-**And the blocks turn with it.** Each block gets a delay from how far it sits above the floor of its screen: a 300ms spread, 190ms each, `linear` — the stagger is the motion, and easing every block as well makes the wave mushy. Measured: bottom card moves at 128ms and lands by 307; top card starts at 380 and lands at 579.
+**Night falls from the top; day comes up from the floor.** The wipe used to run upward both times, which reads as one mechanism playing twice rather than as two opposite events. It is directional now, and the direction is the only pair that matches what the two words already mean:
+
+| Change | Curtain origin | Leading edge | Blocks turn |
+| --- | --- | --- | --- |
+| light → **dark** | `bottom` | top edge travels **down** | ceiling first |
+| dark → **light** | `top` | bottom edge travels **up** | floor first |
+
+The curtain always shrinks *away from* the edge the new theme arrives at, so the origin is the far edge. Measured on the toggle: going dark, the app bar's delay is `5ms` and the nav's is `277ms`; going light, `280ms` and `4ms`.
+
+**And the blocks turn with it.** Each block gets a delay from how far it sits from the edge the wave starts at: a 300ms spread, 190ms each, `linear` — the stagger is the motion, and easing every block as well makes the wave mushy. The ticket is staged as **one** block, not per child: `--d` is a custom property, so it inherits, and staging its children as well would spread one card across a third of the wave and read as the card coming apart.
+
+**The app opens light.** It used to open in whatever scheme the machine was set to, which made the first thing anyone saw depend on a setting nobody in the room had chosen. Light is the daylight case — a receiver reads this screen outdoors, at a cabinet, in Bình Dương sun — so light is the one to be judged on and the one to open in. The system scheme is not consulted at all and the `prefers-color-scheme` listener is gone with it: an app that follows the OS mid-session moves under the reader's hands for a reason that has nothing to do with the app.
 
 Two earlier versions and what each got wrong: **`.theming *`** put a seven-property transition on every element on the page, about fourteen thousand animations for one tap, and had to be cancelled on the toggle by hand — which is why the knob never moved. **Interpolating the tokens on `:root`** cost twenty animations instead, but changes everything at once, uniformly; nothing travels.
 
