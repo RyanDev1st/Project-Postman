@@ -189,6 +189,8 @@ Every failure the server can send, with the code we propose and the exact words 
 | `CODE_REJECTED` | Wrong, used, or expired pickup code | Cabinet | "That code did not work. Scan with the app instead." |
 | `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many tries. Unlocks at 14:35." |
 
+**The reference server (docs/superpowers/specs/2026-08-09-otp-sender-design.md) adds three codes for auth: `PHONE_INVALID` (the number is not a Vietnamese mobile), `RATE_LIMITED` (a code was requested within the last 60 seconds) and `SEND_FAILED` (the SMS provider did not confirm delivery). The app's Refusal enum does not name them; they fall to `UNKNOWN`, which shows the generic sentence. `WRONG_CODE` and `TOKEN_EXPIRED` are already in the table.**
+
 **`CODE_REJECTED` covers three different failures on purpose.** Wrong, already used, and expired all return the same code and the same words. Splitting them would let somebody at the keypad work out which codes are real.
 
 **A wrong typed code must not say whether that code exists.** "Not right" and "not right yet" are the same message. Anything else lets somebody at the keypad work out which codes are real.
