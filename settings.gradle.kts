@@ -30,3 +30,7 @@ rootProject.name = "project-postman"
 // root, which the root policy allows.
 include(":app")
 project(":app").projectDir = file("src/app")
+
+// The OTP sender server. Same rule as the app: source lives in src/.
+include(":otp-server")
+project(":otp-server").projectDir = file("src/otp-server")

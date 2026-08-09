@@ -9,6 +9,7 @@
 [versions]
 agp = "9.3.1"
 kotlin = "2.4.10"
+ktor = "3.2.0"
 # Not 1.19.0, which is newer. 1.19.0 demands compileSdk 37, and the
 # android-37 platform is not published yet - only its build-tools are. Raise
 # this the day platforms;android-37 appears in sdkmanager.
@@ -30,10 +31,20 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+# Ktor server stack for the OTP sender server. Checked against Maven Central
+# on 2026-08-09: 3.2.0 is the newest stable release.
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
+ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
 # Sends a build to the team's phones. Release plumbing only - it adds nothing
 # to the app itself, and no Firebase SDK ships inside the APK.
