@@ -315,24 +315,48 @@ Two things make it work, and both are load-bearing:
 
 Home's door crops use the same two layers, as `.f` (tint) over the image and `.r` (lit edge) above it in normal blend.
 
-## More than one box can be yours
+## The cabinet tab: one panel, in every state
 
-`YOUR_BOX = 4` was a single number, so the cabinet tab could light exactly one door and the heading could only ever read *Box 04*. Two parcels at one cabinet is a Tuesday, not an edge case — and it is the moment the flow is quietest about, because *which box opens when I scan?* has no answer in it.
+`YOUR_BOX = 4` was a single number, so the tab could light exactly one door and the heading could only ever read *Box 04*. Two parcels at one cabinet is a Tuesday, not an edge case — and it is the moment the flow is quietest about, because *which box opens when I scan?* has no answer in it. Doors became a list, each carrying when it was dropped and how long is left.
 
-Doors are a list now, each carrying when it was dropped and how long is left. Every door that is yours lights, `0.09s` apart, in order of urgency. The **picker** under the render carries one chip per box — number, time left — and choosing one moves the frame, the heading and the button together. Lit doors and chips are built from the same array, so they cannot disagree.
+The first answer to that was a row of glass chips under the render, one per box. It had three faults, and Ryan named the first.
 
-Copy follows the count: *Box 04 is yours* at one, *Two boxes are yours* at more, and the heading becomes *Door 07 · Dropped 21:40 yesterday · 31h left* once a chip is chosen.
+**It changed shape with the count.** Two boxes gave two chips, which reads as a choice. One box gave a single chip floating under the render, which reads as a control with its other half missing — a picker with nothing to pick. Nothing waiting gave none at all and the panel vanished. Three counts, three different screens.
 
-## The push is a control, not a film
+**The urgent fact sat in the quietest place.** *Dropped 08:14 today · 6h left* was 13px grey under the heading, which is where a screen puts the thing nobody has to read. It is the single most time-critical fact the app holds. Making it bigger in place would not have fixed that — it was in the wrong slot.
 
-It used to fire at `1.50s` on arrival, unasked, every time. Two faults:
+**So there is one panel, in one shape, in every state.**
 
-- **It answers a question that has not been asked.** Arriving already pushed into door 04 hides the other seventeen doors and — worse — hides the fact that door 07 is also yours. The wide shot is the one that says *here is the cabinet, and these two are yours*.
-- **It cannot be undone.** The receiver is standing in front of the real cabinet and wants to look at one door, then the other, then back out.
+| State | Panel | Action |
+| --- | --- | --- |
+| Two or more yours | A **switch** — the numbers, with a dot on the urgent one — over the ticket for the chosen box | `Scan to open 04` |
+| One yours | The **ticket** alone. A switch with one segment is a broken control, so it is not built | `Scan to open 04` |
+| Nothing waiting | A **status card**: *Room for a drop* | none — see below |
+| Cabinet full | A **status card**: *All 20 boxes in use* | `Show the Library cabinet` |
 
-Tap a chip or tap the door itself; tap the one you are on and the frame goes wide. `0.72s` on `power2.inOut` either way.
+The ticket is the same `.tk-sm` object Home's second parcel uses, so a box looks like a box wherever you meet it in this app. The heading now carries only the constants — how many are yours, and how many doors are free — and the app bar already names the cabinet, so the subtitle stopped repeating it.
 
-`zoomFor` now solves the pan with **the origin fixed at the centre** instead of moving `transform-origin` onto the door. It has to: with a per-door origin, going wide or switching doors means interpolating the origin as well, and a moving origin under a moving scale sends the image on a curve nobody asked for. Fixed origin makes every state a plain `(scale, x, y)`, and any two of those tween cleanly. With `translate(t) scale(k)` about the centre, an image point `p` lands at `0.5 + k(p − 0.5) + t`, so `t = −k(c − 0.5)` puts `c` in the middle.
+**`selected` and `framed` are two variables because they are two questions.** `selected` is which box the panel and the button are about, and in any state where you have a parcel here it is never null — the button has to name a door before it can be pressed. `framed` is where the camera is, and null means the wide shot. They used to be one, which is why going wide had to blank the caption: the screen forgot which door it was about the moment it stopped looking at it.
+
+### The count decides whether the frame moves on its own
+
+The push-in used to fire at `1.50s` on arrival, unasked, in every state. That was removed because with two parcels it answers a question nobody has asked and hides the fact that a second door is also yours — the wide shot is the one that says *here is the cabinet, and these two are yours*.
+
+With **one** box there is no second door to hide and no choice to make, and the wide shot asks the receiver to tap a door to learn what they already know. So the count decides it, which is the honest rule: **the frame moves on its own only when there is exactly one place it could go.** One box pushes in at `1.02s`; two or more wait. Tapping a door still pulls back out either way.
+
+`zoomFor` solves the pan with **the origin fixed at the centre** rather than moving `transform-origin` onto the door. It has to: with a per-door origin, going wide or switching doors means interpolating the origin as well, and a moving origin under a moving scale sends the image on a curve nobody asked for. Fixed origin makes every state a plain `(scale, x, y)`, and any two of those tween cleanly. With `translate(t) scale(k)` about the centre, an image point `p` lands at `0.5 + k(p − 0.5) + t`, so `t = −k(c − 0.5)` puts `c` in the middle.
+
+### Full has to be said out loud
+
+The screen used to answer *is there room here?* by lighting nothing at all. But an unlit cabinet is also what this screen looks like while it is loading, while a request is in flight, and when something has gone wrong. **Absence is not a message**, and un-highlighting is not feedback.
+
+Three things say it now, and each covers a hole the others leave:
+
+- **The render is drained and dimmed** — `saturate(.22)` and a brightness multiplier per scheme, `.72` dark and `.88` light, because the same number on the light scheme's pale steel reads as a shadow across the picture rather than as a state.
+- **A badge sits on the render**, centred on the picture rather than on the hero, which is taller than the image it holds. The dim alone could be a rendering fault.
+- **The panel states the count** — *All 20 boxes in use* — because the badge alone leaves twenty doors looking perfectly available underneath it.
+
+And the button becomes **the way out**. A disabled primary states the problem and offers nothing; the Library cabinet is a real place in this app's own data, so *full* ends in a live control. With nothing waiting there genuinely is no action, so the row is hidden — and the nav floats, so the panel takes over holding its space (`.cabinfo:has(+ .action[hidden])`). Without that the status card slid straight under the nav pill.
 
 ## Where on campus
 
@@ -363,7 +387,7 @@ The crops are gone now — Home is a ticket, and no part of it is a picture meas
 
 Two changes, because one of them would not have been enough. The selector is an **array joined with `", "`**, so there is no glue to forget. And `stageWave` is wrapped: the wave is decoration, the theme change is the function, and staging must never be able to stop the swap. A cosmetic failure that presents as a dead control is the worst kind.
 
-**The picker chips were unreadable over the render.** They used `.recess`, which fills with `--field` — in dark, `rgba(2,5,10,.55)`. That is a tint meant to sit on the app's own ground, and these chips float over bright steel with black door gaps running through it, so the picture came straight through and the labels landed on whatever was behind them. They are glass now: a real backdrop blur, a fill you cannot see the doors through, a lit top edge.
+**The picker chips were unreadable over the render.** They used `.recess`, which fills with `--field` — in dark, `rgba(2,5,10,.55)`. That is a tint meant to sit on the app's own ground, and these chips floated over bright steel with black door gaps running through it, so the picture came straight through and the labels landed on whatever was behind them. Glass fixed the legibility, and the chips are gone entirely now — see *one panel, in every state* above — but the rule they taught stands: **a translucent fill is only readable against the ground it was mixed for.**
 
 And the urgency label inside them repeated the amber-as-ink mistake — `#FFB200` at 1.81:1 on the light chip. It is the same amber capsule Home uses. **One rule, everywhere urgency appears: amber is never ink, always a surface.**
 
