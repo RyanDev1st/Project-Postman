@@ -329,15 +329,28 @@ Tap a chip or tap the door itself; tap the one you are on and the frame goes wid
 
 ## Where on campus
 
-*Back gate* is a name, and a name only works on someone who already knows the campus. A first-year with a parcel does not, and neither does a courier reading the same words on the cabinet screen. So Home carries a plan: the perimeter road, the academic quadrangle, the lake, the running track, both cabinets, and a pin on the southern road where Ryan marked the back gate.
+*Back gate* is a name, and a name only works on someone who already knows the campus. A first-year with a parcel does not, and neither does a courier reading the same words on the cabinet screen. So Home carries a plan. It is also the only wide, pictorial, non-parcel block on the screen — Home was a column of type and small crops, and a map is a different *kind* of thing to look at.
 
-It is also the only wide, pictorial, non-parcel block on the screen — Home was a column of type and small crops, and a map is a different *kind* of thing to look at.
+**The first version was invented, and it was wrong in every particular** — a generic quadrangle, a lake, a track on the wrong side. The plan is now read off Google's satellite imagery of the real site at Thới Hòa: Sunrise River across the north, Đ. VĐ 4 beyond it, Đ. D9 down the west, AH17 on the east, the administration block north of the river, the library and academic cluster in the centre, the round auditorium, Dormitory 2 and the Sports Hall to the west, the running track and the solar field to the south.
 
-Three decisions inside it:
+Four decisions:
 
-- **Drawn, not traced.** The published VGU master plan is Machado Silvetti's drawing and not ours to reproduce, and a plan claiming survey accuracy would be a lie at this size. It carries the amount a phone map needs — which side of campus to walk to — and no more.
-- **Monochrome.** The first version drew the planting in `--free`. Green in this app means *a box is free*, and spending it on grass, the largest area on the card, is precisely how a signal stops being a signal. The plan is built from `--ink` alone and the only colour on it is the pin.
-- **The label is a plate, not glass.** Glass was the obvious choice and was tried — the app's own rule is that glass floats over content, and the map is the one piece of content on Home. But `liquid.js` builds a warp span and two ring layers inside every `.lg`, sized at init, and inside an absolutely-positioned label on a button the whole rail came back blurred. The material is for chrome spanning a screen edge, not a 90px chip pinned inside a card. It sits top **right**: on the left it covered the quadrangle, the lake and the pin — the half that answers the question.
+- **Redrawn, not traced.** Google's tiles and Machado Silvetti's master plan are both somebody's artwork; where the river runs and which side the track is on are facts. The drawing is ours, the geography is theirs.
+- **The window is the western half**, not the whole campus. The site is very nearly square and the card is 3:1, so the whole of it would sit in the middle of two dark margins. The crop also shows the more useful picture — the gate and the things you would navigate by on the walk to it.
+- **Monochrome.** The first version drew the planting in `--free`. Green in this app means *a box is free*, and spending it on grass, the largest area on the card, is precisely how a signal stops being a signal. The plan is `--ink` alone and the only colour on it is the pin.
+- **The label is a plate, not glass.** Glass was the obvious choice and was tried — the app's own rule is that glass floats over content, and the map is the one piece of content on Home. But `liquid.js` builds a warp span and two ring layers inside every `.lg`, sized at init, and inside an absolutely-positioned label on a button the whole rail came back blurred. The material is for chrome spanning a screen edge, not a 90px chip pinned inside a card. It sits top **right**: on the left it covered the gate and its neighbours — the half that answers the question.
+
+**One thing to check.** The pin is on the side gate that Google labels *Cổng phụ Trường Đại học Việt Đức*, on Đ. D9 beside Dormitory 2 and the Sports Hall — which is where a parcel locker belongs, next to where the receivers live. Ryan's mark was on the Silvetti plan, whose orientation does not match the satellite, so this is my reading rather than his. Moving it is one coordinate pair.
+
+## Two defects worth writing down
+
+**The theme toggle died on a missing `+`.** `BLOCKS` — the selector listing every element the theme wave staggers — was built by concatenating seven string fragments, and one `+` went missing between the last two. JavaScript read that as an assignment followed by a stray expression statement: entirely legal, and `BLOCKS` silently ended on a trailing comma. `querySelectorAll` then threw on every theme change, `stageWave` died before `setTheme` could swap the attribute, and the toggle did nothing at all. `node --check` cannot catch it — there is nothing syntactically wrong.
+
+Two changes, because one of them would not have been enough. The selector is an **array joined with `", "`**, so there is no glue to forget. And `stageWave` is wrapped: the wave is decoration, the theme change is the function, and staging must never be able to stop the swap. A cosmetic failure that presents as a dead control is the worst kind.
+
+**The picker chips were unreadable over the render.** They used `.recess`, which fills with `--field` — in dark, `rgba(2,5,10,.55)`. That is a tint meant to sit on the app's own ground, and these chips float over bright steel with black door gaps running through it, so the picture came straight through and the labels landed on whatever was behind them. They are glass now: a real backdrop blur, a fill you cannot see the doors through, a lit top edge.
+
+And the urgency label inside them repeated the amber-as-ink mistake — `#FFB200` at 1.81:1 on the light chip. It is the same amber capsule Home uses. **One rule, everywhere urgency appears: amber is never ink, always a surface.**
 
 ## Three materials, three jobs
 
