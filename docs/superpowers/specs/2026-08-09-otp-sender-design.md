@@ -28,8 +28,8 @@ SMS text is in Vietnamese.
 | # | Path | Body | Success | Refusal codes |
 | --- | --- | --- | --- | --- |
 | 1 | `POST /auth/request-code` | `{"phone_number": "0908619328"}` | `{}` | `PHONE_INVALID`, `RATE_LIMITED`, `SEND_FAILED` |
-| 2 | `POST /auth/verify-code` | `{"phone_number": "...", "code": "123456"}` | `{"token": "...", "expiry": <epoch ms>}` | `WRONG_CODE` (also covers expired code, per contract wording rule) |
-| 3 | `POST /auth/refresh` | `{}` + `Authorization: Bearer <token>` | `{"token": "...", "expiry": <epoch ms>}` | `TOKEN_EXPIRED` |
+| 2 | `POST /auth/verify-code` | `{"phone_number": "...", "code": "123456"}` | `{"token": "...", "expires_at": <epoch ms as string>}` | `WRONG_CODE` (also covers expired code, per contract wording rule) |
+| 3 | `POST /auth/refresh` | `{}` + `Authorization: Bearer <token>` | `{"token": "...", "expires_at": <epoch ms as string>}` | `TOKEN_EXPIRED` |
 | 4 | `POST /auth/logout` | `{}` + bearer | `{}` | `TOKEN_EXPIRED` |
 
 Refusal body shape follows the contract: `{"code": "<CODE>"}`. The app maps
