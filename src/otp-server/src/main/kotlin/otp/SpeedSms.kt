@@ -4,6 +4,13 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Base64
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 /**
  * The real provider: SpeedSMS (api.speedsms.vn), the de-facto VN standard.
@@ -32,7 +39,13 @@ class SpeedSms(
             )
             setRequestProperty("Content-Type", "application/json; charset=utf-8")
         }
-        val body = """{"to":"${toE164.removePrefix("+")}","content":"$content","type":2}"""
+        val body = Json.encodeToString(
+            buildJsonObject {
+                put("to", toE164.removePrefix("+"))
+                put("content", content)
+                put("type", 2)
+            },
+        )
         conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
 
         val status = conn.responseCode
@@ -41,7 +54,8 @@ class SpeedSms(
         conn.disconnect()
 
         // SpeedSMS says delivered only when status is exactly 1.
-        status in 200..299 && answer.contains("\"status\":1")
+        status in 200..299 &&
+            Json.parseToJsonElement(answer).jsonObject["status"]?.jsonPrimitive?.intOrNull == 1
     } catch (e: IOException) {
         false
     }

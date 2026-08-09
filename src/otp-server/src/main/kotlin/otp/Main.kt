@@ -13,7 +13,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 @Serializable
 private data class RequestCodeBody(val phone_number: String = "")
@@ -98,5 +97,6 @@ private suspend fun io.ktor.server.application.ApplicationCall.bearer(): String?
 fun main() {
     val provider = providerFromEnv()
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8443
+    println("Responding at http://0.0.0.0:$port")
     embeddedServer(Netty, port = port) { module(provider, AuthStore(provider)) }.start(wait = true)
 }

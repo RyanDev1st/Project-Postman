@@ -14,7 +14,6 @@ import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class RoutesTest {
 
@@ -25,6 +24,10 @@ class RoutesTest {
 
     @Serializable
     private data class SessionOut(val token: String, val expires_at: String)
+
+    private class FailingSms : SmsProvider {
+        override fun send(toE164: String, content: String) = false
+    }
 
     private suspend fun ApplicationTestBuilder.withServer(block: suspend (LogSms) -> Unit) {
         val log = LogSms()
@@ -109,5 +112,16 @@ class RoutesTest {
             assertEquals(HttpStatusCode.Unauthorized, res.status)
             assertEquals("TOKEN_EXPIRED", json.decodeFromString<Refusal>(res.bodyAsText()).code)
         }
+    }
+
+    @Test
+    fun failingProviderYieldsSendFailed() = testApplication {
+        val provider = FailingSms()
+        application {
+            module(provider, AuthStore(provider))
+        }
+        val res = client.requestCode("0908619328")
+        assertEquals(HttpStatusCode.BadGateway, res.status)
+        assertEquals("SEND_FAILED", json.decodeFromString<Refusal>(res.bodyAsText()).code)
     }
 }
