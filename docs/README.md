@@ -57,6 +57,12 @@ One file per report: `findings/YYYY-MM-DD-<topic>.md`. Never edited after the da
 | --- | --- |
 | [findings/2026-08-07-overnight-sweep.md](findings/2026-08-07-overnight-sweep.md) | Every open task chains back to a server address we do not have. P0-04 is the critical path and was wrongly deferred |
 
+## Specs — feature design docs before they are built
+
+| Doc | What it holds |
+| --- | --- |
+| [superpowers/specs/2026-08-09-otp-sender-design.md](superpowers/specs/2026-08-09-otp-sender-design.md) | The OTP sender server: contract endpoints 1–4, SpeedSMS + demo providers, code/token lifecycle |
+
 ## Legacy — docs that are no longer true
 
 Moved here, never deleted. See [legacy/README.md](legacy/README.md).
