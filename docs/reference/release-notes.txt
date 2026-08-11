@@ -15,5 +15,20 @@ nav, cards lifted off the ground, recesses set into it.
 Nothing talks to a server yet, so every parcel on screen is made up. The
 design sources now live in docs/designs/mockup/, next to the port.
 
+Fixed since the last build, after screenshots off a real phone:
+
+  Geist and Geist Mono now ship. The app was running Roboto and Android's
+  stock monospace, which put a typewriter face on every number.
+  The campus map draws. It was scaled about the canvas centre instead of
+  the origin, which put the whole thing off the left edge of the card.
+  The sign-in cabinet is back — the 175% zoom was silently coerced away.
+  The nav is glass again, not transparent: it was reading the phone's
+  light-or-dark setting instead of the app's own.
+  Dark mode has its change back — dark sweeps down, light rises up.
+  Buttons, beads and cards had their shadows drawn over their own faces.
+  Nothing hides under the nav bar any more, and the sixth code cell is
+  no longer off the edge of the screen.
+
 What to look at: the amber — does a lit door read as yours from arm's length,
-and is the number still legible through it?
+and is the number still legible through it? Then the theme toggle in
+Settings, in both directions.
