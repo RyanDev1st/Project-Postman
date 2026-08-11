@@ -53,6 +53,18 @@ A call from the cabinet may never return a full name, a phone number, or a list 
 | 2 | Send the one-time code back | `POST /auth/verify-code` | phone number, code | token, expiry |
 | 3 | Refresh or check the token | `POST /auth/refresh` | token | new token, or not valid |
 | 4 | Log out | `POST /auth/logout` | token | ok |
+| 19 | **Sign in with Google, or link Google to this account** | `POST /auth/google` | Google ID token, and a receiver token when linking | token, expiry, or a refusal code |
+
+**Endpoint 19 never makes an account.** A Google account has no phone number, and the shipper finds the receiver by phone number at the cabinet — so an account made from Google alone could never be sent a parcel. Google is a faster way back into an account that a one-time code already proved.
+
+One path, told apart by whether a receiver token is sent:
+
+| Sent | Means | Answer |
+| --- | --- | --- |
+| Google ID token only | "Let me in as whoever this Google account belongs to" | The token, when that Google account has been linked. `PHONE_REQUIRED` when it has not — the app then falls back to endpoints 1 and 2 |
+| Google ID token **and** a receiver token | "I am signed in as this phone. Remember this Google account for it" | The token. Both proofs are on the wire at once, so nothing has to be remembered between two calls |
+
+**The server checks the ID token itself, offline** — signature against Google's published keys, `iss`, `aud` equal to our own client id, and `exp`. It never asks Google's tokeninfo endpoint, which would put the network and a rate limit on the login path. The account is keyed on Google's `sub`, never on the email address, because a person can change their Gmail address. Task **P2-08**.
 
 ### Parcels and pickup
 
@@ -190,6 +202,8 @@ Every failure the server can send, with the code we propose and the exact words 
 | `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many tries. Unlocks at 14:35." |
 
 **The reference server (docs/superpowers/specs/2026-08-09-otp-sender-design.md) adds three codes for auth: `PHONE_INVALID` (the number is not a Vietnamese mobile), `RATE_LIMITED` (a code was requested within the last 60 seconds) and `SEND_FAILED` (the SMS provider did not confirm delivery). The app's Refusal enum does not name them; they fall to `UNKNOWN`, which shows the generic sentence. `WRONG_CODE` and `TOKEN_EXPIRED` are already in the table.**
+
+**Endpoint 19 adds three more.** `PHONE_REQUIRED` is not a failure — it is the app's cue to ask for a phone number and a one-time code, then call endpoint 19 again with the receiver token to link. `GOOGLE_INVALID` covers every way an ID token can be wrong, in one code and on purpose: telling a caller *which* check failed helps only somebody probing it. `GOOGLE_OFF` means no client id is configured on that server, so the app must hide the Google button rather than show one that cannot work.
 
 **`CODE_REJECTED` covers three different failures on purpose.** Wrong, already used, and expired all return the same code and the same words. Splitting them would let somebody at the keypad work out which codes are real.
 

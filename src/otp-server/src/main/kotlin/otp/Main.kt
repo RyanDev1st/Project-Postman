@@ -13,12 +13,17 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
+import otp.google.GoogleCerts
+import otp.google.GoogleTokens
 
 @Serializable
 private data class RequestCodeBody(val phone_number: String = "")
 
 @Serializable
 private data class VerifyCodeBody(val phone_number: String = "", val code: String = "")
+
+@Serializable
+private data class GoogleBody(val id_token: String = "")
 
 @Serializable
 private data class Refusal(val code: String)
@@ -36,8 +41,17 @@ private fun providerFromEnv(): SmsProvider {
     }
 }
 
+/** Google checking, when a client id is configured. Null switches it off. */
+private fun googleFromEnv(): GoogleTokens? =
+    System.getenv("GOOGLE_CLIENT_ID")?.takeIf { it.isNotBlank() }
+        ?.let { GoogleTokens(it, GoogleCerts()) }
+
 /** Routes over an injected provider and store, so tests wire their own. */
-fun Application.module(provider: SmsProvider, store: AuthStore) {
+fun Application.module(
+    provider: SmsProvider,
+    store: AuthStore,
+    google: GoogleTokens? = null,
+) {
     install(ContentNegotiation) { json() }
 
     routing {
@@ -71,6 +85,46 @@ fun Application.module(provider: SmsProvider, store: AuthStore) {
             }
         }
 
+        /**
+         * Sign in with Google, and link a Google account to a phone.
+         *
+         * One route, because the two differ only by whether a bearer is
+         * present, and splitting them would mean checking the same ID token
+         * in two places.
+         *
+         *  - With a bearer: "I am already signed in as this phone. Remember
+         *    this Google account for it." Both proofs are on the wire at once.
+         *  - Without one: "Let me in as whichever phone this Google account
+         *    belongs to." No link yet means PHONE_REQUIRED, and the app falls
+         *    back to the one-time code, which is where an account is made.
+         */
+        post("/auth/google") {
+            if (google == null) {
+                call.respond(HttpStatusCode.NotImplemented, Refusal("GOOGLE_OFF"))
+                return@post
+            }
+            val body = call.receive<GoogleBody>()
+            val sub = google.subjectOf(body.id_token.trim())
+            if (sub == null) {
+                call.respond(HttpStatusCode.BadRequest, Refusal("GOOGLE_INVALID"))
+                return@post
+            }
+            val bearer = call.bearer()
+            val phone = if (bearer == null) {
+                store.phoneOfGoogle(sub) ?: run {
+                    call.respond(HttpStatusCode.BadRequest, Refusal("PHONE_REQUIRED"))
+                    return@post
+                }
+            } else {
+                store.phoneOf(bearer)?.also { store.linkGoogle(sub, it) } ?: run {
+                    call.respond(HttpStatusCode.Unauthorized, Refusal("TOKEN_EXPIRED"))
+                    return@post
+                }
+            }
+            val token = store.issueToken(phone)
+            call.respond(HttpStatusCode.OK, SessionOut(token.value, token.expiresAtMs.toString()))
+        }
+
         post("/auth/refresh") {
             val token = call.bearer()
             val fresh = token?.let { store.refresh(it) }
@@ -97,6 +151,10 @@ private suspend fun io.ktor.server.application.ApplicationCall.bearer(): String?
 fun main() {
     val provider = providerFromEnv()
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8443
+    val google = googleFromEnv()
     println("Responding at http://0.0.0.0:$port")
-    embeddedServer(Netty, port = port) { module(provider, AuthStore(provider)) }.start(wait = true)
+    println("Google sign-in: " + if (google == null) "off (no GOOGLE_CLIENT_ID)" else "on")
+    embeddedServer(Netty, port = port) {
+        module(provider, AuthStore(provider), google)
+    }.start(wait = true)
 }

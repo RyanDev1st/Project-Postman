@@ -1,11 +1,12 @@
 # src
 
-Source for both front-ends. One folder each — they share no code, only the API contract.
+Source for both front-ends, one folder each — they share no code, only the API contract. Plus one server we do **not** ship.
 
 | Folder | What it is | Stack | Started |
 | --- | --- | --- | --- |
 | `cabinet/` | The cabinet screen, for the shipper. A public terminal, no login | Web page — [ADR 0009](../docs/adr/0009-start-phase-1-early.md) | P1-03 ✅ |
 | `app/` | The phone app, for the receiver | Kotlin, native Android — [ADR 0001](../docs/adr/0001-tech-stack.md) | P1-01, not yet |
+| `otp-server/` | **Not shipped, and not ours to own.** A reference server that answers the login endpoints, so the app can be built and tested before the Server team's server exists. It is a proposal in runnable form — [ADR 0005](../docs/adr/0005-we-propose-they-object.md) | Kotlin, Ktor | P2-01…P2-03, P2-08 |
 
 ## Folder rules
 

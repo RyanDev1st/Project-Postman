@@ -11,6 +11,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import otp.google.TestTokens
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -32,9 +33,20 @@ class RoutesTest {
     private suspend fun ApplicationTestBuilder.withServer(block: suspend (LogSms) -> Unit) {
         val log = LogSms()
         application {
-            module(log, AuthStore(log))
+            module(log, AuthStore(log), TestTokens.verifier())
         }
         block(log)
+    }
+
+    /** Sign in with a one-time code and return the token it hands back. */
+    private suspend fun io.ktor.client.HttpClient.signIn(phone: String, log: LogSms): String {
+        requestCode(phone)
+        val code = Regex("\\d{6}").find(log.lastContent!!)!!.value
+        val res = post("/auth/verify-code") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"phone_number":"$phone","code":"$code"}""")
+        }
+        return json.decodeFromString<SessionOut>(res.bodyAsText()).token
     }
 
     private suspend fun io.ktor.client.HttpClient.requestCode(phone: String) =
@@ -112,6 +124,77 @@ class RoutesTest {
             assertEquals(HttpStatusCode.Unauthorized, res.status)
             assertEquals("TOKEN_EXPIRED", json.decodeFromString<Refusal>(res.bodyAsText()).code)
         }
+    }
+
+    private suspend fun io.ktor.client.HttpClient.google(idToken: String, bearer: String? = null) =
+        post("/auth/google") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"id_token":"$idToken"}""")
+            if (bearer != null) bearerAuth(bearer)
+        }
+
+    @Test
+    fun googleWithoutALinkAsksForThePhoneFirst() = testApplication {
+        withServer {
+            // A Google account nobody has tied to a phone cannot be signed
+            // in as: the shipper finds a receiver by number, so an account
+            // without one could never be sent a parcel.
+            val res = client.google(TestTokens.mint())
+            assertEquals(HttpStatusCode.BadRequest, res.status)
+            assertEquals("PHONE_REQUIRED", json.decodeFromString<Refusal>(res.bodyAsText()).code)
+        }
+    }
+
+    @Test
+    fun linkingOnceMakesGoogleASecondWayIn() = testApplication {
+        withServer { log ->
+            val session = client.signIn("0908619328", log)
+            val idToken = TestTokens.mint()
+
+            val linked = client.google(idToken, bearer = session)
+            assertEquals(HttpStatusCode.OK, linked.status)
+
+            // From now on the Google token alone is enough.
+            val again = client.google(idToken)
+            assertEquals(HttpStatusCode.OK, again.status)
+            val token = json.decodeFromString<SessionOut>(again.bodyAsText()).token
+
+            // And it is a real session for that phone, not a stub.
+            assertEquals(HttpStatusCode.OK, client.post("/auth/refresh") { bearerAuth(token) }.status)
+        }
+    }
+
+    @Test
+    fun aTokenGoogleDidNotSignIsRefused() = testApplication {
+        withServer { log ->
+            val session = client.signIn("0908619328", log)
+            val forged = TestTokens.mint(signWith = TestTokens.attacker)
+
+            val res = client.google(forged, bearer = session)
+            assertEquals(HttpStatusCode.BadRequest, res.status)
+            assertEquals("GOOGLE_INVALID", json.decodeFromString<Refusal>(res.bodyAsText()).code)
+
+            // The forged token linked nothing, so it opens nothing.
+            assertEquals(HttpStatusCode.BadRequest, client.google(forged).status)
+        }
+    }
+
+    @Test
+    fun linkingWithADeadSessionIsRefused() = testApplication {
+        withServer {
+            val res = client.google(TestTokens.mint(), bearer = "bogus")
+            assertEquals(HttpStatusCode.Unauthorized, res.status)
+            assertEquals("TOKEN_EXPIRED", json.decodeFromString<Refusal>(res.bodyAsText()).code)
+        }
+    }
+
+    @Test
+    fun googleIsOffUntilAClientIdIsConfigured() = testApplication {
+        val log = LogSms()
+        application { module(log, AuthStore(log)) }
+        val res = client.google(TestTokens.mint())
+        assertEquals(HttpStatusCode.NotImplemented, res.status)
+        assertEquals("GOOGLE_OFF", json.decodeFromString<Refusal>(res.bodyAsText()).code)
     }
 
     @Test

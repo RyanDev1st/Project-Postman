@@ -78,6 +78,9 @@ new one; `logout` deletes. Never logged — mirrors rule 3 in `Http.kt`.
 | `PORT` | listen port | `8443` (http) |
 | `DEMO_MODE` | `1` = log provider, no network | off |
 | `SPEEDSMS_TOKEN` | SpeedSMS API access token | — |
+| `GOOGLE_CLIENT_ID` | The Web OAuth client id, for endpoint 19. Unset switches Google sign-in off, and the route answers `GOOGLE_OFF` | — |
+
+**Endpoint 19 was added on 2026-08-11**, after this spec was written: `POST /auth/google`, decided in [ADR 0011](../../adr/0011-google-sign-in-no-passwords.md). It is a second door onto an account a one-time code already proved, never a way to make one. The contract is the authority for its shape.
 
 `DEMO_MODE=1` or missing `SPEEDSMS_TOKEN` → `LogSmsProvider`; otherwise
 `SpeedSmsProvider`. Demo mode still runs the full request/verify lifecycle.

@@ -2,7 +2,7 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 0 / 7.**
+**Progress: 0 / 8.**
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
@@ -38,9 +38,14 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
       - Verify: log out clears the token; an expired token sends the user back to register once, with no loop
 
+- [ ] **P2-08** — Sign in with Google, on top of the phone number
+      - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
+      - Verify: on a real Android phone, tapping "Continue with Google" on an account that has already registered by phone reaches the parcel list without a code being typed; and a Google account that has never registered is asked for a phone number first
+      - Notes: decided in [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoint 19 in [api-contract.md](../reference/api-contract.md); the reference server already answers it and its checks are tested. **Blocked on an OAuth client id, which only Ryan can create** — see the ADR. No passwords are added, on purpose
+
 ## Exit check
 
-- [ ] All seven tasks ticked
+- [ ] All eight tasks ticked
 - [ ] A real phone number registers on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The token is in the secure store and in no log line
 - [ ] Every error case shows a plain sentence

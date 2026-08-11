@@ -33,6 +33,16 @@ class AuthStore(
 
     private val codes = ConcurrentHashMap<String, Code>()
     private val sessions = ConcurrentHashMap<String, Session>()
+
+    /**
+     * Google account id -> the phone that account signed in with once.
+     *
+     * A Google account on its own cannot receive a parcel: the shipper finds
+     * the receiver by phone number at the cabinet. So Google is a faster way
+     * back into an account that a one-time code already proved, never a way
+     * to make one.
+     */
+    private val googleLinks = ConcurrentHashMap<String, String>()
     private val random = SecureRandom()
 
     /**
@@ -138,6 +148,18 @@ class AuthStore(
     /** Forget a token. */
     fun revoke(token: String) {
         sessions.remove(token)
+    }
+
+    /** The phone behind a Google account, or null while it is unlinked. */
+    fun phoneOfGoogle(sub: String): String? = googleLinks[sub]
+
+    /**
+     * Tie a Google account to a phone. Doing it again re-points it, which
+     * needs both the Google account and a one-time code on the new phone -
+     * and both of those belong to the same person.
+     */
+    fun linkGoogle(sub: String, phoneE164: String) {
+        googleLinks[sub] = phoneE164
     }
 
     private companion object {

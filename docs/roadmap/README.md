@@ -86,7 +86,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9` · **CURRENT**
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
-- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/7`
+- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/8`
       A receiver registers with a phone number and stays logged in.
 - [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
       The cabinet screen. A shipper finds the receiver and a box opens.
@@ -101,7 +101,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 14 / 75.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 14 / 76.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
