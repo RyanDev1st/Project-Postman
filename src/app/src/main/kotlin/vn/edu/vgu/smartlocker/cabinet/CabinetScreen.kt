@@ -218,19 +218,20 @@ private fun DoorSwitch(
                         .then(
                             if (isSelected) {
                                 Modifier
-                                    .background(t.surface)
+                                    // Shadow first, as everywhere else.
+                                    .shadow(
+                                        elevation = 2.dp,
+                                        shape = RoundedCornerShape(11.dp),
+                                        ambientColor = t.shadow,
+                                        spotColor = t.shadow,
+                                    )
+                                    .background(t.surface, RoundedCornerShape(11.dp))
                                     .border(1.dp, t.hair, RoundedCornerShape(11.dp))
                                     .background(
                                         Brush.verticalGradient(
                                             listOf(t.lip.copy(alpha = 0.6f), Color.Transparent),
                                         ),
                                         RoundedCornerShape(11.dp),
-                                    )
-                                    .shadow(
-                                        elevation = 2.dp,
-                                        shape = RoundedCornerShape(11.dp),
-                                        ambientColor = t.shadow,
-                                        spotColor = t.shadow,
                                     )
                             } else Modifier,
                         )

@@ -47,26 +47,32 @@ fun GoButton(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
-            .clip(shape)
             .then(
                 if (enabled) {
                     Modifier
-                        .background(t.accentDeep)
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.White.copy(alpha = 0.22f), Color.Transparent),
-                            )
-                        )
+                        // Shadow first. Mid-chain it became a layer over the
+                        // fill, and its dark rim read as a lighter panel
+                        // inset inside the button — on every primary control
+                        // in the app.
                         .shadow(
                             elevation = 6.dp,
                             shape = shape,
                             ambientColor = Color.Black.copy(alpha = 0.55f),
                             spotColor = Color.Black.copy(alpha = 0.55f),
                         )
+                        .clip(shape)
+                        .background(t.accentDeep)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color.White.copy(alpha = 0.22f), Color.Transparent),
+                            )
+                        )
                         .border(1.dp, Color.White.copy(alpha = 0.26f), shape)
                         .clickable(onClick = onClick)
                 } else {
-                    Modifier.background(t.accentDeep.copy(alpha = 0.36f))
+                    Modifier
+                        .clip(shape)
+                        .background(t.accentDeep.copy(alpha = 0.36f))
                 }
             )
             .padding(horizontal = 16.dp),

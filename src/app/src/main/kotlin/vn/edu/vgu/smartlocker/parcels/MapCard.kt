@@ -58,7 +58,12 @@ fun CampusMap(modifier: Modifier = Modifier) {
         val top = (size.height - h) / 2f
         withTransform({
             translate(left = 0f, top = top)
-            scale(scale, scale)
+            // Pivot on the origin, not on the canvas centre. DrawTransform's
+            // scale() defaults its pivot to the middle of the canvas, and
+            // the plan's coordinates start at 0,0 - so the default sent the
+            // whole map about 1550px off the left edge and the card drew
+            // empty. Nothing else was wrong with it.
+            scale(scale, scale, pivot = Offset.Zero)
         }) {
             drawRect(paper)
             drawCampus(t, paper)

@@ -3,7 +3,6 @@ package vn.edu.vgu.smartlocker.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
@@ -73,13 +72,16 @@ fun CardMaterial(
     val t = LocalLockerTokens.current
     Box(
         modifier = modifier
-            .then(if (onClick != null) Modifier.clip(shape).clickable(onClick = onClick) else Modifier)
+            // Shadow before the clip. The other way round the card clipped
+            // away its own shadow, so every clickable card — each Settings
+            // row, the map — sat flat on the ground with no lift at all.
             .shadow(
                 elevation = 10.dp,
                 shape = shape,
                 ambientColor = t.shadow,
                 spotColor = t.shadow,
             )
+            .then(if (onClick != null) Modifier.clip(shape).clickable(onClick = onClick) else Modifier)
             .background(Brush.verticalGradient(listOf(t.surface, t.surface2)), shape)
             .border(1.dp, t.hair, shape)
             .background(
@@ -142,7 +144,10 @@ fun GlassPane(
     pop: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val dark = isSystemInDarkTheme()
+    // The app's scheme, not the phone's. With the in-app toggle these
+    // disagree, and a dark-recipe pane (white at 2-15% alpha) over a pale
+    // ground is invisible — the nav read as completely transparent.
+    val dark = LocalLockerTokens.current.dark
     val body = if (dark) {
         Brush.linearGradient(
             colors = listOf(
@@ -189,9 +194,18 @@ fun GlassBead(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val t = LocalLockerTokens.current
-    val dark = isSystemInDarkTheme()
+    val dark = t.dark
     Box(
         modifier = modifier
+            // Shadow first, so it is cast behind the bead. Last in the chain
+            // it became a layer drawn over the fill, which put a dark blob
+            // across the icon — the back arrow and the menu lines both.
+            .shadow(
+                elevation = 4.dp,
+                shape = androidx.compose.foundation.shape.CircleShape,
+                ambientColor = if (dark) Color.Black.copy(alpha = 0.44f) else Color(0x20091A20),
+                spotColor = if (dark) Color.Black.copy(alpha = 0.44f) else Color(0x20091A20),
+            )
             .clip(androidx.compose.foundation.shape.CircleShape)
             .background(
                 if (dark) {
@@ -213,12 +227,6 @@ fun GlassBead(
                 }
             )
             .border(1.dp, t.glassEdge, androidx.compose.foundation.shape.CircleShape)
-            .shadow(
-                elevation = 4.dp,
-                shape = androidx.compose.foundation.shape.CircleShape,
-                ambientColor = if (dark) Color.Black.copy(alpha = 0.44f) else Color(0x20091A20),
-                spotColor = if (dark) Color.Black.copy(alpha = 0.44f) else Color(0x20091A20),
-            )
             .clickable(onClick = onClick),
         content = content,
     )

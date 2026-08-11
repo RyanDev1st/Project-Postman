@@ -96,15 +96,16 @@ fun ScanButton(
     Box(
         modifier = modifier
             .size(30.dp)
-            .clip(CircleShape)
-            .background(t.accent.copy(alpha = 0.20f))
-            .border(1.dp, t.accent.copy(alpha = 0.34f), CircleShape)
+            // Shadow first, or it is drawn over the fill and the icon.
             .shadow(
                 elevation = 4.dp,
                 shape = CircleShape,
                 ambientColor = t.accent.copy(alpha = 0.22f),
                 spotColor = t.accent.copy(alpha = 0.22f),
             )
+            .clip(CircleShape)
+            .background(t.accent.copy(alpha = 0.20f))
+            .border(1.dp, t.accent.copy(alpha = 0.34f), CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

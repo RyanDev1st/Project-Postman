@@ -90,13 +90,15 @@ fun OtpCells(
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .border(1.5.dp, t.accent, MaterialTheme.shapes.small)
+                            // Shadow first: after the border it is drawn on
+                            // top of the ring instead of glowing behind it.
                             .shadow(
                                 elevation = 4.dp,
                                 shape = MaterialTheme.shapes.small,
                                 ambientColor = t.accent.copy(alpha = 0.2f),
                                 spotColor = t.accent.copy(alpha = 0.2f),
-                            ),
+                            )
+                            .border(1.5.dp, t.accent, MaterialTheme.shapes.small),
                     )
                 }
             }

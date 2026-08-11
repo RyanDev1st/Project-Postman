@@ -100,24 +100,27 @@ fun BottomNav(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(999.dp))
                         .then(
                             if (isSelected) {
+                                // Shadow first, then clip, then the two
+                                // fills — edge, shadow, fill, as the pane
+                                // above it does.
                                 Modifier
-                                    .background(t.accent.copy(alpha = 0.24f))
                                     .shadow(
                                         elevation = 2.dp,
                                         shape = RoundedCornerShape(999.dp),
                                         ambientColor = Color.Black.copy(alpha = 0.34f),
                                         spotColor = Color.Black.copy(alpha = 0.34f),
                                     )
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(t.accent.copy(alpha = 0.24f))
                                     .background(
                                         Brush.verticalGradient(
                                             listOf(Color.White.copy(alpha = 0.13f), Color.Transparent),
                                         )
                                     )
                                     .border(1.dp, t.accent.copy(alpha = 0.26f), RoundedCornerShape(999.dp))
-                            } else Modifier,
+                            } else Modifier.clip(RoundedCornerShape(999.dp)),
                         )
                         .clickable { onSelect(i) }
                         .padding(vertical = 7.dp, horizontal = 3.dp),

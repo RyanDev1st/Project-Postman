@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -177,7 +178,10 @@ private fun AuthHero() {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(214.dp),
+            .height(214.dp)
+            // The render is deliberately wider than its box, so the box has
+            // to clip or it paints over the form below it.
+            .clipToBounds(),
     ) {
         val boxW = maxWidth
         val boxH = 214.dp
@@ -186,8 +190,13 @@ private fun AuthHero() {
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = Modifier
-                .fillMaxWidth(1.75f)
-                .aspectRatio(1f)
+                // requiredSize, not fillMaxWidth(1.75f): that fraction is
+                // declared 0..1 and is coerced back to the parent's width,
+                // so the zoom silently never happened and the -80% offset
+                // then dragged the un-zoomed render off the left edge. All
+                // that was left was a sliver. requiredSize ignores the
+                // parent's maximum, which is the whole point here.
+                .requiredSize(boxW * 1.75f)
                 .offset(
                     x = boxW * -0.80f,
                     y = boxH * -0.19f,

@@ -45,6 +45,16 @@ data class LockerTokens(
     val bezel: Color,       // the phone's own frame, inside the app
     val recessIn: Color,    // the ground's shade thrown inward
     val recessLit: Color,   // the lit return along a recess's bottom lip
+
+    /**
+     * Which scheme this set is. Carried here because glass is the one
+     * material whose recipe changes rather than its colours — a lit pane
+     * over a dark ground, a tinted one over a pale ground — and asking
+     * `isSystemInDarkTheme()` for that answers the phone's question, not
+     * the app's. With the in-app toggle those two disagree, and the nav
+     * and the app-bar beads were left in the wrong scheme.
+     */
+    val dark: Boolean,
 )
 
 // --- the door light -------------------------------------------------------
@@ -89,6 +99,7 @@ private val Dark = LockerTokens(
     bezel = Color(0xFF171E25),
     recessIn = Color(0x8C000000), // rgba(0,0,0,.55)
     recessLit = Color(0x12B4D6FF),// rgba(180,214,255,.07)
+    dark = true,
 )
 
 // --- light, the second design ---------------------------------------------
@@ -129,6 +140,7 @@ private val Light = LockerTokens(
     bezel = Color(0xFFAFBAC4),
     recessIn = Color(0x260E2030),  // rgba(14,32,48,.15)
     recessLit = Color(0xF2FFFFFF), // rgba(255,255,255,.95)
+    dark = false,
 )
 
 val DarkTokens = Dark
