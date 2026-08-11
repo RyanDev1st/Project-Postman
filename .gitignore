@@ -14,6 +14,15 @@ GoogleService-Info.plist
 # the file that IS committed. See ADR 0004 - one key per cabinet.
 src/cabinet/config.js
 
+# Every password hash the OTP server holds, and every lockout counter.
+# The first file in this project worth stealing. Never committed, never
+# copied to a laptop, never left in a backup nobody owns. See ADR 0012.
+accounts.db
+accounts.db-*
+*.db
+*.sqlite
+*.sqlite3
+
 # Android build settings that belong to one machine, not to the team.
 # local.properties holds the absolute SDK path - here A:\Android\Sdk, which
 # exists on nobody else's computer.

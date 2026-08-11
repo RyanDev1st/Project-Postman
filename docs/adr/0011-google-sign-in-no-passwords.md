@@ -1,8 +1,10 @@
 # 0011 — Google sign-in, linked to a phone. No passwords, ever
 
-- **Status:** accepted
+- **Status:** superseded by [0012](0012-passwords-on-a-phone-account.md)
 - **Date:** 2026-08-11
 - **Deciders:** IT team
+
+> **Superseded the same day.** The Google decision below is unchanged and was restated in 0012. Only "no passwords" was reversed: the case against was put to Ryan, and he chose passwords anyway. Read [0012](0012-passwords-on-a-phone-account.md) for what is true now.
 
 ## Context
 

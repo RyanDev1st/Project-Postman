@@ -64,6 +64,15 @@ One path, told apart by whether a receiver token is sent:
 | Google ID token only | "Let me in as whoever this Google account belongs to" | The token, when that Google account has been linked. `PHONE_REQUIRED` when it has not — the app then falls back to endpoints 1 and 2 |
 | Google ID token **and** a receiver token | "I am signed in as this phone. Remember this Google account for it" | The token. Both proofs are on the wire at once, so nothing has to be remembered between two calls |
 
+| 20 | Set or change the password | `POST /auth/set-password` | token, new password | ok, or a refusal code |
+| 21 | Sign in with a password | `POST /auth/password-login` | phone number, password | token, expiry, or a refusal code |
+
+**Endpoints 20 and 21 carry no email address, and there is no register-with-a-password route.** A password is set on an account a one-time code already proved, and you sign in with the phone number. Same reason as endpoint 19: an account identified by an email could never be sent a parcel, because the shipper types a phone number. Decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md). Task **P2-09**.
+
+**There is no password reset endpoint and no reset email.** Forgetting a password is endpoints 1 and 2, then endpoint 20 — calls that already exist. Setting a password clears any lockout, because the person just proved themselves another way.
+
+**Hashing is Argon2id** at OWASP's minimum, with the parameters stored inside each hash so they can be raised later without stranding what came before. **Five wrong tries lock the account for fifteen minutes, and that counter is on disk** — a counter in memory resets when the process dies, so anyone who can crash the server gets their guesses back.
+
 **The server checks the ID token itself, offline** — signature against Google's published keys, `iss`, `aud` equal to our own client id, and `exp`. It never asks Google's tokeninfo endpoint, which would put the network and a rate limit on the login path. The account is keyed on Google's `sub`, never on the email address, because a person can change their Gmail address. Task **P2-08**.
 
 ### Parcels and pickup
@@ -202,6 +211,8 @@ Every failure the server can send, with the code we propose and the exact words 
 | `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many tries. Unlocks at 14:35." |
 
 **The reference server (docs/superpowers/specs/2026-08-09-otp-sender-design.md) adds three codes for auth: `PHONE_INVALID` (the number is not a Vietnamese mobile), `RATE_LIMITED` (a code was requested within the last 60 seconds) and `SEND_FAILED` (the SMS provider did not confirm delivery). The app's Refusal enum does not name them; they fall to `UNKNOWN`, which shows the generic sentence. `WRONG_CODE` and `TOKEN_EXPIRED` are already in the table.**
+
+**Endpoints 20 and 21 add three more.** `PASSWORD_TOO_SHORT` and `PASSWORD_TOO_LONG` are the only rules on a password, and they come back from endpoint 20 only. `WRONG_PASSWORD` is the single answer endpoint 21 ever gives: it covers a wrong password, a locked-out account, and a phone number nobody has registered, on purpose. Telling them apart would answer two questions a sign-in screen must not answer — whether that number is a user here, and whether the lockout has started. It is the same rule `WRONG_CODE` already follows.
 
 **Endpoint 19 adds three more.** `PHONE_REQUIRED` is not a failure — it is the app's cue to ask for a phone number and a one-time code, then call endpoint 19 again with the receiver token to link. `GOOGLE_INVALID` covers every way an ID token can be wrong, in one code and on purpose: telling a caller *which* check failed helps only somebody probing it. `GOOGLE_OFF` means no client id is configured on that server, so the app must hide the Google button rather than show one that cannot work.
 

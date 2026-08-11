@@ -49,7 +49,8 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0008-cabinet-simulator.md](adr/0008-cabinet-simulator.md) | A simulated cabinet, and the line it must not cross | accepted |
 | [adr/0009-start-phase-1-early.md](adr/0009-start-phase-1-early.md) | Start Phase 1 before Phase 0 is finished. Cabinet screen is a web page | accepted |
 | [adr/0010-c4-offline-exception.md](adr/0010-c4-offline-exception.md) | The one case a pickup may happen with no server | accepted |
-| [adr/0011-google-sign-in-no-passwords.md](adr/0011-google-sign-in-no-passwords.md) | Google is a second door onto a phone-proved account. No passwords | accepted |
+| [adr/0011-google-sign-in-no-passwords.md](adr/0011-google-sign-in-no-passwords.md) | Google is a second door onto a phone-proved account. No passwords | superseded by 0012 |
+| [adr/0012-passwords-on-a-phone-account.md](adr/0012-passwords-on-a-phone-account.md) | Passwords after all, set on a phone account. No email, no reset flow, lockout on disk | accepted |
 
 ## Findings — dated reports
 
@@ -58,7 +59,7 @@ One file per report: `findings/YYYY-MM-DD-<topic>.md`. Never edited after the da
 | File | What it found |
 | --- | --- |
 | [findings/2026-08-07-overnight-sweep.md](findings/2026-08-07-overnight-sweep.md) | Every open task chains back to a server address we do not have. P0-04 is the critical path and was wrongly deferred |
-| [findings/2026-08-11-courier-apis-vietnam.md](findings/2026-08-11-courier-apis-vietnam.md) | Every Vietnamese courier API is free to integrate and bills per shipment. GHN's `payment_type_id` makes the receiver pay. None of it can live in the app |
+| [findings/2026-08-11-otp-delivery-cost.md](findings/2026-08-11-otp-delivery-cost.md) | No route delivers a one-time code for free. SpeedSMS stays, but for a different reason than the spec gives: it is the only one needing no app, account or data |
 
 ## Specs — feature design docs before they are built
 

@@ -15,6 +15,8 @@ import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
 import otp.google.GoogleCerts
 import otp.google.GoogleTokens
+import otp.password.Accounts
+import otp.password.passwordRoutes
 
 @Serializable
 private data class RequestCodeBody(val phone_number: String = "")
@@ -51,10 +53,13 @@ fun Application.module(
     provider: SmsProvider,
     store: AuthStore,
     google: GoogleTokens? = null,
+    accounts: Accounts? = null,
 ) {
     install(ContentNegotiation) { json() }
 
     routing {
+        if (accounts != null) passwordRoutes(store, accounts)
+
         post("/auth/request-code") {
             val body = call.receive<RequestCodeBody>()
             val e164 = Phone.normalize(body.phone_number)
@@ -152,9 +157,11 @@ fun main() {
     val provider = providerFromEnv()
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8443
     val google = googleFromEnv()
+    // Passwords live in a file so the lockout counter survives a restart.
+    val accounts = Accounts(System.getenv("ACCOUNTS_DB") ?: "accounts.db")
     println("Responding at http://0.0.0.0:$port")
     println("Google sign-in: " + if (google == null) "off (no GOOGLE_CLIENT_ID)" else "on")
     embeddedServer(Netty, port = port) {
-        module(provider, AuthStore(provider), google)
+        module(provider, AuthStore(provider), google, accounts)
     }.start(wait = true)
 }
