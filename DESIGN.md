@@ -358,20 +358,49 @@ Three things say it now, and each covers a hole the others leave:
 
 And the button becomes **the way out**. A disabled primary states the problem and offers nothing; the Library cabinet is a real place in this app's own data, so *full* ends in a live control. With nothing waiting there genuinely is no action, so the row is hidden — and the nav floats, so the panel takes over holding its space (`.cabinfo:has(+ .action[hidden])`). Without that the status card slid straight under the nav pill.
 
-## Where on campus
+## The map shows a walk, not a place
 
-*Back gate* is a name, and a name only works on someone who already knows the campus. A first-year with a parcel does not, and neither does a courier reading the same words on the cabinet screen. So Home carries a plan. It is also the only wide, pictorial, non-parcel block on the screen — Home was a column of type and small crops, and a map is a different *kind* of thing to look at.
+*Back gate* is a name, and a name only works on someone who already knows the campus. A first-year with a parcel does not, and neither does a courier reading the same words on the cabinet screen. So Home carries a plan — and it is also the only pictorial block on the screen, which is the other half of its job.
 
-**Two hand-drawn versions were wrong, and the second is the instructive one.** The first was invented outright — a generic quadrangle, a lake, a track on the wrong side. The second was read off satellite imagery *by eye*, which got the features roughly right and their shapes, spacing and proportions wrong: close enough to look like a map, nowhere near close enough to be one. Drawing a map by eye does not produce a schematic map, it produces a picture of one.
+**Four versions, and each was wrong in a way worth keeping.**
 
-**So it is not drawn.** The ways come from the Overpass API for the bounding box round the campus — buildings, roads by class, the river, the pitches — and are projected straight into the card's viewBox. Every line is where it is because that is where it is on the ground.
+1. **Invented outright** — a generic quadrangle, a lake, a track on the wrong side.
+2. **Read off satellite imagery by eye** — features roughly right, shapes, spacing and proportions wrong. Close enough to look like a map, nowhere near close enough to be one. *Drawing a map by eye does not produce a schematic map; it produces a picture of one.*
+3. **Projected from real data, framed round the whole campus.** Real ways, real gate, and the walk you would actually take occupied about a fifth of the card's width. **A map of a place is not a map of a journey.**
+4. **Framed round the route.** The window is sized from the walk, so the walk fills the card.
 
-- **OpenStreetMap, not Google.** Precisely because the licence decides the method: Google's tiles and Machado Silvetti's master plan are artwork and cannot be redrawn from; OSM's data is ODbL and can. **Map data © OpenStreetMap contributors** — the credit belongs in the app's about screen once there is one, and is on the preview page meanwhile.
-- **The window is 11.10475–11.10975 N, 106.60830–106.62247 E.** The gate sits a fifth of the way in from the west, so the frame is spent on campus rather than on the residential grid beyond it.
-- **Monochrome.** An early version drew the planting in `--free`. Green in this app means *a box is free*, and spending it on grass — the largest area on the card — is precisely how a signal stops being a signal. The plan is `--ink` alone, weighted by road class, and the only colour on it is the pin.
-- **The label is a plate, not glass**, and it moved twice. Glass was the obvious choice and was tried — the app's own rule is that glass floats over content, and the map is the one piece of content on Home — but `liquid.js` builds a warp span and two ring layers inside every `.lg`, sized at init, and inside an absolutely-positioned label on a button the whole rail came back blurred. On the left the plate covered the pin; top right it covered the library and the academic cluster, the part of campus you would be walking *from*. It sits bottom right, over open ground.
+### The line is a real route
 
-**The gate is sourced, not guessed.** The pin is an OSM `barrier=gate` node at `11.107471, 106.611139`, tagged `opening_hours: Mo-Su 06:00-23:00` — seven metres from the place Google labels *Cổng phụ Trường Đại học Việt Đức*. The other three gates inside the box are `access=no` or `locked=yes`, so this is the one a receiver can walk through.
+`map.py` fetches nothing at page load. It projects Overpass ways into the card and draws a pedestrian route computed by **Valhalla** (`valhalla1.openstreetmap.de`, `costing=pedestrian`) between two real points: the centroid of the largest building footprint on campus and the gate node. **543 m, 6 min 32 s** — which is where *7 min walk · 540 m* on the label comes from. Both are baked into the SVG at build time, because a published artifact runs under a CSP that blocks every runtime request. Re-run `python map.py` to change it; `route.json` holds the engine, the date, and the maneuvers.
+
+- **The window is derived, not typed.** The route's latitude span is padded to put its south end at 75% of the height and its north end at 20%, and the longitude span is that times the aspect ratio over `cos(lat)` — so the plan is square at this latitude rather than stretched.
+- **Road class decides weight**, the way a printed plan does it: footway `.6`, residential `.9`, secondary `1.4`, trunk `2.8`, at rising tints of the ink. You can tell a through road from a footpath without a legend.
+- **Tints mix into the map's own paper**, not into the app ground — otherwise every weight is computed against a value the map never shows.
+- **Monochrome.** An early version drew the planting in `--free`. Green means *a box is free*, and spending it on grass — the largest area on the card — is how a signal stops being a signal. The only colour on the plan is the route and its destination, which are the same accent, because they are the same fact.
+
+### A dot and a pin
+
+Two coloured markers at the ends of a line say *these are both places*. A dot and a pin say *you are here, that is where you are going* — with no legend and no copy. The start is a solid neutral dot with a light collar; the destination is a teardrop whose **tip** sits on the gate and whose body stands above it, the way a pin pushed into a board does. Centring the teardrop would put the gate half a pin's height south of where it is.
+
+### The label came off the map, and the chevron went with it
+
+It used to be a floating plate in the bottom-right corner with a chevron on it, and Ryan read it exactly as drawn: **an arrow aimed at the corner of a picture, implying nothing.** A chevron means *this row opens something*; this row opens directions, which is a different gesture and deserves its own glyph.
+
+So the label sits **under** the map, full width, carrying the two facts you want before setting off — which cabinet, and how far — and the control on the right is a navigation arrow. The map is never covered by its own label again.
+
+### The card is an `<a>`, and that is the feature
+
+Nothing this app can draw beats the map application already on the phone for the last hundred metres: it has the live position, it re-routes when you turn the wrong way, and it talks. So the card does not try. It answers *which gate, which side of campus, how far* at a glance, and hands off:
+
+```
+https://www.google.com/maps/dir/?api=1&destination=11.107471,106.611139&travelmode=walking
+```
+
+**No key, no SDK, no request from the app at all** — which also means no Maps key in the repo, and the repo forbids one. Live position belongs to the platform: `FusedLocationProvider` when the app wants the receiver's own dot, and this URL for turn-by-turn. Neither can exist in a static preview, and faking a moving dot over a fixed route would be a lie about the walk.
+
+**The gate is sourced, not guessed.** OSM `barrier=gate` node `12093474313` at `11.107471, 106.611139`, tagged `opening_hours: Mo-Su 06:00-23:00` — seven metres from the place Google labels *Cổng phụ Trường Đại học Việt Đức*. The other three gates inside the box are `access=no` or `locked=yes`, so this is the one a receiver can walk through.
+
+**Map data © OpenStreetMap contributors, ODbL** — geometry and routing both. Chosen over Google's tiles for exactly that reason: the tiles are artwork and cannot be redrawn from, the data is open and can. The credit belongs in the app's about screen once there is one.
 
 ## Never size from a box you have not seen sized
 
