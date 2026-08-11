@@ -1,5 +1,12 @@
-Phase 1 skeleton. Seven screens you can tap through. Nothing talks to a
-server yet, so every parcel on screen is made up.
+Phase 1 skeleton, now that it compiles again. Seven screens you can tap
+through. Nothing talks to a server yet, so every parcel on screen is made up.
 
-What to look at: does the box number read from arm's length, and is the
-button reachable with one thumb?
+This build does NOT contain the redesign from the preview link. That work is
+still in the web mock-up and has not been ported to the app yet.
+
+Two fixes to get here: two apostrophes in strings.xml were unescaped, which
+failed resource compilation, and six string names renamed on 7 Aug were never
+updated at the call sites. Main has not built since then.
+
+What to look at: does the box number read from arm's length, and is the button
+reachable with one thumb?

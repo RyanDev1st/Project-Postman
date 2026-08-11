@@ -15,7 +15,7 @@
     <!-- 1. Phone number -->
     <string name="your_phone_number">Phone number</string>
     <string name="send_me_a_code">Send code</string>
-    <string name="why_a_code">We'll text you a code.</string>
+    <string name="why_a_code">We\'ll text you a code.</string>
 
     <!-- 2. One-time code -->
     <string name="enter_the_code">Enter code</string>
@@ -28,7 +28,7 @@
     <string name="n_ready">%1$d parcels ready</string>
     <string name="one_ready">1 parcel ready</string>
     <string name="nothing_waiting">Nothing waiting</string>
-    <string name="we_will_tell_you">We'll tell you when one arrives.</string>
+    <string name="we_will_tell_you">We\'ll tell you when one arrives.</string>
     <string name="collected">Collected</string>
     <string name="see_all">All</string>
     <string name="open_it">Open</string>

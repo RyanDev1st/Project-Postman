@@ -88,7 +88,7 @@ fun OpenedScreen(box: String = "04", onDone: () -> Unit) {
                     color = OnDoorLight,
                 )
                 Text(
-                    text = stringResource(R.string.box_is_open),
+                    text = stringResource(R.string.is_open),
                     style = MaterialTheme.typography.headlineMedium,
                     color = OnDoorLight,
                     textAlign = TextAlign.Center,

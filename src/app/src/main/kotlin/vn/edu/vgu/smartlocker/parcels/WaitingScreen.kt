@@ -46,7 +46,7 @@ fun WaitingScreen(
 ) {
     ScreenFrame(verticalArrangement = Arrangement.Top) {
         TextButton(onClick = onHistory, modifier = Modifier.align(Alignment.End)) {
-            Text(stringResource(R.string.history), style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.collected), style = MaterialTheme.typography.labelLarge)
         }
 
         // The card sits high, where the eye lands first. Centring it left a
@@ -100,7 +100,7 @@ fun WaitingScreen(
 private fun OneParcel(parcel: WaitingParcel) {
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.a_parcel_is_waiting),
+            text = stringResource(R.string.one_ready),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -129,7 +129,7 @@ private fun OneParcel(parcel: WaitingParcel) {
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = stringResource(R.string.arrived_at, parcel.arrived),
+            text = stringResource(R.string.ready_at, parcel.arrived),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -140,7 +140,7 @@ private fun OneParcel(parcel: WaitingParcel) {
 private fun ParcelList(parcels: List<WaitingParcel>) {
     Column(Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.n_parcels_waiting, parcels.size),
+            text = stringResource(R.string.n_ready, parcels.size),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -154,7 +154,7 @@ private fun ParcelList(parcels: List<WaitingParcel>) {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "${parcel.cabinet} · ${stringResource(R.string.arrived_at, parcel.arrived)}",
+                    text = "${parcel.cabinet} · ${stringResource(R.string.ready_at, parcel.arrived)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

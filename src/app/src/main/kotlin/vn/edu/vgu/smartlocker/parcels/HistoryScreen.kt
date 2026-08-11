@@ -33,7 +33,7 @@ fun HistoryScreen(
 ) {
     ScreenFrame(verticalArrangement = Arrangement.Top) {
         Text(
-            text = stringResource(R.string.my_parcels),
+            text = stringResource(R.string.collected),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.fillMaxWidth(),
         )
