@@ -1,149 +1,140 @@
 package vn.edu.vgu.smartlocker.pickup
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import vn.edu.vgu.smartlocker.R
-import vn.edu.vgu.smartlocker.ScreenFrame
+import vn.edu.vgu.smartlocker.ui.AppBar
+import vn.edu.vgu.smartlocker.ui.AppBarBead
+import vn.edu.vgu.smartlocker.ui.AppIcons
+import vn.edu.vgu.smartlocker.ui.QuietButton
+import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
 
 /**
- * Screen 4. Point the phone at the QR on the cabinet screen.
- *
- * **The phone scans the cabinet, never the reverse** - ADR 0003. The QR only
- * says which cabinet and when; the login proves who is holding the phone. A
- * photograph of the cabinet screen opens nothing.
- *
- * The viewfinder is an aperture, and it is the exact inverse of the glass
- * panel on the waiting screen: that one is lit and lifted toward you, this
- * one is dark and cut into the surface. One says *here is your parcel*, the
- * other says *look through here*.
- *
- * Skeleton: no camera. Tapping the aperture stands in for a good scan. The
- * camera and its permission arrive with task P5-02 - asked for here, where
- * the need is obvious, never on first open.
+ * Scan — three words. The aperture already says what to do; it used to be
+ * two sentences, and the sentences were doing nothing.
  */
 @Composable
-fun ScanScreen(onScanned: () -> Unit, onTypeCode: () -> Unit) {
-    ScreenFrame(verticalArrangement = Arrangement.Center) {
-        Text(
-            text = stringResource(R.string.point_at_the_screen),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
+fun ScanScreen(
+    onScanned: () -> Unit,
+    onTypeCode: () -> Unit,
+    onBack: () -> Unit = {},
+) {
+    val t = LocalLockerTokens.current
+    Column(modifier = Modifier.fillMaxSize()) {
+        AppBar(
+            brand = "Box 04",
+            leading = {
+                AppBarBead(
+                    icon = AppIcons.Back,
+                    contentDescription = "Back",
+                    onClick = onBack,
+                )
+            },
         )
 
-        Spacer(Modifier.height(28.dp))
-
-        Aperture(onTap = onScanned)
-
-        Spacer(Modifier.height(40.dp))
-
-        // Refusing the camera is not a dead end. It drops here.
-        TextButton(onClick = onTypeCode) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Aperture(modifier = Modifier.fillMaxWidth())
             Text(
-                text = stringResource(R.string.cant_scan),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "Scan the cabinet",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                color = t.ink,
+                modifier = Modifier.padding(top = 18.dp),
             )
         }
-    }
-}
 
-/**
- * A hole cut into the cabinet face, with the corner marks a person already
- * reads as *aim here*. Square, because a QR is square - a tall rectangle
- * would invite the user to line the code up wrongly.
- */
-@Composable
-private fun Aperture(onTap: () -> Unit) {
-    val shape = MaterialTheme.shapes.extraLarge
-
-    // The marks sit on a near-black aperture, so they are light in both
-    // schemes. Tying them to onSurface painted dark ink on a dark hole and
-    // they all but vanished.
-    val mark = Color.White.copy(alpha = 0.70f)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .background(
-                // Recessed: darker at the top, where a lid would shade it.
-                Brush.verticalGradient(
-                    listOf(Color(0xFF0B1014), Color(0xFF1B242B))
-                ),
-                shape,
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.10f), shape)
-            .clickable(onClick = onTap),
-        contentAlignment = Alignment.Center,
-    ) {
-        CornerMarks(color = mark)
-
-        Text(
-            text = stringResource(R.string.camera_goes_here),
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.45f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp),
+        QuietButton(
+            text = "Use a code",
+            onClick = onTypeCode,
         )
     }
 }
 
-/** Four L-shaped brackets, inset from the aperture edge. */
+/** The viewfinder: a dark well, four accent corners, and a sweep that keeps
+ * travelling — the scan is a thing the phone is doing, not a state. */
 @Composable
-private fun CornerMarks(color: Color) {
-    Canvas(
-        Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .padding(28.dp)
-    ) {
-        val arm = 34.dp.toPx()
-        val weight = 3.dp.toPx()
-        val w = size.width
-        val h = size.height
+fun Aperture(modifier: Modifier = Modifier) {
+    val t = LocalLockerTokens.current
+    val sweep by rememberInfiniteTransition().animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.78f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+    )
 
-        // x, y of each corner, and which way its arms run from there.
-        listOf(
-            Triple(0f, 0f, 1f to 1f),
-            Triple(w, 0f, -1f to 1f),
-            Triple(0f, h, 1f to -1f),
-            Triple(w, h, -1f to -1f),
-        ).forEach { (x, y, dir) ->
-            val (dx, dy) = dir
-            drawRect(
-                color = color,
-                topLeft = Offset(minOf(x, x + dx * arm), minOf(y, y + dy * weight)),
-                size = Size(arm, weight),
-            )
-            drawRect(
-                color = color,
-                topLeft = Offset(minOf(x, x + dx * weight), minOf(y, y + dy * arm)),
-                size = Size(weight, arm),
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(26.dp))
+            .background(Color(0xFF05070A)),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val corner = 26.dp.toPx()
+            val inset = 16.dp.toPx()
+            val stroke = 3.dp.toPx()
+            val accent = t.accent
+            // Top-left corner
+            drawLine(accent, Offset(inset, inset + corner), Offset(inset, inset), stroke)
+            drawLine(accent, Offset(inset, inset), Offset(inset + corner, inset), stroke)
+            // Top-right
+            drawLine(accent, Offset(size.width - inset, inset), Offset(size.width - inset - corner, inset), stroke)
+            drawLine(accent, Offset(size.width - inset, inset), Offset(size.width - inset, inset + corner), stroke)
+            // Bottom-left
+            drawLine(accent, Offset(inset, size.height - inset), Offset(inset + corner, size.height - inset), stroke)
+            drawLine(accent, Offset(inset, size.height - inset), Offset(inset, size.height - inset - corner), stroke)
+            // Bottom-right
+            drawLine(accent, Offset(size.width - inset, size.height - inset), Offset(size.width - inset - corner, size.height - inset), stroke)
+            drawLine(accent, Offset(size.width - inset, size.height - inset), Offset(size.width - inset, size.height - inset - corner), stroke)
+
+            // The sweep.
+            val y = size.height * sweep
+            drawLine(
+                brush = Brush.horizontalGradient(
+                    listOf(Color.Transparent, accent, Color.Transparent),
+                    startX = size.width * 0.12f,
+                    endX = size.width * 0.88f,
+                ),
+                start = Offset(size.width * 0.12f, y),
+                end = Offset(size.width * 0.88f, y),
+                strokeWidth = 2.dp.toPx(),
             )
         }
     }
@@ -153,10 +144,4 @@ private fun CornerMarks(color: Color) {
 @Composable
 private fun ScanPreview() {
     PreviewTheme { ScanScreen({}, {}) }
-}
-
-@Preview(showBackground = true, heightDp = 780, name = "dark")
-@Composable
-private fun ScanDarkPreview() {
-    PreviewTheme(dark = true) { ScanScreen({}, {}) }
 }

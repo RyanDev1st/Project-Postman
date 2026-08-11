@@ -1,12 +1,19 @@
-Phase 1 skeleton, now that it compiles again. Seven screens you can tap
-through. Nothing talks to a server yet, so every parcel on screen is made up.
+The redesign, ported into the app from the mock-up.
 
-This build does NOT contain the redesign from the preview link. That work is
-still in the web mock-up and has not been ported to the app yet.
+Three tabs — Home, Cabinet, Settings — with the sign-in flow in front of
+them. Home is a claim ticket: the door number, the time left draining along
+the foot, the map card that answers *where to walk*, and the ledger of what
+you collected. The Cabinet tab shows the real render with every door that is
+yours lit in amber — the tint keeps the stencilled number, because the number
+is what you carry. The panel under it is the same object in every state.
 
-Two fixes to get here: two apostrophes in strings.xml were unescaped, which
-failed resource compilation, and six string names renamed on 7 Aug were never
-updated at the call sites. Main has not built since then.
+The design's own system, ported token by token from the mock-up's CSS: dark
+leads, light is a second design with the accent going burnt orange, and the
+amber door light is identical in both schemes. Three materials — glass on the
+nav, cards lifted off the ground, recesses set into it.
 
-What to look at: does the box number read from arm's length, and is the button
-reachable with one thumb?
+Nothing talks to a server yet, so every parcel on screen is made up. The
+design sources now live in docs/designs/mockup/, next to the port.
+
+What to look at: the amber — does a lit door read as yours from arm's length,
+and is the number still legible through it?

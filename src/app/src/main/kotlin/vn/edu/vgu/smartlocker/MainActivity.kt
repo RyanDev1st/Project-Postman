@@ -5,89 +5,173 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import vn.edu.vgu.smartlocker.auth.OneTimeCodeScreen
-import vn.edu.vgu.smartlocker.auth.PhoneNumberScreen
-import vn.edu.vgu.smartlocker.parcels.HistoryScreen
-import vn.edu.vgu.smartlocker.parcels.WaitingScreen
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.auth.AddPhoneScreen
+import vn.edu.vgu.smartlocker.auth.CodeScreen
+import vn.edu.vgu.smartlocker.auth.SignInScreen
+import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
+import vn.edu.vgu.smartlocker.loading.LoadingScreen
+import vn.edu.vgu.smartlocker.parcels.HomeScreen
 import vn.edu.vgu.smartlocker.pickup.OpenedScreen
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
 import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
+import vn.edu.vgu.smartlocker.settings.SettingsScreen
+import vn.edu.vgu.smartlocker.ui.LockerBackdrop
+import vn.edu.vgu.smartlocker.ui.ThemeWipe
 import vn.edu.vgu.smartlocker.ui.theme.SmartLockerTheme
 
-/** The seven screens, named in docs/reference/app-screens.md. */
-enum class Screen { PHONE, CODE, WAITING, SCAN, OPENED, TYPE_CODE, HISTORY }
-
 /**
- * The app.
+ * The app's screens, as the design's flow names them.
  *
- * P1-09: every screen exists and can be walked through, with made-up data
- * and no server. It is here to be looked at and argued with, not used.
- *
- * Moving between screens is a variable and a `when`. No navigation library:
- * seven screens do not need one, and the real routes arrive with the real
- * screens in Phase 2. Rule J - the simplest thing that solves it.
+ * Three tabs (Home, Cabinet, Settings) with the sign-in flow in front of
+ * them and the pickup flow reachable from Home or Cabinet.
  */
+enum class Screen {
+    SIGN_IN, CODE, ADD_PHONE,
+    HOME, CABINET, SETTINGS,
+    SCAN, OPENED, TYPE_CODE,
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SmartLockerTheme {
-                AppSkeleton()
+            val systemDark = isSystemInDarkTheme()
+            var dark by remember { mutableStateOf(systemDark) }
+            // The wipe owns the toggle: it has to hold the outgoing frame
+            // before the theme flips, so it cannot be told after the fact.
+            ThemeWipe(dark = dark, onDarkChanged = { dark = it }) { requestToggle ->
+                SmartLockerTheme(dark = dark) {
+                    AppSkeleton(dark = dark, onToggleDark = requestToggle)
+                }
             }
         }
     }
 }
 
 @Composable
-fun AppSkeleton() {
-    var screen by remember { mutableStateOf(Screen.PHONE) }
+fun AppSkeleton(
+    dark: Boolean,
+    onToggleDark: () -> Unit,
+) {
+    var screen by remember { mutableStateOf(Screen.SIGN_IN) }
+    var lastMain by remember { mutableStateOf(Screen.HOME) }
+    var scanBox by remember { mutableStateOf("04") }
 
-    // Back goes where the flow diagram says it goes, so walking the skeleton
-    // on a phone tells you whether the flow is right.
-    BackHandler(enabled = screen != Screen.PHONE) {
+    fun gotoMain(tab: Screen) {
+        lastMain = tab
+        screen = tab
+    }
+
+    BackHandler(enabled = screen != Screen.SIGN_IN) {
         screen = when (screen) {
-            Screen.CODE -> Screen.PHONE
-            Screen.SCAN, Screen.TYPE_CODE, Screen.HISTORY -> Screen.WAITING
-            Screen.OPENED -> Screen.WAITING
-            else -> Screen.WAITING
+            Screen.CODE, Screen.ADD_PHONE -> Screen.SIGN_IN
+            Screen.HOME, Screen.CABINET, Screen.SETTINGS -> Screen.SIGN_IN
+            Screen.SCAN, Screen.TYPE_CODE -> lastMain
+            Screen.OPENED -> lastMain
+            else -> Screen.SIGN_IN
         }
     }
 
-    when (screen) {
-        Screen.PHONE -> PhoneNumberScreen(
-            version = BuildConfig.VERSION_NAME,
-            onSend = { screen = Screen.CODE },
-        )
+    // Every screen stands on the ground, keeps the system bars clear, and
+    // gets the same gutter. One place, because the alternative was every
+    // screen remembering for itself - and CodeScreen did not, which is why
+    // its heading sat on the left edge and the sixth code cell fell off the
+    // right one. The tab shell used to repeat both of these, so tab screens
+    // were inset twice; it no longer does.
+    LockerBackdrop {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(horizontal = 17.dp, vertical = 15.dp),
+        ) {
+            when (screen) {
+                Screen.SIGN_IN -> SignInScreen(
+                    onSendCode = { screen = Screen.CODE },
+                    onGoogle = { screen = Screen.ADD_PHONE },
+                )
+                Screen.CODE -> CodeScreen(
+                    onDone = { gotoMain(Screen.HOME) },
+                    onBack = { screen = Screen.SIGN_IN },
+                )
 
-        Screen.CODE -> OneTimeCodeScreen(
-            onDone = { screen = Screen.WAITING },
-        )
+                Screen.ADD_PHONE -> AddPhoneScreen(
+                    onSaved = { gotoMain(Screen.HOME) },
+                    onSkip = { gotoMain(Screen.HOME) },
+                )
 
-        Screen.WAITING -> WaitingScreen(
-            onScan = { screen = Screen.SCAN },
-            onTypeCode = { screen = Screen.TYPE_CODE },
-            onHistory = { screen = Screen.HISTORY },
-        )
+                Screen.HOME -> MainShell(
+                    screen = screen,
+                    dark = dark,
+                    onToggleDark = onToggleDark,
+                    onSelectTab = ::gotoMain,
+                    content = {
+                        HomeScreen(
+                            onOpen = { scanBox = it; screen = Screen.SCAN },
+                            onOpenSecond = { scanBox = it; screen = Screen.SCAN },
+                            onMap = {},
+                        )
+                    },
+                )
 
-        Screen.SCAN -> ScanScreen(
-            onScanned = { screen = Screen.OPENED },
-            onTypeCode = { screen = Screen.TYPE_CODE },
-        )
+                Screen.CABINET -> MainShell(
+                    screen = screen,
+                    dark = dark,
+                    onToggleDark = onToggleDark,
+                    onSelectTab = ::gotoMain,
+                    content = {
+                        CabinetScreen(
+                            onScan = { scanBox = it; screen = Screen.SCAN },
+                            onTypeCode = { screen = Screen.TYPE_CODE },
+                        )
+                    },
+                )
 
-        Screen.TYPE_CODE -> TypeCodeScreen(
-            onAccepted = { screen = Screen.OPENED },
-        )
+                Screen.SETTINGS -> MainShell(
+                    screen = screen,
+                    dark = dark,
+                    onToggleDark = onToggleDark,
+                    onSelectTab = ::gotoMain,
+                    content = {
+                        SettingsScreen(
+                            dark = dark,
+                            onToggleDark = onToggleDark,
+                        )
+                    },
+                )
 
-        Screen.OPENED -> OpenedScreen(
-            onDone = { screen = Screen.WAITING },
-        )
+                Screen.SCAN -> ScanScreen(
+                    onScanned = { screen = Screen.OPENED },
+                    onTypeCode = { screen = Screen.TYPE_CODE },
+                    onBack = { screen = lastMain },
+                )
 
-        Screen.HISTORY -> HistoryScreen()
+                Screen.OPENED -> OpenedScreen(
+                    onDone = { screen = lastMain },
+                    onBack = { screen = lastMain },
+                )
+
+                Screen.TYPE_CODE -> TypeCodeScreen(
+                    onAccepted = { screen = Screen.OPENED },
+                    onScan = { screen = Screen.SCAN },
+                    onBack = { screen = lastMain },
+                )
+            }
+        }
     }
 }

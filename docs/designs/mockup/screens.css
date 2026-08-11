@@ -1,0 +1,1224 @@
+@font-face {
+  font-family: "Geist";
+  src: url(data:font/woff2;base64,__GEIST__) format("woff2");
+  font-weight: 100 900; font-display: block;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url(data:font/woff2;base64,__GEISTMONO__) format("woff2");
+  font-weight: 100 900; font-display: block;
+}
+
+/* --------------------------------------------------------------------
+   Dark leads, following the Stitch drafts. The light scheme is a second
+   design, not an inversion - the cabinet render carries a transparent
+   background exactly so it can stand on either ground.
+   -------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Surfaces, and why none of them is grey.
+
+   A raised surface in a dark interface used to be built here as
+   `color-mix(in srgb, var(--ground) 62%, var(--ink))` - the ground with white
+   stirred into it. Two things go wrong with that. Both were on screen, and
+   both are measurable:
+
+   1. It goes neutral. Tint has to be read against the value it sits on: the
+      ground's 5 points of blue over red are 36% of its brightest channel,
+      which is a strong bias. The mix lands on rgb(94,97,101) - 7 points of
+      bias on a channel of 101, so **7%**. Four fifths of the tint is gone.
+      A near-white poured into a colour dilutes that colour by exactly the
+      amount it lifts it, so the paler the panel, the greyer it reads.
+
+   2. It lifts far too far. rgb(94,97,101) is 38 L* above the ground. A
+      raised card should sit 4 to 8 L* above what it lies on, and take the
+      rest of its height from a lit top edge and a shadow underneath.
+
+   So the surfaces are picked, not computed. #161D27 measures 17 points of
+   blue over red on a channel of 39 - **44%** - at +7.6 L*. It is lifted,
+   and *more* saturated for being lifted, which is what a real material does
+   when a light finds it. That is the whole difference between a panel and
+   a grey rectangle.
+
+   Registered with @property so a theme change interpolates ONE value per
+   token and every consumer follows. See the note on `.theming` in glass.css
+   for what that replaced.
+   ---------------------------------------------------------------------- */
+@property --ground   { syntax: "<color>"; inherits: true; initial-value: #090B0E; }
+@property --ground-2 { syntax: "<color>"; inherits: true; initial-value: #0F141A; }
+@property --surface   { syntax: "<color>"; inherits: true; initial-value: #161D27; }
+@property --surface-2 { syntax: "<color>"; inherits: true; initial-value: #10161E; }
+@property --field    { syntax: "<color>"; inherits: true; initial-value: rgba(2,5,10,.55); }
+@property --hair     { syntax: "<color>"; inherits: true; initial-value: rgba(150,186,232,.13); }
+@property --lip      { syntax: "<color>"; inherits: true; initial-value: rgba(176,208,255,.20); }
+@property --glass    { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,.055); }
+@property --glass-2  { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,.085); }
+@property --glass-edge { syntax: "<color>"; inherits: true; initial-value: rgba(160,196,240,.13); }
+@property --glass-lip  { syntax: "<color>"; inherits: true; initial-value: rgba(176,208,255,.24); }
+@property --ink      { syntax: "<color>"; inherits: true; initial-value: #E8EDF4; }
+@property --ink-2    { syntax: "<color>"; inherits: true; initial-value: #8E9AA8; }
+@property --ink-3    { syntax: "<color>"; inherits: true; initial-value: #5C6874; }
+@property --accent   { syntax: "<color>"; inherits: true; initial-value: #7FA8FF; }
+@property --accent-deep { syntax: "<color>"; inherits: true; initial-value: #3D74F0; }
+@property --accent-ink  { syntax: "<color>"; inherits: true; initial-value: #7FA8FF; }
+@property --free     { syntax: "<color>"; inherits: true; initial-value: #3FD69A; }
+@property --refuse   { syntax: "<color>"; inherits: true; initial-value: #FF9B92; }
+@property --shadow   { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.62); }
+@property --bezel    { syntax: "<color>"; inherits: true; initial-value: #171E25; }
+@property --recess-in  { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.55); }
+@property --recess-lit { syntax: "<color>"; inherits: true; initial-value: rgba(180,214,255,.07); }
+
+/* The app's own tokens. `data-theme` moves these and nothing else. */
+:root {
+  --ground: #090B0E; --ground-2: #0F141A;
+  --surface: #161D27; --surface-2: #10161E;
+  --field: rgba(2,5,10,.55);
+  --hair: rgba(150,186,232,.13); --lip: rgba(176,208,255,.20);
+  --glass: rgba(255,255,255,.055); --glass-2: rgba(255,255,255,.085);
+  --glass-edge: rgba(160,196,240,.13); --glass-lip: rgba(176,208,255,.24);
+  --ink: #E8EDF4; --ink-2: #8E9AA8; --ink-3: #5C6874;
+
+  --accent: #7FA8FF; --accent-deep: #3D74F0; --accent-ink: #7FA8FF;
+  --free: #3FD69A;
+  --refuse: #FF9B92;
+  --shadow: rgba(0,0,0,.62);
+  --bezel: #171E25;
+
+  /* The other half of the material system — see the note above `.recess`. */
+  --recess-in: rgba(0,0,0,.55); --recess-lit: rgba(180,214,255,.07);
+}
+
+/* Light is a second design, not an inversion, and it breaks the 4-to-8 rule
+   on purpose: white on #D3DBE3 is +13 L*. The card cannot go higher than
+   white, so on this side the separation is made by pulling the *ground*
+   down to a real mid steel. Same decision, taken from the other end - which
+   is exactly why one formula cannot serve both schemes. */
+:root[data-theme="light"] {
+  --ground: #D3DBE3; --ground-2: #E8EEF3;
+  --surface: #FFFFFF; --surface-2: #F3F7FB;
+  /* A recess has to be DARKER than what it is cut into, and this was lighter.
+     Measured: ground rgb(211,219,227), field rgb(231,237,244) - twenty points
+     up. Every "recessed" thing in the light scheme was therefore reading as a
+     raised white chip with two shadows painted on it, which is precisely the
+     soft-UI mistake the material was written to avoid.
+     #C6D0DA is thirteen points down instead, and carries `--ink-2` at 4.67:1
+     so the ledger's box numbers and the field prefixes still pass. */
+  --field: #C6D0DA;
+  /* The `cabinet full` dim. 0.82 on a dark render is a clear step down;
+     on the light scheme's pale steel it reads as a shadow across the
+     picture, so light takes a shallower one and leans on the badge. */
+  --taken: .88;
+  --hair: rgba(14,32,48,.10); --lip: rgba(255,255,255,.9);
+  --glass: rgba(255,255,255,.7); --glass-2: rgba(255,255,255,.88);
+  --glass-edge: rgba(255,255,255,.95); --glass-lip: #fff;
+  --ink: #0F161B; --ink-2: #4C5862; --ink-3: #7A8792;
+
+  /* Light leads orange.
+     Burnt orange at hue 17, not the red-brown that came before it at hue 12
+     and not a yellow one. Measured, not chosen by eye:
+
+       #C2410C on the ground #D3DBE3  -> 3.70:1   large type and fills only
+       #C2410C on a white card        -> 5.18:1   small type passes
+       #98380A on the ground          -> 5.17:1   small type passes here too
+       white on #98380A               -> 7.23:1   the filled button
+
+     Orange sits lighter than a terracotta at the same chroma, so it loses
+     contrast against a mid-steel ground: no orange worth calling orange
+     clears 4.5:1 on #D3DBE3. Hence three values rather than one.
+
+       --accent      the colour, wherever it is large or sits on a card
+       --accent-deep the button fill. #B83E0B carries white at 5.63:1, and
+                     is deliberately NOT pushed darker - at #98380A the
+                     largest orange area on the screen went brown, and the
+                     button is the thing that decides whether the scheme
+                     reads as orange at all
+       --accent-ink  small accent text on the ground, the one place that
+                     needs 4.5:1 against #D3DBE3
+
+     The door light is #FFB200 at hue 42. This is 25 degrees off it and much
+     darker, so the two never read as the same colour - which is the rule the
+     palette exists to protect. Pushing this any further toward yellow closes
+     that gap and breaks it. See DESIGN.md. */
+  --accent: #C2410C; --accent-deep: #B83E0B; --accent-ink: #98380A;
+  /* #0E7A54 measured 3.82:1 on the light ground, and the free count sits on
+     the ground rather than on a card. #0B6B49 is 4.67:1 there and 6.53:1 on
+     a white card. */
+  --free: #0B6B49;
+  --refuse: #B3261E; --shadow: rgba(12,24,36,.22); --bezel: #AFBAC4;
+
+  /* A recess on a pale ground is a shadow cast INTO the surface with a bright
+     return along the bottom lip. Same two shadows as dark, opposite roles. */
+  --recess-in: rgba(14,32,48,.15); --recess-lit: rgba(255,255,255,.95);
+}
+
+/* ----------------------------------------------------------------------
+   The page the phones stand on is NOT the app.
+
+   It used to follow `data-theme` too, so pressing Dark mode inside a phone
+   repainted the whole preview. That is wrong twice over: the control is a
+   setting in one app, and repainting the surround is what made the change
+   feel like the page had reloaded. The page follows the system, and only
+   the system. The phones follow the toggle.
+   ---------------------------------------------------------------------- */
+:root {
+  color-scheme: dark light;
+  --page: #06080A; --page-2: #0C1014; --page-line: #1B222A;
+  --page-ink: #E8EDF4; --page-ink-2: #7E8C9B;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --page: #DCE3E9; --page-2: #F0F4F7; --page-line: #C1CAD3;
+    --page-ink: #0F161B; --page-ink-2: #55626C;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   The door light.
+
+   Amber, in both schemes, and it means one thing: **this door is yours**.
+   A door holding your parcel is a fact about the world, not about the phone
+   settings, and the corridor it is read in is dark either way.
+
+   It was briefly made theme-dependent - azure on light - on a misreading of
+   which colour was being asked about. Reverted the same day. A colour that
+   changes with the scheme is a colour nobody can learn.
+
+   Two places only: the highlight on the cabinet, and the Opened screen,
+   which it fills. `--door` is the token both read from.
+   ---------------------------------------------------------------------- */
+:root, :root[data-theme] {
+  --amber: #FFB200; --on-amber: #241A00;
+  --door: #FFB200;  --on-door: #241A00;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0; background: var(--page); color: var(--page-ink);
+  font-family: "Geist", system-ui, sans-serif; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.mono { font-family: "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 46px 24px 110px;
+        display: flex; flex-direction: column; gap: 56px; }
+
+/* --- masthead ------------------------------------------------------- */
+header.top {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  justify-content: space-between; gap: 18px 32px;
+  padding-bottom: 22px; border-bottom: 1px solid var(--page-line);
+}
+header.top h1 { margin: 0; font-size: clamp(1.7rem, 1.1rem + 2.1vw, 2.5rem);
+  font-weight: 600; letter-spacing: -0.035em; text-wrap: balance; }
+header.top p { margin: 9px 0 0; color: var(--page-ink-2); max-width: 62ch; }
+.stamp { font-size: .67rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--page-ink-2); text-align: right; white-space: nowrap; line-height: 2; }
+.stamp b { display: block; color: var(--page-ink); font-weight: 600; }
+
+section > h2 {
+  margin: 0 0 6px; font-size: .72rem; letter-spacing: .17em;
+  text-transform: uppercase; font-weight: 600; color: var(--page-ink-2);
+}
+section > .lede { margin: 0 0 26px; color: var(--page-ink-2); max-width: 64ch; }
+
+/* --- phone ----------------------------------------------------------- */
+.phone {
+  width: 340px; aspect-ratio: 340 / 726; background: var(--bezel);
+  border-radius: 42px; padding: 9px; flex: none;
+  box-shadow: 0 30px 60px -22px var(--shadow),
+              0 0 0 1px color-mix(in srgb, var(--page-ink) 11%, transparent);
+}
+.phone.big { width: 372px; aspect-ratio: 372 / 794; }
+
+/* A bare <button> inside a phone takes the phone's ink, not the machine's.
+   ------------------------------------------------------------------------
+   This is the "Back gate is blended with the background" fault, and the plate
+   under it was never the cause. `:root` declares `color-scheme: dark light`
+   for the PAGE, so Chrome resolves the UA default `color: buttontext` from
+   the operating system's scheme - white, on a machine set to dark. The
+   phone's own `data-theme` has no say in it. So on a dark-set machine, every
+   button inside the light phone that did not name a colour drew white text:
+   `.whereto`'s "Back gate" was white on a white plate, invisible, while its
+   sibling lines - which carry `var(--ink-2)` explicitly - were fine.
+
+   Two schemes disagreeing about one word is not something a designer can see
+   coming, and it will recur on every button added from here. So it is fixed
+   once, at the source, for the whole phone.
+
+   `:where()` contributes ZERO specificity, so this is (0,0,1): weaker than
+   any class, and every button that names its own colour - `.go`, the nav
+   pill, the amber screen - still wins without being listed here. A plain
+   `.screen button` selector would have been (0,1,1) and would have silently
+   turned the primary button's white label to ink. */
+:where(.screen) button { color: inherit; }
+
+.screen {
+  height: 100%; border-radius: 34px; overflow: hidden; position: relative;
+  background: radial-gradient(132% 60% at 50% -10%,
+      color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 60%),
+    var(--ground);
+  color: var(--ink); display: flex; flex-direction: column;
+  padding: 15px 17px 13px; font-size: 14px;
+}
+.screen.amber {
+  background: var(--door); color: var(--on-door);
+}
+
+.appbar { display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 1px 9px; flex: none; }
+.appbar .brand { font-size: 14.5px; font-weight: 600; letter-spacing: -0.012em; }
+.dot-btn { width: 30px; height: 30px; border-radius: 50%; display: grid;
+  place-items: center; color: var(--ink-2); border: 0; padding: 0;
+  cursor: pointer; background: none; }
+.dot-btn svg { width: 14px; height: 14px; display: block; }
+
+/* The greeting moved into the app bar.
+
+   It was an 11px uppercase eyebrow above the headline - a kicker, and a
+   kicker is a label apologising for a heading that should carry itself. The
+   name still belongs on Home, though: it is how you confirm at a glance that
+   this is your account and not the phone's other one. An app bar is exactly
+   where that context lives, and "VGU Locker" was not earning the slot - you
+   know which app you opened. So the brand comes out and the name goes in.
+   ---------------------------------------------------------------------- */
+.heading { flex: none; padding: 2px 1px 11px; }
+.heading h3 { margin: 0; font-size: 25px; font-weight: 600;
+  letter-spacing: -0.032em; line-height: 1.14; text-wrap: balance; }
+.heading p { margin: 5px 0 0; font-size: 13px; color: var(--ink-2); }
+.screen.amber .heading p { color: color-mix(in srgb, var(--on-door) 72%, transparent); }
+
+.grow { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  justify-content: center; gap: 14px; }
+
+/* ----------------------------------------------------------------------
+   The second material: a recess.
+
+   Glass is the only material this app had, and glass floats. Everything that
+   is NOT floating chrome was therefore either a card - a plane lifted off the
+   ground - or nothing at all, which is why a field, a number chip and an icon
+   well all looked like the same flat grey square with a hairline round it.
+
+   A recess is the opposite gesture and it costs two shadows: the ground's own
+   shade thrown INWARD from the top edge, and a lit return along the bottom
+   where the surface comes back up. That is the whole of it, and it is the
+   honest version of the soft-UI look - no outer shadow, no fake extrusion, no
+   pair of grey blurs on both sides of a floating lozenge.
+
+   So the system is three materials with three jobs, and nothing uses one to
+   do another's:
+     .lg      floats over content        the nav, the app-bar buttons
+     .card    a plane lifted off it      grouped rows, the profile
+     .recess  set INTO it                fields, code boxes, number chips,
+                                         icon wells, the second parcel
+
+   The two shadows are tokens so a theme change interpolates them along with
+   everything else, and the light scheme swaps their roles rather than
+   reusing the dark numbers at a lower alpha. */
+.recess {
+  background-color: var(--field);
+  border: 0;
+  box-shadow:
+    inset 0 1.5px 3px 0 var(--recess-in),
+    inset 0 -1px 0 0 var(--recess-lit);
+}
+
+.otp { display: flex; gap: 8px; }
+.otp span {
+  flex: 1; aspect-ratio: 1 / 1.24; border-radius: 13px; background: var(--field);
+  border: 0; display: grid; place-items: center;
+  font-size: 21px; font-weight: 600;
+  box-shadow: inset 0 1.5px 3px 0 var(--recess-in),
+              inset 0 -1px 0 0 var(--recess-lit);
+}
+/* A filled digit is not recessed any more — it has something in it, so it
+   comes back up to the surface. The ring replaces the border the recess gave
+   up: a border on a box whose depth is carried by inset shadows fights them. */
+.otp span.on { color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 62%, transparent); }
+.otp span.caret {
+  box-shadow: inset 0 0 0 1.5px var(--accent),
+              0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+
+/* buttons */
+/* Colour in `background-color`, shading in a fixed overlay — see the note on
+   `.card` in glass.css. A gradient built from theme tokens does not
+   interpolate, so it would snap while everything around it moved. */
+.go { width: 100%; min-height: 52px; border: 0; border-radius: 17px;
+  background-color: var(--accent-deep);
+  background-image: linear-gradient(180deg,
+    rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 100%);
+  color: #fff; font: inherit; font-size: 14.5px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer;
+  /* Neutral, and offset. A shadow tinted with the button's own colour is a
+     glow, and a glow under a large saturated slab is what makes it read as a
+     web control rather than as a key you are about to press. */
+  box-shadow: 0 6px 16px -8px rgba(0,0,0,.55),
+              inset 0 1px 0 rgba(255,255,255,.26); }
+.go svg { width: 16px; height: 16px; }
+.go[disabled] { opacity: .36; cursor: not-allowed; box-shadow: none; }
+.go.onamber { background: var(--on-door); color: var(--door); box-shadow: none; }
+.quiet { background: none; border: 0; font: inherit; font-size: 12px;
+  color: var(--ink-3); padding: 8px; cursor: pointer; width: 100%; }
+.action { flex: none; padding-top: 10px; display: flex; flex-direction: column; }
+/* A class rule that sets `display` outranks the UA's `[hidden]`, so every
+   element this build hides with the attribute has to say so itself. */
+[hidden] { display: none !important; }
+
+/* the bottom nav lives in the glass sheet, as a material */
+
+/* --- the cabinet ------------------------------------------------------ */
+.hero { position: relative; flex: 1; min-height: 0; display: grid;
+  place-items: center; overflow: hidden; border-radius: 22px; }
+/* `isolation` is what makes the door tint work.
+   `mix-blend-mode` composites an element against the backdrop of its parent
+   stacking context. Without an isolated group here the tint layer would try to
+   blend with whatever is behind the phone as well, and the render - the thing
+   it is supposed to be tinting - would only be part of what it found. */
+.holder { position: relative; width: 100%; aspect-ratio: 1;
+  max-height: 100%; will-change: transform, opacity; isolation: isolate; }
+.holder img, .holder svg { position: absolute; inset: 0; width: 100%;
+  height: 100%; display: block; }
+.holder img { object-fit: contain; }
+/* Hue and saturation from the fill, luminance from the render underneath —
+   so the number stencilled on the door survives being lit. See `lightDoor`. */
+#tint { mix-blend-mode: color; pointer-events: none; }
+#overlay { pointer-events: none; }
+#hits { pointer-events: auto; }
+
+/* --- one panel under the render, always ---------------------------------
+
+   What was here: a row of glass chips, one per box, each carrying a number
+   and a time. Three faults, and the first is the one Ryan named.
+
+   **It changed shape with the count.** Two boxes gave two chips, which reads
+   as a choice. One box gave a single chip floating under the render, which
+   reads as a control with its other half missing - a picker with nothing to
+   pick. Nothing waiting gave none at all, and the panel disappeared entirely.
+   Three counts, three different screens.
+
+   **The urgent fact was in the quietest place.** *Dropped 08:14 today · 6h
+   left* was 13px grey under the heading, which is where a screen puts the
+   thing nobody has to read. It is the single most time-critical fact the app
+   holds. Making it bigger in place would not fix that; it was in the wrong
+   slot. It has moved into the panel, which is now the second largest thing on
+   the screen after the cabinet itself, and the heading carries the constant -
+   how many boxes are yours, and where.
+
+   **So there is one panel, in one shape, in every state.** With two boxes it
+   gains a switch above it. With one it is only the ticket. With nothing
+   waiting or the cabinet full it is a status card of the same height. The
+   ticket is the SAME `.tk-sm` object Home's second parcel uses, so a box in
+   this app looks like a box wherever you meet it.
+   ------------------------------------------------------------------------ */
+.cabinfo {
+  flex: none; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 1px 0; position: relative; z-index: 2;
+}
+/* The nav floats, so something in flow has to hold its space. The action row
+   was doing it by accident - and with nothing waiting there IS no action, so
+   hiding it dropped the status card straight under the nav pill. The panel
+   takes the allowance over whenever the row below it is gone. */
+.cabinfo:has(+ .action[hidden]) { margin-bottom: 66px; }
+
+/* Which of your boxes. A segmented switch, not a row of chips: the track
+   makes it one control with two positions, so the second box can never be
+   mistaken for a second parcel card - and with one box the switch is simply
+   not built, rather than rendered with one segment. */
+.dswitch { display: flex; gap: 4px; padding: 4px; border-radius: 15px; }
+.dswitch button {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 8px; min-height: 34px; border: 0; border-radius: 11px;
+  background: none; font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--ink-2); cursor: pointer;
+}
+.dswitch button[aria-pressed="true"] {
+  background-color: var(--surface); color: var(--ink);
+  box-shadow: inset 0 1px 0 0 var(--lip), inset 0 0 0 1px var(--hair),
+              0 2px 6px -3px var(--shadow);
+}
+/* Urgency travels with the number, so the switch says which one to deal with
+   first without repeating the hours it would then have to keep in step. */
+.dswitch .dot {
+  width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: color-mix(in srgb, var(--ink) 32%, transparent);
+}
+.dswitch .dot.soon { background: var(--door); }
+
+/* Nothing waiting, or nowhere to put anything. Same height as the ticket, so
+   switching state does not move the button under your thumb. */
+.cstatus { display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 18px; }
+.cstatus .cicon {
+  width: 34px; height: 34px; border-radius: 11px; flex: none;
+  display: grid; place-items: center;
+}
+.cstatus .cicon svg { width: 18px; height: 18px; }
+.cstatus b { display: block; font-size: 13.5px; font-weight: 600; }
+.cstatus > span span { font-size: 11.5px; color: var(--ink-2); }
+.cstatus.free .cicon {
+  color: var(--free); background: color-mix(in srgb, var(--free) 15%, transparent);
+}
+.cstatus.none .cicon {
+  color: var(--refuse); background: color-mix(in srgb, var(--refuse) 16%, transparent);
+}
+
+/* Full has to be said out loud.
+   ------------------------------------------------------------------------
+   The screen used to answer "is there room here?" by lighting nothing - and
+   an unlit cabinet is what this screen looks like while it is still loading,
+   while a request is in flight, and when something has gone wrong. Absence is
+   not a message. So the render is drained of colour and dimmed, and a badge
+   sits on it saying the thing in words. Both are needed: the dim alone could
+   be a rendering fault, and the badge alone leaves twenty doors looking
+   perfectly available underneath it. */
+.hero.taken .holder { filter: saturate(.22) brightness(var(--taken, .72)); }
+.novac {
+  position: absolute; left: 50%; top: 50%; z-index: 3;
+  transform: translate(-50%, -50%); pointer-events: none;
+  display: flex; align-items: center; gap: 10px; white-space: nowrap;
+  padding: 12px 21px 12px 19px; border-radius: 999px;
+  font-size: 14.5px; font-weight: 600; letter-spacing: -.01em;
+  background-color: color-mix(in srgb, var(--surface) 92%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: inset 0 1px 0 0 var(--lip), inset 0 0 0 1px var(--hair),
+              0 12px 30px -12px var(--shadow);
+}
+.novac svg { width: 19px; height: 19px; color: var(--refuse); }
+
+/* The way out of a dead end.
+   A disabled primary button states the problem and offers nothing. The other
+   cabinet is a real place in this app's own data, so "full" ends in a live
+   control rather than in a grey slab. */
+.go.alt {
+  background-color: transparent; background-image: none;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--hair), inset 0 1px 0 0 var(--lip);
+}
+.go.alt svg { display: none; }
+
+
+/* --- scan aperture ----------------------------------------------------- */
+.aperture { position: relative; width: 100%; aspect-ratio: 1;
+  border-radius: 26px; background: #05070A;
+  box-shadow: inset 0 3px 14px rgba(0,0,0,.8); overflow: hidden; }
+.aperture .corner { position: absolute; width: 26px; height: 26px;
+  border: 3px solid var(--accent); }
+.aperture .tl { top: 16px; left: 16px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.aperture .tr { top: 16px; right: 16px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+.aperture .bl { bottom: 16px; left: 16px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+.aperture .br { bottom: 16px; right: 16px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+.aperture .sweep { position: absolute; left: 12%; right: 12%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: sweep 2.6s ease-in-out infinite; }
+@keyframes sweep { 0%,100% { top: 20%; } 50% { top: 78%; } }
+
+/* --- opened ------------------------------------------------------------ */
+.bignum { font-size: 122px; font-weight: 700; letter-spacing: -.06em;
+  line-height: .84; text-align: center; }
+.bigcap { font-size: 11px; font-weight: 600; letter-spacing: .2em;
+  text-align: center; margin-top: 10px; }
+
+/* --- what you already collected ---------------------------------------
+   A ledger, not a list of cards.
+
+   These were three `.row.card`s of exactly the height and shape of a waiting
+   parcel, so at a glance Home was five identical rounded rectangles and the
+   two that mattered had no way to say so. History is a thing you glance at to
+   confirm something arrived; it is the quietest rank on the screen and it
+   should look like it. No fill, no border, no radius - a hairline between
+   entries and a recessed number chip, which is the only piece of it anyone
+   ever actually reads.
+   ---------------------------------------------------------------------- */
+.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger li {
+  display: flex; align-items: center; gap: 12px; padding: 9px 2px;
+  border-top: 1px solid var(--hair);
+}
+.ledger li:first-child { border-top: 0; }
+.ledger .no {
+  width: 34px; height: 34px; border-radius: 10px; flex: none;
+  display: grid; place-items: center; font-size: 12.5px; font-weight: 600;
+  color: var(--ink-2);
+}
+.ledger .what { flex: 1; min-width: 0; font-size: 13px; font-weight: 550;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ledger .when { font-size: 11.5px; color: var(--ink-2); flex: none; }
+
+/* --- gallery ------------------------------------------------------------ */
+.gallery { display: grid; gap: 40px 28px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); justify-items: center; }
+.slot { display: flex; flex-direction: column; gap: 13px; align-items: center; }
+.slot .cap { text-align: center; max-width: 34ch; }
+.slot .cap b { display: block; font-size: .95rem; font-weight: 600; }
+.slot .cap span { font-size: .82rem; color: var(--page-ink-2); }
+.slot .cap .num { font-family: "Geist Mono", monospace; font-size: .7rem;
+  letter-spacing: .1em; color: var(--page-ink-2); display: block; margin-bottom: 3px; }
+
+/* --- bench -------------------------------------------------------------- */
+.bench { display: grid; grid-template-columns: minmax(0,392px) minmax(0,1fr);
+  gap: 52px; align-items: start; }
+@media (max-width: 880px) {
+  .bench { grid-template-columns: minmax(0,1fr); justify-items: center; gap: 38px; }
+}
+.stage { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.controls button { font: inherit; font-size: .8rem; font-weight: 550;
+  padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  background: var(--page-2); color: var(--page-ink); border: 1px solid var(--page-line); }
+.controls button[aria-pressed="true"] { background: var(--page-ink);
+  color: var(--page); border-color: var(--page-ink); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.notes { display: flex; flex-direction: column; gap: 20px; max-width: 60ch; }
+.panel { background: var(--page-2); border: 1px solid var(--page-line);
+  border-radius: 16px; padding: 20px 22px; }
+.panel h4 { margin: 0 0 10px; font-size: .71rem; letter-spacing: .15em;
+  text-transform: uppercase; font-weight: 600; color: var(--page-ink-2); }
+.panel p { margin: 0 0 10px; } .panel p:last-child { margin-bottom: 0; }
+.panel.ask { border-color: color-mix(in srgb, var(--accent) 45%, var(--page-line)); }
+.panel.ask h4 { color: var(--accent); }
+
+.beats { list-style: none; margin: 0; padding: 0; }
+.beats li { display: grid; grid-template-columns: 6.5ch 1fr; gap: 14px;
+  padding: 8px 0; border-bottom: 1px dashed var(--page-line); align-items: baseline; }
+.beats li:last-child { border-bottom: 0; }
+.beats .t { color: var(--page-ink-2); font-size: .77rem; }
+
+code { font-family: "Geist Mono", ui-monospace, monospace; font-size: .87em;
+  background: color-mix(in srgb, var(--page-line) 40%, transparent);
+  padding: 1px 5px; border-radius: 4px; }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .holder { transition: none !important; }
+  .sweep { animation: none !important; }
+}
+
+/* --- section label inside a screen ------------------------------------- */
+.slabel { display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 10px; font-weight: 700; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--ink-2); padding: 22px 2px 9px; }
+/* More space above a label than below it — the gap belongs to the group the
+   label opens, not to the one it just closed. This was three different inline
+   `padding-top`s in the markup (20px, 22px, 18px) and no rule at all on the
+   other two. */
+.slabel:first-child { padding-top: 0; }
+/* The one piece of accent text that sits on the GROUND rather than on a card,
+   and it is 10px. `--accent-ink` exists for exactly that: it is the accent in
+   dark, where the accent is already 8.3:1 on #090B0E, and the deep orange in
+   light, where the accent is only 3.70:1 on #D3DBE3.
+
+   `--accent-deep` would not do. It is the button fill, and in dark that is
+   #3D74F0 - 4.26:1 on the dark ground, so using it here would fix light by
+   breaking dark. */
+.slabel a { color: var(--accent-ink); text-decoration: none; letter-spacing: .08em; }
+
+/* ======================================================================
+   Home, relaid out: one door owns the screen.
+
+   What was here, and why it was boring - and those are the same sentence.
+
+   Home was a heading, two parcel cards and three history cards: **five
+   rounded rectangles of near-identical height, stacked, on one gap.** Every
+   piece of information on the screen was set in the same box at the same
+   weight, so the eye had nowhere to land and nothing to do but read top to
+   bottom. That is what "bland" means structurally. It is not a colour problem
+   and no amount of material fixes it, because the fault is that the layout
+   makes no claim about what matters.
+
+   The product does make that claim, and Ryan already decided it: with a
+   parcel waiting, the receiver sees ONE parcel. So:
+
+     rank 1  the arrival   a picture of the actual door, edge to edge, the
+                           number, the time left, and the button. Roughly the
+                           top half of the screen, and not a card - the image
+                           bleeds and the type stands on the ground under it.
+     rank 2  also waiting  one recessed row. Present, tappable, clearly second.
+     rank 3  collected     a hairline ledger. No fill, no border, no radius.
+
+   Three ranks, three different shapes, three different materials. Nothing on
+   this screen is the same size as anything else any more, which is the whole
+   of the fix.
+   ====================================================================== */
+
+/* The scroller. `.grow` centres its children and this must not: a short Home
+   that centres leaves the arrival floating in the middle of the screen with
+   air above it, which is what put the old layout's dead space at the bottom.
+   Content starts at the top and the ledger runs under the nav. */
+.sheet {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* --- rank 1: the claim ticket -------------------------------------------
+
+   Home stopped being built around a photograph of the cabinet.
+
+   Three of the seven blocks on the old Home were crops of the same render:
+   the hero band, the second parcel's thumbnail, and the free-boxes band. That
+   is a screen organised around an ASSET rather than around a fact, and it
+   showed - every block was the same rounded rectangle with a different piece
+   of grey metal in it. The picture of the wall of doors belongs on the
+   Cabinet tab, which is the tab whose entire job is "which of those doors is
+   mine". Home's job is different, and simpler: **you have a claim on a thing
+   in a box.**
+
+   So Home is a claim ticket, and it is built like one. A cloakroom tag, a
+   luggage stub, a lottery slip - all of them are a big number, a seam, and a
+   time, and everyone alive can read one without being taught. The number is
+   the hero because the number is the thing you carry to the cabinet and
+   repeat to yourself on the walk over. Not a photo of where it is; the thing
+   itself, set as large as the screen allows.
+
+   The seam is a real cut, not a divider line: two circular bites taken out of
+   the card edges with the ground showing through them, and a dashed rule
+   between. It costs two pseudo-elements and no images, it is unmistakable at
+   a glance, and it is the one shape on this screen that could not be any
+   other app.
+   ------------------------------------------------------------------------ */
+
+.arrival { flex: none; display: flex; flex-direction: column; }
+
+.ticket {
+  position: relative; overflow: hidden;
+  border-radius: 20px; padding: 13px 16px 14px;
+  width: 100%; text-align: left; font: inherit; color: var(--ink);
+}
+
+/* The card's hairline moves from `border` to an inset ring, and that one
+   change is what makes the notch possible.
+   ------------------------------------------------------------------------
+   `overflow: hidden` clips children to the PADDING box - inside the border -
+   so a circle placed on the card edge came back as a bite with the border
+   still drawn across it, which reads as a hole punched in the wrong layer.
+   An inset ring is painted on the element's own background, and a child
+   paints above it, so the bite covers the edge exactly the way a punch does.
+   Same 1px, same token, same look; it is only which layer draws it.
+   Written `.ticket.card` because glass.css is concatenated after this file
+   and would otherwise win on source order. */
+.ticket.card {
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 1px 0 0 var(--lip),
+    0 10px 26px -18px var(--shadow);
+}
+
+.thead {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+/* The cabinet's name, set as a stub heading: small, spaced, quiet. It is the
+   caption on the ticket, not a title - the title is the number. */
+.tplace {
+  font-size: 10px; font-weight: 650; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+
+/* Amber never becomes ink on a pale ground.
+   `--door` is #FFB200, which measures **1.81:1 on white** - the "6h left"
+   label was legible in dark and effectively invisible in light, in the one
+   place on Home that carries urgency. Tinting the text some darker orange
+   would fix the contrast and break the palette: the nearest legible amber is
+   hue 28 and `--accent` in light is hue 17, so the two would read as one
+   colour and the rule that amber means exactly one thing would go.
+   So amber stops being type and becomes a SURFACE - the same #FFB200 on
+   #241A00 pairing the Opened screen already fills a whole screen with, at
+   11.5:1, identical in both schemes. */
+.tpill {
+  font-style: normal; font-size: 11px; font-weight: 600;
+  letter-spacing: .01em; padding: 3px 9px 3.5px; border-radius: 999px;
+  flex: none; color: var(--ink-2);
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+}
+.tpill.soon { background: var(--door); color: var(--on-door); }
+.tpill.free {
+  color: var(--free);
+  background: color-mix(in srgb, var(--free) 15%, transparent);
+}
+
+/* The number and the time left share one row, bottom-aligned.
+   ------------------------------------------------------------------------
+   The pill started up in the header, which left the right two thirds of the
+   number row empty - and an oversized ghost numeral was put there to fill it,
+   which read as a smudged duplicate of the number rather than as an
+   ornament. The space did not need decorating; it needed the other half of
+   the sentence. "Door 04" and "6h left" are the two facts this screen is
+   for, and standing them on one baseline is what makes them read as one
+   sentence rather than as a title and a badge. */
+.tnum {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 12px; padding: 7px 0 2px;
+}
+.tlabel {
+  display: block; font-size: 10px; font-weight: 650; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 1px;
+}
+.tnum b {
+  display: block; font-size: 76px; font-weight: 600; line-height: .88;
+  letter-spacing: -.055em;
+}
+.tnum .tpill { margin-bottom: 11px; }
+.tnum.isfree b { color: var(--free); }
+
+/* The cut. `overflow: hidden` on the ticket turns two circles centred on the
+   card edges into two half-circle bites, so the ground shows through the card
+   rather than a matched colour being painted on top of it - which means the
+   notch stays right through a theme change with nothing to keep in step. */
+.tseam {
+  position: relative; height: 0; margin: 12px -16px 11px;
+  border-top: 1.5px dashed color-mix(in srgb, var(--ink) 17%, transparent);
+}
+.tseam::before, .tseam::after {
+  content: ""; position: absolute; top: 0; width: 17px; height: 17px;
+  border-radius: 50%; background: var(--ground);
+  transform: translateY(-50%);
+}
+.tseam::before { left: -8.5px; }
+.tseam::after { right: -8.5px; }
+
+/* The stub. Two facts, and the second is the one that matters: a parcel with
+   a collect-by time is a parcel you can be late for. */
+.tfoot { display: flex; gap: 22px; }
+.tfoot > span { display: flex; flex-direction: column; gap: 2px; }
+.tfoot em {
+  font-style: normal; font-size: 9.5px; font-weight: 650;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
+}
+.tfoot b { font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.tfoot b span { color: var(--ink-2); font-weight: 500; }
+
+/* How much time is left, as a length rather than as a number.
+
+   The pill says "6h left" and the rule says the same thing, and the rule is
+   the one that works at a glance: two tickets, one nearly empty and one
+   nearly full, and you know which to walk to first without reading either
+   label. It drains to its real value on entry - see motion.js for why it
+   drains rather than appears. */
+.tmeter {
+  display: block; height: 3px; border-radius: 2px; overflow: hidden;
+  margin-top: 13px;
+  background: color-mix(in srgb, var(--ink) 13%, transparent);
+}
+/* Grey means there is time; amber means there is not. The fill was `--accent`,
+   which is #C2410C in light - so the parcel with 31 hours on it drew a
+   two-thirds-width burnt-orange bar, louder than the 12% amber dash beside
+   it and near enough to the primary button to read as a second alarm. The
+   calm state has to be genuinely calm or the urgent one carries nothing. */
+.tmeter i {
+  display: block; height: 100%; width: 100%; border-radius: 2px;
+  transform-origin: left center;
+  background: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+.tmeter i.soon { background: var(--door); }
+
+.arrival .go { margin-top: 14px; }
+
+/* --- rank 2: the parcel that is not the urgent one ----------------------
+
+   The same ticket, one row high. It was a recessed grey row with a thumbnail
+   in it, which made the second parcel a different KIND of object from the
+   first - and it is not, it is the same object with less time pressure. Same
+   card, same number face, same drain rule, a quarter of the height. */
+.tk-sm {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  align-items: center; gap: 0 12px;
+  padding: 11px 14px 12px; cursor: pointer;
+}
+.tk-sm .tsnum {
+  font-size: 30px; font-weight: 600; line-height: 1; letter-spacing: -.05em;
+}
+.tk-sm .tsbody { min-width: 0; }
+.tk-sm .tsbody b {
+  display: block; font-size: 10px; font-weight: 650; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+.tk-sm .tsbody span { font-size: 11.5px; color: var(--ink-2); }
+.tk-sm .tsleft { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.tk-sm .chev { width: 14px; height: 14px; color: var(--ink-3); }
+.tk-sm .tmeter { grid-column: 1 / -1; margin-top: 10px; }
+
+/* The empty Home is not an apology.
+
+   It used to be a wide crop of the cabinet with six doors marked green - a
+   picture standing in for a count. But the fact is a count, so the ticket
+   states it as one, in exactly the shape the arrival uses. Nothing is
+   redesigned for the empty case: the two Homes are one screen carrying
+   different news, and the number in the middle is the news. */
+.ticket.empty .tfoot { display: block; }
+.ticket.empty .tfoot p {
+  margin: 0; font-size: 12px; color: var(--ink-2); line-height: 1.45;
+}
+
+/* --- where on campus, and how far ---------------------------------------
+   The one element on Home that is not about a parcel.
+
+   "Back gate" is a name, and a name only works on someone who already knows
+   the campus. A first-year with a parcel does not, and neither does a courier
+   reading the same word on the cabinet screen.
+
+   Three passes to get here, and the first two are worth keeping:
+
+   1. **Hand-drawn.** Invented outright, then read off satellite imagery by
+      eye. Both looked like maps and neither was one.
+   2. **Projected, but framed round the whole Overpass box.** Real ways, real
+      gate - and the walk you would actually take occupied about a fifth of
+      the card. A map of a place is not the same thing as a map of a journey.
+
+   Now the window is sized from the ROUTE. The line is a pedestrian route from
+   a real building on campus to the real gate node, computed by a routing
+   engine over real ways and baked in at build time - see map.py. The card is
+   answering "where do I walk", so the walk fills it.
+   ------------------------------------------------------------------------ */
+/* An <a>, not a <button>, and that is the whole feature.
+   ------------------------------------------------------------------------
+   Nothing this app can draw beats the map application already on the phone
+   for the last hundred metres: it has the live position, it re-routes when
+   you turn the wrong way, and it talks. So the card does not try. It shows
+   the walk at a glance - which gate, which side of campus, how far - and
+   hands off to Google Maps in walking mode, with the gate's real coordinates
+   as the destination. No key, no SDK, no request from the app at all. */
+.whereto {
+  position: relative; display: block; width: 100%; margin-top: 10px;
+  border-radius: 18px; overflow: hidden; padding: 0; cursor: pointer;
+  font: inherit; text-align: left; color: var(--ink);
+  text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+/* Deeper than the sheet's ground on purpose - the plan is drawn in tints OF
+   the ink over this, so it needs to be a value the tints can separate from. */
+.wmap {
+  display: block; position: relative; height: 112px;
+  background: color-mix(in srgb, var(--ink) 7%, var(--ground-2));
+}
+.wmap .plan { position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block; }
+
+/* A bar under the map, not a plate on it.
+   ------------------------------------------------------------------------
+   The label used to be a floating plate in the bottom-right corner with a
+   chevron on it, and Ryan read it exactly as it was drawn: an arrow aimed at
+   the corner of a picture, implying nothing. A chevron means "this row opens
+   something" and this row does not - it opens directions, which is a
+   different gesture and deserves its own glyph.
+
+   So the label comes off the map. It sits under it, full width, carrying the
+   two facts a receiver wants before setting off - which cabinet, and how far
+   - and the control on the right is a navigation arrow, which is the one
+   symbol everybody already reads as "take me there". The map underneath is
+   never covered by its own label again. */
+.wbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 11px 10px 13px; border-top: 1px solid var(--hair);
+}
+.wtext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.wtext b { font-size: 13.5px; font-weight: 600; letter-spacing: -.01em; }
+.wtext > span { font-size: 11.5px; color: var(--ink-2); }
+.wgo {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+/* Tinted, not filled. On Home this sits ten pixels under a full-width filled
+   accent button, and two saturated controls on one screen means neither of
+   them is the primary one. */
+.wgo svg { width: 15px; height: 15px; }
+
+/* --- a settings row ------------------------------------------------------ */
+/* Who is signed in. This was `.parcel.card` with a `.num` span, and `.num`
+   lost its rule when the parcel cards became door crops — the initials have
+   been unstyled 17px text sitting on the card ever since. */
+.me { display: flex; align-items: center; gap: 13px; padding: 12px 13px;
+  border-radius: 19px; }
+.me .avatar {
+  width: 44px; height: 44px; border-radius: 14px; flex: none;
+  display: grid; place-items: center;
+  font-size: 15px; font-weight: 600; letter-spacing: .04em;
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.me .body { flex: 1; min-width: 0; }
+.me .body b { display: block; font-size: 14.5px; font-weight: 600; }
+.me .body span { font-size: 11.5px; color: var(--ink-2); }
+
+.set { display: flex; align-items: center; gap: 12px; padding: 12px 13px;
+  border-radius: 15px; }
+.set .ico { width: 32px; height: 32px; border-radius: 10px; flex: none;
+  display: grid; place-items: center; color: var(--ink-2); }
+.set .ico svg { width: 15px; height: 15px; }
+.set .t { flex: 1; min-width: 0; font-size: 13.5px; }
+.set .v { font-size: 11.5px; color: var(--ink-3); }
+.set .chev { color: var(--ink-3); flex: none; }
+.set .chev svg { width: 14px; height: 14px; display: block; }
+
+.toggle { width: 38px; height: 22px; border-radius: 999px; flex: none;
+  border: 0; padding: 0; cursor: pointer; position: relative;
+  background: var(--accent-deep);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.24); }
+.toggle::after { content: ""; position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+/* Off is a recess: the knob has slid back into the well. On is a fill. */
+.toggle.off { background: var(--field);
+  box-shadow: inset 0 1.5px 3px 0 var(--recess-in),
+              inset 0 -1px 0 0 var(--recess-lit); }
+.toggle.off::after { right: auto; left: 2px; background: var(--ink-3);
+  box-shadow: none; }
+
+.stack { display: flex; flex-direction: column; gap: 8px; }
+
+/* ======================================================================
+   The way in — three screens, one structure.
+
+   What this replaced, and why it was replaced.
+
+   Every control lived inside one rounded panel: the phone field, the primary
+   button, a divider, two more buttons, and the legal links. Six things of
+   four different ranks, in one bin, all the same width, all on the same 11px
+   gap. Two faults follow from that, and both are structural:
+
+   1. The container was doing the job proximity should do. Take the panel
+      away and nothing told you what grouped with what, which is the test of
+      whether a container is earning its place.
+
+   2. It made four ranks look like one. The receiver had to READ three
+      buttons to discover that one of them costs this project money on every
+      tap and the other two are free.
+
+   The panel is gone. The ranks are carried by the surfaces themselves, which
+   already differ - a recessed field, a filled button, a hairline outline -
+   and by three deliberate intervals instead of one repeated one. Wrapping
+   those surfaces in a shared card is precisely what flattened them.
+   ====================================================================== */
+
+/* --- the cabinet is the mark ------------------------------------------- */
+
+/* There used to be a rounded square with a glyph in it: a logo placeholder,
+   on a product whose entire identity is a piece of metal standing in a
+   corridor. The render is already in the page and costs nothing to reuse -
+   `screens.js` clones the one <img>, so there is still only one copy of it.
+
+   It bleeds off three edges and is masked out at the bottom, so the first
+   screen opens on the actual thing instead of on an icon standing in for it. */
+/* The crop is chosen, not centred.
+
+   Centred, the frame lands on the control panel - position 06, the blue
+   screen - and cuts the door rows in half. What is wanted is metal: the
+   top-right quadrant carries doors 03, 04, 07, 08, 11 and 12, the top edge
+   of the cabinet, and the right-hand side panel, which is the part that
+   shows the three-quarter depth. Past the right edge the render is
+   transparent, so the cabinet ends and the ground shows through - which is
+   what stops it reading as wallpaper and makes it read as an object.
+
+   The window shows image fractions x 0.46 to 1.03, y 0.07 to 0.43. It starts
+   at 0.46 because the control panel's right edge is at 0.446, and at 0.43 a
+   blue sliver of it came into the left of the frame. */
+.authhero {
+  position: relative; flex: none; height: 214px;
+  margin: -15px -17px 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 97%);
+  mask-image: linear-gradient(180deg, #000 40%, transparent 97%);
+}
+/* `max-width: none` is load-bearing, not tidiness.
+
+   A published artifact is wrapped in a skeleton that ships a minimal CSS
+   reset, and every minimal reset carries `img { max-width: 100% }`. That
+   clamps the 175% below to the container width, so the crop collapses to a
+   sliver of the far right edge sitting at the left of the frame and the rest
+   of the hero goes empty. It renders correctly from a local file and wrongly
+   once published, which is exactly the kind of fault that survives testing. */
+.authhero img {
+  position: absolute; display: block;
+  width: 175%; max-width: none; left: -80%; top: -19%;
+}
+
+.auth { justify-content: flex-start; padding-top: 0; gap: 0; }
+/* The two screens with no hero sit their heading just above the form.
+   Centred - which is what this was - the heading floats in the middle of the
+   screen and the form stays pinned at the thumb, leaving a 180px hole between
+   two things that are one thought: the question and the answer to it. */
+.authmid { justify-content: flex-end; padding-bottom: 26px; }
+
+.display {
+  font-size: 40px; font-weight: 650; letter-spacing: -.045em;
+  line-height: 1.02; margin: 20px 0 0; text-wrap: balance;
+}
+.display em { font-style: normal; color: var(--accent); }
+.authlede { margin: 12px 0 0; font-size: 13.5px; color: var(--ink-2); max-width: 28ch; }
+
+/* --- the form ----------------------------------------------------------- */
+
+/* Three intervals, and the contrast between them is the hierarchy:
+     8px   inside a field group - a label and its field are one thing
+     12px  between a field and the button that submits it
+     22px  between ranks
+   The old panel used 11px for all of it, which is how everything ended up
+   weighing the same. */
+.authform { flex: none; display: flex; flex-direction: column; gap: 22px; }
+.rank { display: flex; flex-direction: column; gap: 12px; }
+.fieldset { display: flex; flex-direction: column; gap: 8px; }
+
+/* A label that stays. The placeholder was doing this job, and a placeholder
+   leaves exactly when the field is in use. */
+.flabel {
+  font-size: 10px; font-weight: 600; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--ink-2); padding-left: 3px;
+}
+
+.input {
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px 15px; border-radius: 16px;
+  background: var(--field); border: 0;
+  box-shadow: inset 0 1.5px 3px 0 var(--recess-in),
+              inset 0 -1px 0 0 var(--recess-lit);
+}
+.input svg { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+.input span { font-size: 15px; color: var(--ink-3); }
+.input.filled span { color: var(--ink); }
+.input.focus {
+  box-shadow: inset 0 0 0 1.5px var(--accent),
+              0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.input .cc { font-size: 15px; color: var(--ink-2); padding-right: 9px;
+  border-right: 1px solid var(--hair); }
+
+.divider { display: flex; align-items: center; gap: 12px; }
+.divider i { flex: 1; height: 1px; background: var(--hair); }
+.divider span {
+  font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600;
+}
+
+/* The free ways in, as one rank rather than two more choices.
+
+   They were two full-width buttons stacked under the primary one, the same
+   size and the same shape, each labelled "Continue with ...". Three controls
+   in a column all beginning with the same word is a menu that has to be read
+   before it can be used. Paired and outlined, they read as one alternative
+   at a glance, and the label drops to the only part that differs. */
+.ways { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.social {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 48px; padding: 12px 10px; border-radius: 15px; cursor: pointer;
+  background: none; border: 1px solid var(--hair);
+  font: inherit; font-size: 13px; font-weight: 550; color: var(--ink);
+}
+.social svg, .social img { width: 18px; height: 18px; flex: none; }
+
+/* Out of the form. Terms are not a control, and they were sitting in the
+   same box as the buttons. */
+.legal {
+  display: flex; gap: 20px; justify-content: center; padding: 18px 0 2px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.legal a { color: inherit; text-decoration: none; }
+
+/* A consequence, under the control it is a consequence of - which is where
+   the decision is actually made. It used to sit up in the heading, where it
+   arrived as a warning before the choice it warns about existed. */
+.skip { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+/* The "why we need this" line under a field. Six words, never a paragraph. */
+.hint { font-size: 11.5px; color: var(--ink-3); padding: 0 3px; }
+
+
+/* ======================================================================
+   No wallpaper.
+
+   A dim copy of the cabinet was put behind every screen so the glass had
+   hard edges to refract. It worked, and it cost more than it bought: on any
+   screen that is not the Cabinet tab it showed through as a faint locker
+   grid behind the content - visible on the code screen as a ghost cabinet
+   sitting under the digits, which is an artifact, not a background.
+
+   It is not needed any more either. Glass is now only on floating chrome -
+   the nav bar and the app-bar buttons - and those sit over real content: the
+   cabinet render on one tab, the parcel list on another. The refraction has
+   something to work on without a wallpaper propping it up.
+
+   What is left is light: two soft washes, which give the ground a direction
+   without putting a picture behind the text.
+   ====================================================================== */
+
+/* The amber wash is gone.
+
+   With the wallpaper removed, two washes were left in its place: accent from
+   the top right, and `--door` amber from the bottom left. The amber one was
+   the yellow smear under HOME on the nav bar - a warm stain on a cold
+   interface, in the one colour this design spends on a single meaning.
+   Amber says *this door is yours*. Spraying it across the corner of every
+   screen as decoration is how a signal stops being a signal.
+
+   `.screen` keeps one gradient of its own, in the accent, from above the
+   app bar. One light source, in the colour of the app. That is enough. */
+
+/* Everything the screen holds sits above the curtain. */
+.screen > * { position: relative; z-index: 1; }
+
+/* ======================================================================
+   The app bar, arranged the way the Stitch draft arranges it.
+
+   Menu and wordmark together on the left; the actions on the right. The
+   wordmark is NOT centred - centring it makes the bar symmetrical, and a
+   symmetrical bar gives the scan button no more weight than the bell.
+   ====================================================================== */
+.appbar .side { display: flex; align-items: center; gap: 8px; }
+.appbar .brand { font-size: 14.5px; font-weight: 600; letter-spacing: -.012em; }
+
+/* Scanning is what a receiver came to do, so it is the one control up here
+   that is tinted and lit. Everything else in the bar is quiet glass. */
+.qr-btn {
+  width: 30px; height: 30px; border-radius: 50%; display: grid;
+  place-items: center; cursor: pointer; padding: 0;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.qr-btn svg { width: 15px; height: 15px; display: block; }
+
+
+
+/* ======================================================================
+   Let the content run under the chrome.
+
+   Measured on screen: the glass looked like a plain rounded rectangle
+   because there was nothing behind it. The render stopped above the button
+   and the tab bar floated over empty ground - so a lens that bends its
+   backdrop had no backdrop to bend, at any strength.
+
+   On the Cabinet tab the render now fills the screen from under the heading
+   all the way down, and the button and the bar sit *on* it. That is what
+   the material is for: chrome floating over content, with the content
+   visible and bent through it.
+   ====================================================================== */
+
+.screen:has(.hero) .hero {
+  margin-bottom: -190px;      /* under the action block and the bar */
+  padding-bottom: 190px;
+  border-radius: 22px 22px 0 0;
+  /* The hero centres its contents, so 190 px of padding at the bottom pushes
+     the render down by half of it. Pulling the box up by that half puts the
+     centre back in the middle of the *visible* area. Aligning to the top
+     instead was tried and only suited the zoomed state - with no zoom the
+     cabinet sat small under the heading with a hole beneath it. */
+  margin-top: -95px;
+}
+.screen:has(.hero) .action { position: relative; z-index: 2; }
+
+
+/* A gradient so the render fades rather than being cut off by the bar, and
+   so the button keeps its contrast against a bright door. */
+.screen:has(.hero) .hero::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 258px;
+  pointer-events: none; z-index: 1;
+  /* Deep enough that the quiet "Use a code" under the button still reads
+     against a lit door. Measured: it was illegible at 88%. */
+  background: linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ground) 62%, transparent) 34%,
+    var(--ground) 76%);
+}

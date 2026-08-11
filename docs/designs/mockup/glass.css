@@ -1,0 +1,681 @@
+/* ======================================================================
+   Liquid glass — a material, not a colour.
+
+   Four layers, and dropping any one of them kills the effect. The earlier
+   version of this page had only the first two, which is exactly why it read
+   as "a translucent rectangle" rather than as a piece of glass:
+
+     1. blur behind it       - what makes it glass at all
+     2. a body lighter at the top than the bottom - thickness
+     3. an inner lip: bright along the top edge, faint along the bottom -
+        this is the *edge* of a solid slab catching a light from above, and
+        it is the single thing most often missing
+     4. an outer shadow with real offset - what lifts it off the surface
+
+   The specular sits in a ::before so it lies ON the glass rather than behind
+   it. A highlight painted into the background gets blurred with everything
+   else and disappears.
+   ====================================================================== */
+
+.lg {
+  position: relative;
+  background:
+    linear-gradient(157deg,
+      rgba(255,255,255,.15) 0%,
+      rgba(255,255,255,.055) 44%,
+      rgba(255,255,255,.02) 100%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.40),
+    inset 1px 0 0 0 rgba(255,255,255,.10),
+    inset -1px 0 0 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 0 rgba(255,255,255,.05),
+    0 1px 2px rgba(0,0,0,.26),
+    0 10px 22px -8px rgba(0,0,0,.44);
+}
+.lg::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(126% 74% at 20% -14%,
+    rgba(255,255,255,.30) 0%, rgba(255,255,255,.06) 42%, transparent 62%);
+}
+
+/* Popped out: the same material, further off the surface. Used for anything
+   that floats over content rather than sitting in it. */
+.lg-pop {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.48),
+    inset 1px 0 0 0 rgba(255,255,255,.12),
+    inset -1px 0 0 0 rgba(255,255,255,.07),
+    inset 0 -1px 0 0 rgba(255,255,255,.06),
+    0 2px 4px rgba(0,0,0,.30),
+    0 12px 26px -8px rgba(0,0,0,.50),
+    0 26px 54px -16px rgba(0,0,0,.60);
+}
+
+/* Small, round, and bright-edged. The corner controls: the whole thing is
+   edge, so the lip carries almost all of the read. */
+.lg-bead {
+  -webkit-backdrop-filter: blur(16px) saturate(200%) brightness(1.12);
+  backdrop-filter: blur(16px) saturate(200%) brightness(1.12);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 0 rgba(255,255,255,.10),
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 2px 5px rgba(0,0,0,.34),
+    0 7px 16px -5px rgba(0,0,0,.44);
+}
+.lg-bead::before {
+  background: radial-gradient(84% 60% at 30% 0%,
+    rgba(255,255,255,.48) 0%, transparent 58%);
+}
+
+/* Light mode is not the same material with different numbers. On a pale
+   ground a white lip has nothing to be brighter than, so the thickness has to
+   be carried by the shade under the bottom edge instead. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .lg,
+  :root:not([data-theme="dark"]) .lg-pop,
+  :root:not([data-theme="dark"]) .lg-bead {
+    background:
+      linear-gradient(157deg, rgba(255,255,255,.92) 0%,
+        rgba(255,255,255,.68) 46%, rgba(255,255,255,.55) 100%);
+    border-color: rgba(255,255,255,.9);
+  }
+  :root:not([data-theme="dark"]) .lg {
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,1),
+      inset 0 -1px 0 0 rgba(9,22,32,.06), 0 1px 2px rgba(9,22,32,.10),
+      0 10px 22px -8px rgba(9,22,32,.18);
+  }
+  :root:not([data-theme="dark"]) .lg-pop {
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,1),
+      inset 0 -1px 0 0 rgba(9,22,32,.08), 0 2px 4px rgba(9,22,32,.10),
+      0 14px 28px -8px rgba(9,22,32,.20), 0 28px 56px -18px rgba(9,22,32,.24);
+  }
+  :root:not([data-theme="dark"]) .lg-bead {
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,1),
+      inset 0 -1px 0 0 rgba(9,22,32,.10), 0 2px 5px rgba(9,22,32,.12),
+      0 7px 16px -5px rgba(9,22,32,.16);
+  }
+  :root:not([data-theme="dark"]) .lg::before,
+  :root:not([data-theme="dark"]) .lg-bead::before {
+    background: radial-gradient(120% 70% at 22% -10%,
+      rgba(255,255,255,.9) 0%, transparent 58%);
+  }
+}
+
+:root[data-theme="light"] .lg,
+:root[data-theme="light"] .lg-pop,
+:root[data-theme="light"] .lg-bead {
+  background:
+    linear-gradient(157deg,
+      rgba(255,255,255,.92) 0%,
+      rgba(255,255,255,.68) 46%,
+      rgba(255,255,255,.55) 100%);
+  border-color: rgba(255,255,255,.9);
+}
+:root[data-theme="light"] .lg {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,1),
+    inset 0 -1px 0 0 rgba(9,22,32,.06),
+    0 1px 2px rgba(9,22,32,.10),
+    0 10px 22px -8px rgba(9,22,32,.18);
+}
+:root[data-theme="light"] .lg-pop {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,1),
+    inset 0 -1px 0 0 rgba(9,22,32,.08),
+    0 2px 4px rgba(9,22,32,.10),
+    0 14px 28px -8px rgba(9,22,32,.20),
+    0 28px 56px -18px rgba(9,22,32,.24);
+}
+:root[data-theme="light"] .lg-bead {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,1),
+    inset 0 -1px 0 0 rgba(9,22,32,.10),
+    0 2px 5px rgba(9,22,32,.12),
+    0 7px 16px -5px rgba(9,22,32,.16);
+}
+:root[data-theme="light"] .lg::before,
+:root[data-theme="light"] .lg-bead::before {
+  background: radial-gradient(120% 70% at 22% -10%,
+    rgba(255,255,255,.9) 0%, transparent 58%);
+}
+
+/* ======================================================================
+   The bottom nav — floating, and clearly above the page.
+   ====================================================================== */
+
+.nav {
+  flex: none; margin: 9px 2px 0; display: flex; gap: 3px; padding: 5px;
+  border-radius: 999px; position: relative; z-index: 3;
+}
+.nav > * { position: relative; z-index: 1; }
+.nav button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 3px; border: 0; border-radius: 999px; background: none;
+  font: inherit; font-size: 9.5px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-3); cursor: pointer;
+  transition: color .28s ease;
+}
+.nav button svg { width: 17px; height: 17px; transition: transform .34s cubic-bezier(0,-.02,.35,1.17); }
+
+/* The selected tab is a second piece of glass lifted off the first. Two
+   materials stacked is what gives the bar depth instead of a highlight
+   painted onto a flat pill. */
+/* Measured on screen, the pill was a flat saturated lozenge: a 34% accent
+   wash with a 55% accent shadow spreading 8px under it, which on a dark bar
+   reads as a coloured smudge rather than as a second pane. Three changes, and
+   only the last is cosmetic:
+
+     - the fill drops to 24%, because it sits on glass that is already
+       lightening what is behind it - the two were compounding;
+     - the coloured drop shadow goes. Colour under a colour is a glow, and a
+       glow is the thing that made it look cheap. What lifts a pane is a
+       neutral shadow with real offset, so that is what it gets;
+     - the lit top edge goes UP, because with the fill down it is now the
+       edge doing the lifting. That is the same order of importance as
+       `.card`: edge first, shadow second, fill last. */
+.nav button[aria-selected="true"] {
+  color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  background-image: linear-gradient(180deg,
+    rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 62%);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.42),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent),
+    inset 0 -1px 0 0 rgba(0,0,0,.14),
+    0 2px 6px -2px rgba(0,0,0,.34);
+}
+.nav button[aria-selected="true"] svg { transform: translateY(-1px) scale(1.06); }
+
+/* ======================================================================
+   The theme toggle — Ryan's sky-toggle component, ported whole.
+
+   The first pass paraphrased it: a knob, a colour swap, some dots. Two
+   things were lost, and the second is why the motion read as wrong.
+
+   1. **The sky went.** The clouds and the blue were dropped on the argument
+      that a cartoon sky inside a steel app reads as a borrowed widget. That
+      was a taste call made over a supplied component, which is not a call
+      that was mine. It is back, entire.
+
+   2. **The timing was flattened onto one curve.** The component runs TWO,
+      and the difference between them is the whole feel of it:
+
+        --transition:        .5s cubic-bezier(0, -0.02, 0.4, 1.25)
+        --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17)
+
+      The knob crosses in 300ms; the sky, the clouds, the stars and the moon
+      take 500ms. The knob ARRIVES FIRST and the world catches up behind it.
+      Run everything at 500ms - which is what the paraphrase did - and the
+      knob drifts across in convoy with the background, which is exactly the
+      soft, laggy motion that was wrong.
+
+      Both curves start with a negative y1, so each one dips back a little
+      before it goes. That is the wind-up, and it is why the knob has weight.
+
+   Ported verbatim from the component: every size, colour, shadow, offset and
+   curve. Two things are adapted, and only these two:
+     - `--toggle-size` drops from 30px to 10px. The component sizes entirely
+       in `em` off that one value, so this scales it and changes nothing else.
+       At 30px the pill is 169 x 75px, which is a control for a page, not for
+       a settings row.
+     - `input:checked + .container` becomes `[aria-pressed="true"]`, because
+       the control here is a button the theme code already drives.
+   ====================================================================== */
+
+.theme-switch {
+  --toggle-size: 10px;
+  --container-width: 5.625em;
+  --container-height: 2.5em;
+  --container-radius: 6.25em;
+  --container-light-bg: #3D7EAE;
+  --container-night-bg: #1D1F2C;
+  --circle-container-diameter: 3.375em;
+  --sun-moon-diameter: 2.125em;
+  --sun-bg: #ECCA2F;
+  --moon-bg: #C4C9D1;
+  --spot-color: #959DB1;
+  --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1);
+  --stars-color: #fff;
+  --clouds-color: #F3FDFF;
+  --back-clouds-color: #AACADF;
+  --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
+  --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
+
+  /* The pill is 25px tall. The hit area is not. */
+  border: 0; padding: 0 0 0 11px; background: none; cursor: pointer;
+  display: grid; place-items: center; min-height: 48px; flex: none;
+}
+.theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  font-size: var(--toggle-size);
+}
+.theme-switch { padding-left: 11px; }
+
+.theme-switch__container {
+  width: var(--container-width);
+  height: var(--container-height);
+  background-color: var(--container-light-bg);
+  border-radius: var(--container-radius);
+  overflow: hidden;
+  box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+  transition: var(--transition);
+  position: relative;
+  display: block;
+}
+.theme-switch__container::before {
+  content: ""; position: absolute; z-index: 1; inset: 0;
+  box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+  border-radius: var(--container-radius);
+}
+
+.theme-switch__circle-container {
+  width: var(--circle-container-diameter);
+  height: var(--circle-container-diameter);
+  background-color: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  left: var(--circle-container-offset);
+  top: var(--circle-container-offset);
+  border-radius: var(--container-radius);
+  box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1);
+  display: flex;
+  transition: var(--circle-transition);
+  pointer-events: none;
+}
+
+.theme-switch__sun-moon-container {
+  pointer-events: auto; position: relative; z-index: 2;
+  width: var(--sun-moon-diameter); height: var(--sun-moon-diameter);
+  margin: auto; border-radius: var(--container-radius);
+  background-color: var(--sun-bg);
+  box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset;
+  filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+/* The sun does not become the moon. The moon SLIDES ACROSS it, from
+   translateX(100%), clipped by the sun's own overflow. */
+.theme-switch__moon {
+  transform: translateX(100%);
+  width: 100%; height: 100%;
+  background-color: var(--moon-bg); border-radius: inherit;
+  box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset;
+  transition: var(--transition);
+  position: relative;
+}
+
+.theme-switch__spot {
+  position: absolute; top: 0.75em; left: 0.312em;
+  width: 0.75em; height: 0.75em;
+  border-radius: var(--container-radius);
+  background-color: var(--spot-color);
+  box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+}
+.theme-switch__spot:nth-of-type(2) { width: 0.375em; height: 0.375em; top: 0.937em; left: 1.375em; }
+.theme-switch__spot:nth-last-of-type(3) { width: 0.25em; height: 0.25em; top: 0.312em; left: 0.812em; }
+
+.theme-switch__clouds {
+  width: 1.25em; height: 1.25em;
+  background-color: var(--clouds-color);
+  border-radius: var(--container-radius);
+  position: absolute; bottom: -0.625em; left: 0.312em;
+  box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
+  transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+}
+
+.theme-switch__stars-container {
+  position: absolute; color: var(--stars-color);
+  top: -100%; left: 0.312em; width: 2.75em; height: auto;
+  transition: var(--transition);
+}
+.theme-switch__stars-container svg { width: 100%; height: auto; display: block; }
+
+/* actions */
+
+.theme-switch[aria-pressed="true"] .theme-switch__container {
+  background-color: var(--container-night-bg);
+}
+.theme-switch[aria-pressed="true"] .theme-switch__circle-container {
+  left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
+}
+.theme-switch[aria-pressed="true"]:hover .theme-switch__circle-container {
+  left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em);
+}
+.theme-switch:hover .theme-switch__circle-container {
+  left: calc(var(--circle-container-offset) + 0.187em);
+}
+.theme-switch[aria-pressed="true"] .theme-switch__moon { transform: translate(0); }
+.theme-switch[aria-pressed="true"] .theme-switch__clouds { bottom: -4.062em; }
+.theme-switch[aria-pressed="true"] .theme-switch__stars-container {
+  top: 50%; transform: translateY(-50%);
+}
+
+/* ======================================================================
+   Changing theme.
+
+   The curtain component Ryan supplied, put where it belongs: **behind the
+   content**.
+
+   The first attempt dropped it over everything at z-index 9999. For half a
+   second the page was a blank rectangle - nothing transitioned, the content
+   was covered and then uncovered, already changed. A View Transition was
+   tried next and had the same fault in a nicer costume: the live page is
+   replaced by two flat snapshots while it runs.
+
+   Behind the content, the same component does the right thing. The ground
+   wipes, because that is the layer the curtain is in front of. Every panel,
+   every rule and every letter stays exactly where it is, on top, in full
+   view - and changes its own colours as the theme lands underneath it.
+   Nothing is ever hidden.
+
+   Duration and easing are the component's own: 550 ms on
+   cubic-bezier(0.76, 0, 0.24, 1). Only the z-index is changed - 9997 in the
+   original, 0 here - and that single number is the whole difference between
+   covering the page and passing behind it.
+   ====================================================================== */
+
+/* One pass, upward, and the blocks turn with it.
+
+   Ryan's curtain component runs two passes: fall 550ms, swap, rise 550ms.
+   Both use `transformOrigin: "top"` - the value never changes between the
+   phases - so it drops from the top and then retracts back to the top, and
+   nothing at all happens to the page for the first 550ms of it. 1100ms end
+   to end, with a dead beat in the middle. That is the sluggishness.
+
+   `duration` is a documented prop on that component, so the timing is meant
+   to be set by the caller. This sets it to one pass at 480ms, and inverts it:
+
+     - the curtain is filled with the OUTGOING ground colour and held at
+       scaleY(1), covering the screen's own background;
+     - the theme swaps underneath it, hidden;
+     - the curtain then shrinks to scaleY(0) - origin top, so its bottom edge
+       travels upward and the NEW ground is revealed from the floor up.
+
+   One pass instead of two, which is where more than half the time went, and
+   upward, which is the direction Ryan asked for.
+
+   It is still at z-index 0, behind the content. Nothing is ever covered. */
+.screen > .curtain {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  transform-origin: top; transform: scaleY(0);
+  will-change: transform;
+}
+.screen > .curtain.hold { transform: scaleY(1); transition: none; }
+.theming .screen > .curtain.wipe,
+.screen > .curtain.wipe {
+  transform: scaleY(0);
+  transition: transform var(--curtain-ms, 480ms) cubic-bezier(.76, 0, .24, 1);
+}
+/* The curtain is inside `.screen`, so the block-wave rule below would catch
+   it and animate its fill. It carries its own motion. */
+.theming .screen > .curtain { transition: none; }
+
+/* ----------------------------------------------------------------------
+   The blocks turn, bottom to top.
+
+   Two earlier versions, and what each got wrong:
+
+   1. **`.theming *`** put a seven-property transition on every element and
+      pseudo-element on the page - about two thousand of them - so one tap
+      asked for roughly fourteen thousand animations and recomputed style for
+      the whole document every frame. It stuttered, and it had to be
+      cancelled on the toggle by hand, which is why the knob never moved.
+
+   2. **Interpolating the tokens on `:root`** fixed the cost - twenty
+      animations, not fourteen thousand - but it changes the entire interface
+      at once, uniformly. Nothing travels. Everything simply gets lighter
+      together, which reads as a soft global fade rather than as anything
+      happening in a direction.
+
+   This does neither. The tokens swap **instantly**, and each block animates
+   its own resolved colours with a delay set from how far it sits above the
+   floor of its screen. Bottom row first, top row last, a 300ms spread with
+   each block taking 190ms - so at any instant a few blocks are mid-turn and
+   the rest are settled, which is what makes it read as a wave passing rather
+   than as a page fading.
+
+   `linear`, deliberately. The stagger is the motion; easing each block as
+   well makes every one of them soft at both ends and the wave goes mushy.
+
+   Scoped to `.screen` and its contents. The page around the phones is not
+   part of this and does not follow the toggle at all.
+   ---------------------------------------------------------------------- */
+.theming .screen,
+.theming .screen * {
+  transition:
+    background-color var(--block-ms, 190ms) linear var(--d, 0ms),
+    background-image var(--block-ms, 190ms) linear var(--d, 0ms),
+    border-color var(--block-ms, 190ms) linear var(--d, 0ms),
+    color var(--block-ms, 190ms) linear var(--d, 0ms),
+    fill var(--block-ms, 190ms) linear var(--d, 0ms),
+    box-shadow var(--block-ms, 190ms) linear var(--d, 0ms);
+}
+
+/* The toggle is inside a screen, and it owns its own two curves. Restore
+   them at matching specificity so the wave cannot flatten them - this is
+   the rule whose absence stopped the knob moving the first time round. */
+.theming .theme-switch__container,
+.theming .theme-switch__sun-moon-container,
+.theming .theme-switch__moon,
+.theming .theme-switch__stars-container { transition: var(--transition); }
+.theming .theme-switch__clouds { transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25); }
+.theming .theme-switch__circle-container { transition: var(--circle-transition); }
+
+@media (prefers-reduced-motion: reduce) {
+  .theming .screen, .theming .screen * { transition: none !important; }
+  .screen > .curtain { transition: none !important; }
+}
+
+/* ======================================================================
+   The loading orb.
+
+   Drawn on a canvas by `orb.js` - see there for what it is and where it
+   comes from. Nothing here but the box it sits in.
+   ====================================================================== */
+
+canvas.orb { display: block; flex: none; }
+
+
+
+/* ======================================================================
+   The computed rim, and what changes once refraction is real.
+
+   Everything above this line is the painted version: a tint, a 1px white
+   line, a stack of shadows. It stays, because Safari and Firefox will not
+   run an SVG filter inside `backdrop-filter` and that is what they get.
+
+   Where refraction *is* available, `liquid.js` adds `.lg-real` to the root
+   and two things change:
+
+     - the body tint drops almost to nothing. Real glass does not whiten what
+       is behind it; it bends it. A tint that was carrying the whole effect
+       now only gets in the way of the bend.
+     - the hand-painted highlight is replaced by `--lg-rim`, a specular map
+       computed per element from the actual surface normal of its bezel. The
+       old one was a radial gradient in a fixed corner, which is right for one
+       shape and wrong for every other.
+   ====================================================================== */
+
+.lg::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none;
+  background-image: var(--lg-rim);
+  background-size: 100% 100%;
+  opacity: .9;
+}
+
+.lg-real .lg {
+  /* The glass itself carries no blur and no tint: the `.lg-warp` span behind
+     the content does the refraction, and the ring draws the lit edge.
+
+     The shadow is soft and offset downward, the way a pane lifted a few
+     millimetres off a surface casts. rdev uses 0 12px 40px / 25%, which is
+     right over a photograph and heavy on a dark ground - a dark shadow on a
+     dark background reads as a smudge, so this is lighter and wider. */
+  /* A trace of white on top of the lift. Not a tint - at this weight it is
+     below the level where it reads as a colour, and its whole job is to stop
+     the pane vanishing where the backdrop is pure black and there is nothing
+     for `brightness()` to multiply.
+
+     Split into colour and overlay so the scheme change interpolates: the
+     overlay is identical in both schemes, so only the fill has to move. */
+  background-color: rgba(255, 255, 255, .04);
+  background-image: linear-gradient(157deg,
+    rgba(255, 255, 255, .07) 0%, rgba(255, 255, 255, 0) 62%);
+  border: 0;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+
+  /* The painted fallback's own backdrop-filter has to come OFF here.
+     It was never unset, so with the real material running there were two
+     stacked backdrop-filters on top of each other: blur(24px) saturate(190%)
+     brightness(1.06) on this element, and blur(6px) saturate(200%)
+     brightness(lift) on the warp span inside it. Both blurs applied, and both
+     brightnesses multiplied - 1.06 x 1.5 in dark. That is a compounding
+     error, and it gets worse the darker or lighter the backdrop is. */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.lg-real .lg-pop { box-shadow: 0 14px 44px rgba(0, 0, 0, .30); }
+.lg-real .lg-bead { box-shadow: 0 4px 12px rgba(0, 0, 0, .20); }
+
+/* The painted specular and the computed rim are both replaced by the two
+   mask-composited ring layers the script builds. */
+.lg-real .lg::before,
+.lg-real .lg::after { display: none; }
+
+/* Content sits above the warp. Without this the text is behind the layer
+   that is blurring the backdrop, and reads as smeared. */
+.lg-real .lg > *:not(.lg-warp):not(.lg-ring) { position: relative; z-index: 1; }
+
+/* Light glass is a fill, not a gain.
+
+   The painted version of this carried `rgba(255,255,255,.92)` at the top of
+   a gradient. Sat on top of a backdrop that `brightness(1.55)` had already
+   clipped to white, that made the nav a solid white lozenge - measured at
+   an average of rgb(241,243,245), with the card edges behind it erased.
+
+   A pane on a pale ground is *translucent white*. It carries the hue of what
+   is behind it, softened and a little more saturated, with the fill lifting
+   it off. So the fill drops to something you can actually see through, and
+   the filter keeps the colour rather than bleaching it. */
+/* .44 was still washing it out: measured against the card behind it, the nav
+   came back with a chroma of 3 where the card had 6. A pane that is LESS
+   saturated than what it lies on is not passing the colour through, however
+   hard the filter saturates - the white fill was simply diluting it again.
+   .34 leaves the hue intact and still lifts the bar off the ground. */
+.lg-real:root[data-theme="light"] .lg {
+  background-color: rgba(255, 255, 255, .34);
+  /* The image has to be named, not just the colour.
+     The painted-glass fallback above declares `background:` - the shorthand -
+     at `:root[data-theme="light"] .lg`. Setting only `background-color` here
+     left ITS gradient, the .92 white one, still painting on top: the fill
+     dropped from .44 to .34 and the measured chroma did not move at all,
+     because the thing bleaching it was never the fill. */
+  background-image: linear-gradient(157deg,
+    rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, 0) 62%);
+  box-shadow: 0 12px 40px rgba(9, 22, 32, .14);
+}
+
+/* ======================================================================
+   Give the glass something to bend.
+
+   A lens over a flat colour shows nothing - there is no detail in the
+   backdrop for the displacement to move, so the most carefully computed
+   refraction in the world renders as a plain rectangle. The nav therefore
+   floats *over* the content rather than sitting in a row beneath it, and the
+   content runs on underneath. This is also what the Stitch drafts do, and it
+   is why their nav reads as a separate object.
+   ====================================================================== */
+
+.screen { position: relative; }
+.nav {
+  position: absolute; left: 14px; right: 14px; bottom: 11px; margin: 0;
+}
+/* Room for the bar to float over, so it never covers the last row. */
+.screen:has(.nav) .action { padding-bottom: 58px; }
+.screen:has(.nav) .grow { padding-bottom: 4px; }
+
+/* A scrolling sheet runs UNDER the bar rather than stopping above it - that
+   is the whole reason the bar is glass. Two things follow, and the old Home
+   had neither because it did not scroll:
+     - 64px of clearance at the end, so the last ledger row can be reached
+       and read rather than sitting permanently behind the bar;
+     - the last 88px fade out, so rows dissolve into the ground as they pass
+       under the glass instead of being sliced off by its top edge. */
+.screen:has(.nav) .sheet {
+  padding-bottom: 64px;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 88px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 88px), transparent 100%);
+}
+
+.lg-real .nav button[aria-selected="true"] {
+  /* On clear glass the selected pill is the only opaque thing in the bar, so
+     it carries the whole reading of which tab is live — a little more fill
+     than over the painted fallback, which is already tinting. Colour and
+     shading split for the same reason as `.card` below. */
+  background-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background-image: linear-gradient(180deg,
+    rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 62%);
+}
+
+/* ======================================================================
+   Where the glass goes, and where it does not.
+
+   Seen on screen: a glass card over a dark ground shows a rim and nothing
+   else. Refraction needs something with contrast behind it, and a list row
+   sitting on the app background has nothing - so twenty-odd panels were each
+   paying for a filter that could not show.
+
+   This is also how the material is used on iOS. Glass is *floating chrome
+   over content*: the tab bar, a pill riding over an image, the round buttons
+   in the app bar. The content underneath is opaque. Making every row glass
+   is what makes a design look like it discovered a CSS property.
+
+   So: `.lg` is for chrome that floats. `.card` is for content that does not.
+   ====================================================================== */
+
+/* One card, one recipe, both schemes - because the surfaces are tokens now
+   and the tokens already know which scheme they are in. The three overrides
+   that used to hardcode #FFFFFF for light are gone with them; a hardcoded
+   colour is a colour that cannot animate, and it snapped on every theme
+   change while everything around it moved.
+
+   A card is lifted by three things, in this order of importance:
+     - a lit top edge, one pixel, in `--lip`
+     - a shadow under it
+     - a fill barely paler than the ground
+
+   That order is the whole point. The old card did it the other way round -
+   a fill 36 L* above the ground and no edge worth the name - and read as a
+   grey rectangle pasted on rather than a panel raised off. */
+/* The shading is an overlay, not the fill — and that is a transition
+   requirement, not a preference.
+
+   This was `linear-gradient(var(--surface), var(--surface-2))`. Chrome does
+   not interpolate `background-image` between two gradients here: on a theme
+   change the card's border colours, box-shadow and text all animated and the
+   FILL snapped, which was measured directly - `getAnimations()` on a card
+   returned six running transitions, and `background-image` was not among
+   them. Half a card animating and half of it jumping is not a subtle fault.
+
+   So the rule is: **anything that varies with the theme goes in
+   `background-color`, which interpolates; the shape of the shading goes in a
+   `background-image` of fixed white and black alphas, which never changes
+   between schemes and therefore never has to.** */
+.card {
+  position: relative;
+  background-color: var(--surface);
+  background-image: linear-gradient(180deg,
+    rgba(255, 255, 255, .028) 0%, rgba(0, 0, 0, .05) 100%);
+  border: 1px solid var(--hair);
+  border-top-color: var(--lip);
+  box-shadow:
+    inset 0 1px 0 0 var(--lip),
+    0 10px 26px -18px var(--shadow);
+}

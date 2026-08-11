@@ -1,0 +1,25 @@
+{
+  "note": "Walking route, VGU academic block to the back gate. Computed once, at build time, and baked into the SVG - a published artifact has no network at runtime. Re-run map.py after refetching to change it.",
+  "engine": "valhalla1.openstreetmap.de, costing=pedestrian (OSM data, ODbL)",
+  "fetched": "2026-08-11",
+  "metres": 543,
+  "seconds": 392,
+  "from": [11.105624, 106.614370],
+  "from_note": "centroid of the largest building footprint inside the campus, from osm.json",
+  "to": [11.107471, 106.611139],
+  "to_note": "OSM node 12093474313, barrier=gate, opening_hours Mo-Su 06:00-23:00",
+  "steps": [["Walk west.", 71], ["Turn right.", 283], ["Turn left.", 189]],
+  "shape": [
+    [11.105934, 106.614255],
+    [11.105837, 106.613982],
+    [11.105716, 106.613638],
+    [11.105885, 106.613576],
+    [11.106110, 106.613492],
+    [11.106231, 106.613447],
+    [11.106769, 106.613244],
+    [11.108100, 106.612743],
+    [11.107839, 106.612073],
+    [11.107516, 106.611253],
+    [11.107471, 106.611139]
+  ]
+}

@@ -1,0 +1,909 @@
+<title>VGU Smart Locker — every screen</title>
+
+<!-- ======================================================================
+     The campus, from OpenStreetMap, projected.
+
+     Two versions of this were drawn by hand and both were wrong. The first
+     was invented outright. The second was read off satellite imagery by eye,
+     which got the features roughly right and their shapes and spacing wrong -
+     close enough to look like a map and not close enough to be one.
+
+     This one is not drawn at all. `map.py` pulls the real ways from the
+     Overpass API for the bounding box around the campus - buildings, roads by
+     class, the river, the pitches - and projects them straight into the
+     card's viewBox. Every line here is where it is because that is where it
+     is on the ground.
+
+     The WINDOW is sized from the route rather than from the campus, and the
+     route itself is a real pedestrian route over those ways, from Valhalla:
+     543 m, 6 min 32 s. Baked in at build time - a published page has no
+     network at runtime. Regenerate with `python map.py`.
+
+     OpenStreetMap data, ODbL. Chosen over Google's tiles for exactly that
+     reason: the tiles are artwork and cannot be redrawn from, the data is
+     open and can. Attribution belongs in the app's about screen when it has
+     one - noted in DESIGN.md.
+
+     The pin is an OSM `barrier=gate` node at 11.107471, 106.611139, tagged
+     `opening_hours: Mo-Su 06:00-23:00` - 7 m from the place Google labels
+     "Cong phu Truong Dai hoc Viet Duc". The other three gates in the box are
+     `access=no` or `locked=yes`, so this is the one a receiver can use.
+
+     Window: 11.10475-11.10975 N, 106.60830-106.62247 E. The gate sits a
+     fifth of the way in from the west, so the frame is spent on campus
+     rather than on the residential grid beyond it.
+     ====================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="campus" viewBox="0 0 306 150">
+<rect width="306" height="150" fill="color-mix(in srgb, var(--ink) 8%, var(--ground-2))"/>
+<g stroke="none" fill="color-mix(in srgb, var(--ink) 25%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))">
+<path d="M105.5,39.5 104.3,40.4 105.4,42.8 106.7,42.8 142.6,29.7 143.3,28.8 142.9,26.6 141.7,26.2 105.5,39.5Z"/>
+<path d="M272.7,-7.7 270.7,-6.1 270.7,-4.0 274.1,4.4 276.9,5.1 278.0,4.1 278.6,2.6 278.5,-0.0 278.0,-2.2 277.5,-5.2 275.8,-7.0 274.4,-7.6 272.7,-7.7Z"/>
+<path d="M278.7,16.1 278.0,16.7 278.7,19.8 283.0,29.8 285.4,32.1 288.1,31.8 288.5,29.7 288.6,28.6 286.8,25.0 284.2,21.3 282.7,18.6 281.2,17.2 278.7,16.1Z"/>
+</g>
+<g stroke="none" fill="color-mix(in srgb, var(--ink) 19%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))">
+<path d="M194.2,119.1 213.9,111.8 213.9,110.4 215.8,104.6 216.1,104.1 216.6,103.8 223.7,103.9 224.5,104.2 225.1,104.8 225.5,105.5 225.5,118.5 225.2,119.5 224.3,120.4 198.0,130.1 197.2,130.0 196.5,129.8 196.1,129.3 192.9,120.9 193.0,120.2 193.4,119.7 194.2,119.1Z"/>
+<path d="M184.1,100.2 192.4,97.2 194.2,102.2 185.9,105.1 184.1,100.2Z"/>
+<path d="M186.1,105.9 194.4,103.0 196.1,108.0 187.9,110.9 186.1,105.9Z"/>
+<path d="M194.8,102.3 192.8,96.8 203.1,93.1 205.1,98.6 194.8,102.3Z"/>
+<path d="M196.9,108.0 194.8,102.3 205.1,98.6 207.1,104.2 196.9,108.0Z"/>
+<path d="M207.3,91.6 210.3,90.4 212.3,95.9 209.3,97.0 207.3,91.6Z"/>
+<path d="M210.3,90.4 213.3,89.3 215.4,94.7 212.3,95.9 210.3,90.4Z"/>
+<path d="M213.3,89.3 216.2,88.2 218.3,93.6 215.4,94.7 213.3,89.3Z"/>
+<path d="M216.2,88.2 219.1,87.1 221.2,92.5 218.3,93.6 216.2,88.2Z"/>
+<path d="M209.3,97.0 212.3,95.9 214.3,101.2 211.3,102.3 209.3,97.0Z"/>
+<path d="M212.3,95.9 215.4,94.7 217.4,100.0 214.3,101.2 212.3,95.9Z"/>
+<path d="M215.4,94.7 218.3,93.6 220.3,98.9 217.4,100.0 215.4,94.7Z"/>
+<path d="M218.3,93.6 221.2,92.5 223.2,97.8 220.3,98.9 218.3,93.6Z"/>
+<path d="M188.7,113.1 193.0,111.4 195.6,118.1 191.3,119.8 188.7,113.1Z"/>
+<path d="M197.6,109.7 205.2,106.7 207.6,112.9 200.0,115.8 197.6,109.7Z"/>
+<path d="M123.4,-124.7 155.5,-37.8 143.3,-33.4 136.7,-47.5 126.8,-65.0 119.9,-78.3 107.8,-91.0 95.4,-96.3 83.2,-100.7 56.2,-103.6 38.9,-105.7 12.1,-107.4 -32.4,-102.2 -158.8,-89.5 -233.9,-79.4 -233.4,-85.1 123.4,-124.7Z"/>
+<path d="M239.0,90.4 241.3,90.6 244.4,91.3 247.3,93.1 248.9,94.9 250.9,98.8 250.6,131.1 248.9,134.0 246.9,135.9 243.5,137.8 241.0,138.1 237.8,137.9 234.8,136.6 232.1,134.2 230.4,130.9 229.7,129.2 229.6,99.2 231.1,95.6 233.0,93.3 235.9,91.4 239.0,90.4Z"/>
+</g>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g stroke="color-mix(in srgb, var(--ink) 17%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))" stroke-width=".6">
+<path d="M271.4,-34.2 259.0,-30.1 258.2,-30.3 257.7,-30.9 256.7,-34.5 254.5,-40.6 254.7,-41.1 255.1,-41.4 267.8,-45.9 282.5,-51.2 283.2,-51.1 283.7,-50.5 285.7,-44.6 287.0,-40.9 287.0,-40.1 286.8,-39.5"/>
+<path d="M262.0,-61.7 262.9,-59.1 266.1,-50.3 267.8,-45.9 269.9,-38.9 271.4,-34.2 286.8,-39.5"/>
+<path d="M185.3,-20.5 266.1,-50.3"/>
+<path d="M163.1,-25.3 166.6,-15.5 169.8,-6.7 170.3,-5.3 172.0,-2.2 174.1,-0.4 176.8,0.4 179.9,0.2 182.3,-0.1 184.3,-0.9 187.1,-2.6 188.2,-5.0 189.1,-7.9 186.7,-15.8 186.2,-17.5 185.3,-20.5 181.3,-32.0"/>
+<path d="M93.0,40.8 95.6,39.7 99.9,37.9 109.7,34.4 128.0,27.8 148.9,20.2 149.7,20.1 150.4,20.2 151.0,20.6 152.2,22.7 154.0,28.5 154.3,29.3 154.6,30.0 131.8,39.0 104.0,50.2 100.1,51.8 97.2,52.9"/>
+<path d="M128.1,116.3 104.0,50.2 99.9,37.9"/>
+<path d="M120.6,119.3 124.3,117.8 128.1,116.3 156.8,106.6 180.0,98.9 191.6,94.5 248.0,73.5 290.2,57.5"/>
+<path d="M261.5,109.7 304.0,93.7 290.2,57.5 284.0,40.3 282.7,36.7 274.6,13.9 266.6,-8.0 261.4,-8.5 239.3,-0.2 224.9,5.1 222.8,5.9"/>
+<path d="M154.6,30.0 171.6,76.0 178.5,94.7 180.0,98.9"/>
+<path d="M180.0,98.9 182.8,106.7 185.0,112.5 186.7,117.2 192.2,132.6 193.2,133.5 195.7,133.7 223.8,123.8"/>
+<path d="M261.5,109.7 256.5,111.8"/>
+<path d="M109.7,34.4 102.5,14.6"/>
+<path d="M284.0,40.3 334.3,6.2 351.3,-5.3 356.9,-9.1 358.0,-10.3 358.5,-12.0 358.3,-13.9 357.3,-15.2 356.5,-16.3 355.2,-16.3 354.0,-14.8 354.2,-12.8 355.6,-12.0 357.5,-12.3 358.3,-13.9"/>
+<path d="M334.3,6.2 332.5,3.4 328.7,-2.9 327.2,-5.3 321.4,-14.8 336.9,-21.3 338.2,-21.3 340.4,-20.8 341.3,-19.3 341.7,-17.5 341.6,-16.4 341.5,-15.7 340.4,-14.1 327.2,-5.3"/>
+<path d="M327.2,-5.3 310.8,4.6 309.8,4.8 308.8,4.9 304.8,3.9 303.7,2.5 303.1,1.8 301.4,-2.1 301.5,-5.9 302.4,-7.0 303.3,-8.2 305.3,-9.7 321.4,-14.8"/>
+<path d="M266.6,-8.0 268.5,-9.0 279.9,-10.2 291.3,-11.5 283.9,0.8 276.7,12.9 289.5,15.8 308.4,20.0 332.5,3.4"/>
+<path d="M289.5,15.8 293.9,29.4 282.7,36.7"/>
+<path d="M293.9,29.4 308.4,20.0"/>
+<path d="M276.7,12.9 274.6,13.9"/>
+<path d="M289.5,15.8 301.7,4.4 303.7,2.5"/>
+<path d="M291.3,-11.5 300.3,-7.8 302.4,-7.0"/>
+<path d="M332.5,3.4 351.9,-9.6 353.5,-9.1"/>
+<path d="M351.9,-9.6 344.3,-13.7 342.3,-12.2 328.7,-2.9"/>
+<path d="M340.4,-14.1 342.3,-12.2"/>
+<path d="M341.6,-16.4 343.6,-15.1"/>
+<path d="M301.7,4.4 300.3,2.7 299.2,0.4 298.9,-2.4 299.0,-5.1 300.3,-7.8 302.3,-10.0 304.8,-11.7 323.7,-18.8 336.1,-23.4 338.0,-23.7 340.1,-23.3 341.6,-22.5 342.9,-21.0 343.7,-19.1 344.2,-17.1 343.6,-15.1 342.3,-12.2"/>
+<path d="M328.7,-2.9 309.6,9.7"/>
+<path d="M301.7,4.4 303.4,5.9 305.2,6.9 310.0,7.6 309.8,4.8"/>
+<path d="M308.4,20.0 309.6,9.7 310.0,7.6"/>
+<path d="M279.9,-10.2 280.4,-8.7 283.5,-0.4 283.9,0.8"/>
+<path d="M280.4,-8.7 280.0,-3.6 283.5,-0.4"/>
+<path d="M131.8,39.0 155.5,103.1 156.8,106.6"/>
+<path d="M155.5,103.1 178.5,94.7"/>
+<path d="M182.3,-0.1 184.0,4.6"/>
+<path d="M154.6,30.0 188.8,17.9 222.8,5.9 226.4,15.6 237.6,45.7 248.0,73.5"/>
+<path d="M248.0,73.5 261.5,109.7"/>
+<path d="M285.7,-44.6 269.9,-38.9 256.7,-34.5"/>
+<path d="M187.1,-2.6 198.0,-7.3 259.0,-30.1"/>
+<path d="M186.7,-15.8 173.2,-11.7 171.7,-11.9 170.5,-12.2 169.6,-12.9 168.2,-14.0 166.6,-15.5"/>
+<path d="M173.2,-11.7 172.4,-10.9 171.4,-9.3 169.8,-6.7"/>
+<path d="M186.2,-17.5 198.5,-21.4 199.2,-18.3 199.6,-15.1 199.3,-12.0 198.0,-7.3"/>
+<path d="M187.6,14.4 188.8,17.9 195.8,37.2"/>
+<path d="M184.0,4.6 187.6,14.4"/>
+<path d="M185.0,112.5 196.6,108.3 208.2,104.1"/>
+<path d="M182.8,106.7 185.9,105.6"/>
+<path d="M191.6,94.5 196.6,108.3"/>
+<path d="M186.7,117.2 189.4,116.1"/>
+<path d="M363.1,104.4 359.7,104.1 356.8,103.1 354.3,102.6 349.9,102.4 345.1,102.8 340.0,103.2"/>
+<path d="M154.7,-35.7 155.0,-34.8 156.3,-31.0 157.5,-27.3 158.8,-23.6 159.3,-22.1"/>
+<path d="M162.8,-39.0 163.1,-38.0 164.6,-34.1 165.9,-30.4 167.2,-26.8 167.8,-25.2"/>
+<path d="M156.3,-38.1 158.0,-38.7 160.5,-39.6"/>
+<path d="M152.4,81.5 143.7,58.0"/>
+<path d="M168.8,77.1 171.6,76.0 195.1,67.0"/>
+<path d="M220.4,41.1 216.6,35.8 210.4,34.2 206.9,33.8 197.6,36.2 195.8,37.2 189.9,40.7 184.5,46.1 182.3,50.6 181.1,54.5 180.8,58.1 183.0,62.9 187.8,66.1 191.2,67.0 195.1,67.0 200.9,66.0 207.9,63.0 213.6,58.6 219.4,52.2 220.9,46.1 220.4,41.1"/>
+<path d="M219.4,52.2 222.7,61.2"/>
+<path d="M219.4,52.2 237.6,45.7 241.8,44.5"/>
+<path d="M178.0,40.5 182.3,50.6"/>
+<path d="M180.8,58.1 177.5,59.4"/>
+<path d="M207.5,29.0 206.9,33.8"/>
+<path d="M216.6,35.8 210.5,28.1"/>
+<path d="M258.2,16.2 260.5,22.2"/>
+<path d="M239.4,-25.0 239.3,-0.2"/>
+<path d="M244.9,7.5 256.1,13.4"/>
+<path d="M245.7,16.3 247.4,21.2"/>
+<path d="M251.2,31.7 252.8,36.2"/>
+<path d="M239.3,-0.2 240.0,1.9"/>
+<path d="M256.8,38.9 261.7,28.1"/>
+<path d="M219.8,18.1 226.4,15.6 230.3,14.1"/>
+<path d="M249.9,21.3 256.6,14.7"/>
+<path d="M250.9,24.0 260.4,24.4"/>
+<path d="M128.0,27.8 131.8,39.0"/>
+</g>
+<g stroke="color-mix(in srgb, var(--ink) 23%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))" stroke-width=".9">
+<path d="M129.5,-12.3 151.0,-20.5"/>
+<path d="M145.5,-31.3 129.2,-26.0"/>
+<path d="M-405.6,186.4 -319.2,152.1 -317.8,151.6 -314.4,150.3 -222.6,117.4 -221.1,116.9 -220.0,116.5 -134.2,86.5 -131.5,85.4 -49.7,54.7 -48.5,54.2 -47.3,53.8 26.3,26.3 79.2,6.6 129.5,-12.3"/>
+<path d="M74.4,-4.7 75.9,-0.3 77.4,2.9 79.2,6.6 85.2,20.9 90.2,32.9 93.0,40.8 97.2,52.9 98.0,55.2 98.7,57.2 99.0,58.2 107.6,83.4 120.6,119.3 132.5,150.5 133.7,154.7"/>
+<path d="M-308.3,181.9 -303.6,179.9 -212.0,147.1 -210.4,146.5 -209.3,146.1 -123.8,115.0 -123.6,114.9 -121.2,114.0 -40.2,81.0 -38.5,80.3 -37.7,80.1 36.9,54.0 90.2,32.9"/>
+<path d="M141.5,176.2 89.6,195.0 14.0,222.3 12.6,222.8 11.4,223.3 -69.9,256.4 -71.4,257.0 -72.6,257.4 -157.2,288.2 -158.9,288.8 -160.1,289.2 -229.4,315.1"/>
+<path d="M-90.2,207.1 -87.9,206.3 -5.1,177.6 -4.7,177.5 -2.6,176.7 72.1,148.5"/>
+<path d="M-98.3,185.1 -95.9,184.2 -13.5,154.7 -12.7,154.4 -11.0,153.7 63.7,126.2"/>
+<path d="M-263.9,220.9 -217.2,204.0 -193.8,195.6 -192.4,195.0 -191.0,194.5 -106.2,163.5 -103.7,162.5 -22.0,131.1 -20.7,130.6 -19.5,130.2 55.1,103.2 85.0,91.9 107.6,83.4"/>
+<path d="M160.1,-32.4 158.8,-36.2 158.0,-38.7 151.1,-60.7 142.4,-83.7 126.0,-127.8 115.9,-152.2 107.0,-176.4 99.1,-197.9 96.7,-222.3 95.3,-238.3 94.8,-243.4 92.7,-246.1 89.5,-246.9 84.7,-246.3 3.2,-236.5 -19.7,-234.5 -71.0,-229.7 -89.6,-228.0 -97.4,-227.9"/>
+<path d="M158.8,-36.2 155.0,-34.8 145.5,-31.3"/>
+<path d="M-28.0,-63.5 -23.0,-16.5 -16.7,0.3"/>
+<path d="M-52.6,-61.0 -47.0,-10.7 -39.7,8.7"/>
+<path d="M129.2,-26.0 126.3,-24.9 74.4,-4.7 45.3,5.8 22.2,14.4 -53.6,41.5 -108.6,61.1 -112.0,62.3 -161.3,79.8 -200.7,95.3 -224.3,104.4 -225.6,104.9 -227.1,105.5 -319.1,138.6 -322.1,139.7 -323.5,140.3 -358.2,154.0 -377.1,161.5"/>
+<path d="M26.3,26.3 36.9,54.0 44.8,75.9 45.2,76.9 46.0,79.1 55.1,103.2 63.7,126.2 72.1,148.5 80.2,169.9 80.9,172.0 81.6,173.9 89.6,195.0 98.2,218.0"/>
+<path d="M22.2,14.4 13.3,-10.5"/>
+<path d="M372.0,-12.3 358.9,-5.1 357.8,-3.4 357.2,-1.6 358.5,6.5 358.5,7.9 357.9,9.1 356.0,10.8 348.9,17.7 345.2,20.7 342.0,23.2 331.6,27.4 327.6,27.8 323.8,27.5 317.6,26.4 315.7,26.1 311.4,26.6 306.2,29.1 304.5,31.0"/>
+<path d="M304.5,31.0 303.9,32.8 304.6,34.8 312.5,53.8 313.9,55.0 316.0,55.5 320.7,54.8 322.5,55.4 324.2,56.5 334.6,66.5 337.0,68.4 347.8,75.7"/>
+<path d="M342.0,23.2 360.9,47.9"/>
+<path d="M317.0,77.2 334.6,66.5"/>
+<path d="M133.7,154.7 141.5,176.2 149.0,197.9 154.9,214.9 155.5,216.0 156.6,216.8 157.8,217.1"/>
+<path d="M-62.8,17.9 -39.7,8.7 -16.7,0.3 13.3,-10.5 65.5,-29.8 107.6,-45.0 111.0,-45.5 114.6,-45.2"/>
+<path d="M114.6,-45.2 116.7,-44.1 118.5,-42.3 126.3,-24.9"/>
+<path d="M85.0,91.9 109.1,159.2 110.5,163.2"/>
+<path d="M181.3,-32.0 262.0,-61.7 322.5,-84.1 337.3,-89.5"/>
+<path d="M333.4,-101.9 323.7,-98.5 301.9,-89.7 273.4,-79.4 257.4,-73.7 226.0,-61.9 194.5,-50.0 171.1,-41.4 163.1,-38.0 158.8,-36.2"/>
+<path d="M98.0,55.2 44.8,75.9 -29.3,103.3 -30.2,103.6 -31.8,104.2 -113.7,134.8 -116.3,135.7 -201.1,166.7 -202.4,167.2 -204.0,167.8 -295.6,202.0 -300.3,204.0"/>
+<path d="M-298.9,207.8 -294.2,205.7 -272.3,197.5 -202.7,171.2 -201.0,170.6 -199.7,170.1 -114.9,139.6 -112.4,138.6 -30.6,107.5 -29.1,106.9 -28.1,106.6 46.0,79.1 99.0,58.2"/>
+<path d="M132.5,150.5 109.1,159.2 80.2,169.9 5.1,197.8 3.3,198.5 2.5,198.8 -79.6,229.3 -82.1,230.3 -166.9,261.8 -169.5,262.7 -192.5,271.3 -239.1,288.6 -261.1,296.8 -265.9,298.6"/>
+<path d="M-265.0,300.8 -260.2,299.3 -237.9,291.9 -191.2,274.7 -168.2,266.2 -165.7,265.2 -80.8,233.9 -80.5,233.8 -78.3,233.0 3.9,202.6 4.7,202.3 6.5,201.7 81.6,173.9 110.5,163.2 133.7,154.7"/>
+<path d="M22.2,244.8 14.0,222.3 6.5,201.7 5.1,197.8 -2.6,176.7 -11.0,153.7 -19.5,130.2 -28.1,106.6 -29.3,103.3 -37.7,80.1 -47.3,53.8"/>
+<path d="M-49.7,54.7 -40.2,81.0 -31.8,104.2 -30.6,107.5 -22.0,131.1 -13.5,154.7 -5.1,177.6 2.5,198.8 3.9,202.6 11.4,223.3 19.6,245.8"/>
+<path d="M163.1,-25.3 161.7,-28.9 160.1,-32.4"/>
+<path d="M151.0,-20.5 158.8,-23.6 163.1,-25.3 167.2,-26.8 181.3,-32.0"/>
+</g>
+<g stroke="color-mix(in srgb, var(--ink) 31%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))" stroke-width="1.4">
+<path d="M147.9,-27.9 126.4,-19.7"/>
+<path d="M126.4,-19.7 75.9,-0.3 -51.5,46.5 -222.9,108.4 -224.0,108.8 -225.6,109.4 -311.6,140.7 -317.2,142.7"/>
+<path d="M127.8,-16.1 149.7,-24.5"/>
+<path d="M-315.8,146.0 -224.3,112.9 -222.9,112.4 -221.6,111.9 -50.1,50.0 77.4,2.9 127.8,-16.1"/>
+<path d="M74.4,-4.7 65.5,-29.8 53.7,-63.5 43.9,-70.8"/>
+<path d="M334.9,-97.4 259.1,-69.2 164.6,-34.1 160.1,-32.4"/>
+<path d="M149.7,-24.5 157.5,-27.3 161.7,-28.9 165.9,-30.4 260.4,-65.5 320.7,-87.9 336.1,-93.6"/>
+<path d="M160.1,-32.4 156.3,-31.0 147.9,-27.9"/>
+</g>
+</g>
+<g stroke="none" fill="color-mix(in srgb, var(--ink) 37%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))">
+<path d="M181.7,70.9 177.5,59.4 174.1,50.1 166.9,52.8 174.6,73.6 181.7,70.9Z"/>
+<path d="M194.2,119.1 213.9,111.8 213.9,110.4 215.8,104.6 216.1,104.1 216.6,103.8 223.7,103.9 224.5,104.2 225.1,104.8 225.5,105.5 225.5,118.5 225.2,119.5 224.3,120.4 198.0,130.1 197.2,130.0 196.5,129.8 196.1,129.3 192.9,120.9 193.0,120.2 193.4,119.7 194.2,119.1Z"/>
+<path d="M282.3,75.4 293.0,71.5 289.0,60.4 274.8,65.5 282.3,86.2 285.7,85.0 282.3,75.4Z"/>
+<path d="M192.9,110.3 194.7,109.6 195.8,112.6 194.0,113.2 192.9,110.3Z"/>
+<path d="M310.6,-22.7 311.7,-19.7 311.1,-19.5 312.2,-16.6 308.7,-15.3 307.6,-18.1 307.3,-18.0 306.2,-21.0 310.6,-22.7Z"/>
+<path d="M321.2,-26.4 322.3,-23.5 321.8,-23.3 322.9,-20.4 319.4,-19.0 318.3,-21.8 318.0,-21.7 316.8,-24.8 321.2,-26.4Z"/>
+<path d="M332.1,-30.4 333.2,-27.5 332.6,-27.3 333.7,-24.4 330.2,-23.0 329.1,-25.8 328.8,-25.7 327.7,-28.8 332.1,-30.4Z"/>
+<path d="M346.6,-28.2 344.9,-25.6 344.4,-25.9 342.7,-23.3 339.5,-25.3 341.1,-27.8 340.9,-28.0 342.6,-30.7 346.6,-28.2Z"/>
+<path d="M350.6,-14.0 347.5,-14.5 347.6,-15.1 344.6,-15.6 345.2,-19.3 348.1,-18.8 348.2,-19.2 351.4,-18.6 350.6,-14.0Z"/>
+<path d="M298.0,-17.1 300.3,-15.0 299.9,-14.5 302.3,-12.5 299.8,-9.6 297.5,-11.6 297.3,-11.4 294.9,-13.5 298.0,-17.1Z"/>
+<path d="M291.7,-4.1 294.8,-4.5 294.9,-3.9 298.0,-4.2 298.4,-0.5 295.4,-0.1 295.4,0.2 292.2,0.6 291.7,-4.1Z"/>
+<path d="M297.4,10.2 299.1,7.5 299.6,7.9 301.3,5.3 304.5,7.3 302.8,9.8 303.1,10.0 301.3,12.7 297.4,10.2Z"/>
+<path d="M310.2,12.3 328.3,0.1 329.9,2.4 311.7,14.6 310.2,12.3Z"/>
+<path d="M165.7,37.6 165.7,36.8 165.7,36.2 165.9,35.7 166.1,35.0 167.0,33.8 168.3,32.3 172.2,29.7 177.7,27.5 182.1,26.2 185.4,25.9 187.2,25.8 192.3,30.2 192.3,30.5 192.3,31.0 192.2,31.4 191.9,32.0 191.6,32.5 191.2,33.2 189.7,34.8 188.5,35.7 184.3,38.1 181.5,39.3 178.0,40.5 174.2,41.4 171.5,41.4 170.9,41.5 169.5,41.4 168.5,41.3 167.4,40.8 166.6,40.1 166.0,39.4 165.8,38.5 165.7,37.6Z"/>
+<path d="M196.3,22.0 195.0,28.6 195.9,30.8 207.5,29.0 209.6,28.6 210.5,28.1 221.1,21.6 219.8,18.1 218.5,14.7 205.1,16.6 196.3,22.0Z"/>
+<path d="M186.1,24.5 196.5,20.8 194.5,31.8 186.1,24.5Z"/>
+<path d="M165.0,-7.0 166.7,-7.7 168.4,-2.9 166.7,-2.2 165.0,-7.0Z"/>
+<path d="M99.2,8.7 100.1,11.2 108.0,8.4 108.7,10.4 111.1,9.6 109.5,5.0 99.2,8.7Z"/>
+</g>
+<g stroke="color-mix(in srgb, var(--ink) 44%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))" stroke-width="1.4" stroke-linecap="round" fill="none"><path d="M15 118V106M15 106l-3.4 4M15 106l3.4 4"/></g>
+<text x="15" y="129" text-anchor="middle" font-size="7.5" font-weight="700" fill="color-mix(in srgb, var(--ink) 44%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))">N</text>
+<path d="M205.9,105.0L196.6,108.3L185.0,112.5L182.8,106.7L180.0,98.9L178.5,94.7L171.6,76.1L154.6,30.0L131.8,39.0L104.0,50.2L100.1,51.8" fill="none" stroke="var(--ground-2)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+<path d="M205.9,105.0L196.6,108.3L185.0,112.5L182.8,106.7L180.0,98.9L178.5,94.7L171.6,76.1L154.6,30.0L131.8,39.0L104.0,50.2L100.1,51.8" fill="none" stroke="var(--accent)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="205.9" cy="105.0" r="5.6" fill="color-mix(in srgb, var(--ink) 62%, color-mix(in srgb, var(--ink) 8%, var(--ground-2)))" stroke="color-mix(in srgb, var(--ink) 8%, var(--ground-2))" stroke-width="2.8"/>
+<!-- the side gate: OSM node 12093474313, barrier=gate, open 06:00-23:00, 7 m from the place Google labels Cong phu -->
+<ellipse cx="100.1" cy="51.8" rx="7" ry="3.4" fill="color-mix(in srgb, var(--accent) 22%, transparent)"/>
+<g transform="translate(100.1 51.8)"><path d="M0 0C0 0-8.4-9.2-8.4-14.2A8.4 8.4 0 0 1 8.4-14.2C8.4-9.2 0 0 0 0Z" fill="var(--accent)" stroke="color-mix(in srgb, var(--ink) 8%, var(--ground-2))" stroke-width="2"/><circle cy="-14.2" r="3.1" fill="color-mix(in srgb, var(--ink) 8%, var(--ground-2))"/></g>
+</symbol>
+</defs></svg>
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>Every screen, and the cabinet they are built around</h1>
+    <p>
+      The cabinet is the one <code>build_cabinet.py</code> builds from the
+      workshop drawing, rendered flat in Blender. The highlight lands on the
+      right door because Blender projected the door corners through the same
+      camera. Switch your system theme to see both schemes.
+    </p>
+  </div>
+  <div class="stamp mono">
+    <b>VGU Smart Locker</b>
+    Home · Cabinet · Settings<br/>
+    19 doors · three-quarter render
+  </div>
+</header>
+
+<!-- ================= 1. the cabinet tab ================= -->
+<section>
+  <h2>The cabinet tab</h2>
+  <p class="lede">
+    Every door that is yours lights, and keeps its own stencilled number.
+    Under the render there is <b>one panel in every state</b>: the ticket for
+    the box the button will open, a switch above it when more than one is
+    yours, and a status card when none is.
+  </p>
+
+  <div class="bench">
+    <div class="stage">
+      <div class="phone big">
+        <div class="screen">
+          <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">Back gate</span></div>
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button></div>
+        </div>
+
+          <div class="heading">
+            <h3 id="title">Two boxes are yours</h3>
+            <p id="sub">Back gate · 6 doors free</p>
+          </div>
+
+          <div class="hero" id="hero">
+            <div class="holder" id="holder">
+              <img id="cabinet" alt="The VGU parcel locker cabinet, front elevation" src="data:image/png;base64,__PNG__"/>
+              <!-- The tint is its OWN svg, and that is what lets the stencilled
+                   number survive. `mix-blend-mode` blends an element with the
+                   backdrop of its parent stacking context, so the whole layer
+                   has to carry the mode for the render underneath to be the
+                   thing it blends with. See `lightDoor` in screens.js. -->
+              <svg id="tint" viewBox="0 0 2100 2100" aria-hidden="true"><g id="faces"></g></svg>
+              <svg id="overlay" viewBox="0 0 2100 2100" aria-hidden="true">
+                <defs>
+                  <filter id="bloom" x="-70%" y="-70%" width="240%" height="240%">
+                    <feGaussianBlur stdDeviation="30" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/></feMerge>
+                  </filter>
+                  <filter id="bloom-soft" x="-45%" y="-45%" width="190%" height="190%">
+                    <feGaussianBlur stdDeviation="9"/>
+                  </filter>
+                </defs>
+                <g id="glows"></g>
+                <g id="hits"></g>
+              </svg>
+              <!-- Full is a state the screen has to SAY, not one it can leave
+                   you to infer from nothing being lit. Inside the holder, so
+                   it centres on the render rather than on the hero, which is
+                   taller than the picture it holds. -->
+              <span class="novac" id="novac" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+                No free box
+              </span>
+            </div>
+          </div>
+
+          <!-- One panel, always. Built by screens.js from the same list the
+               doors are lit from, so the panel and a lit door cannot disagree.
+               With two boxes it gains a switch above it; with one it is just
+               the ticket. See the note in screens.css. -->
+          <div class="cabinfo" id="cabinfo"></div>
+
+          <div class="action" id="action">
+            <button class="go" id="go">
+              <svg id="goicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+              <span id="gotext">Scan to open 04</span>
+            </button>
+            <button class="quiet" id="quiet">Use a code</button>
+          </div>
+
+          <nav class="nav lg lg-pop" role="tablist" aria-label="Sections">
+            <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</button>
+            <button role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Cabinet</button>
+            <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17.5 7H20M4 12h3M11.5 12H20M4 17h9M17.5 17H20"/><circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/></svg>Settings</button>
+          </nav>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="btn-parcel" aria-pressed="true">Two parcels</button>
+        <button id="btn-one" aria-pressed="false">One parcel</button>
+        <button id="btn-empty" aria-pressed="false">Nothing waiting</button>
+        <button id="btn-full" aria-pressed="false">Cabinet full</button>
+        <button id="btn-replay">Replay</button>
+        <button id="btn-slow" aria-pressed="false">Quarter speed</button>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="panel">
+        <h4>Why it can zoom at all</h4>
+        <p>
+          The render is an <b>orthographic front elevation</b>, so every door is
+          the same size and shape wherever it sits — doors 01 and 04 measure
+          identically. Pushing in is then a scale and a slide, and the door
+          stays square with its number readable.
+        </p>
+        <p>
+          In perspective the same push would swing the door and skew the number.
+          That is why the three-quarter view was dropped.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h4>The number is the real one</h4>
+        <p>
+          The amber used to be painted over the door and the number redrawn on
+          top — bigger, flatter, in a different face, and dead-centre where the
+          real stencil is not. It read as a sticker.
+        </p>
+        <p>
+          The tint is <code>mix-blend-mode: color</code> now: hue and
+          saturation from the amber, <b>luminance from the render</b>. Nothing
+          is covered, so the door's own number, its shadow and the specular on
+          its top edge all survive being lit. The bloom is masked out of the
+          door for the same reason — a blurred blob underneath is part of what
+          the blend reads.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h4>More than one box can be yours</h4>
+        <p>
+          Two parcels at one cabinet is a Tuesday, not an edge case — and it is
+          the moment the flow is quietest about, because "which box opens when
+          I scan?" has no answer in it.
+        </p>
+        <p>
+          Every door that is yours lights. The switch under the render carries
+          the numbers and a dot for the urgent one; the ticket below it carries
+          when that box was dropped and how long is left. Choosing moves the
+          frame, the ticket and the button together, and all of it is built
+          from one array, so no two of them can disagree.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h4>Full has to be said out loud</h4>
+        <p>
+          The screen used to answer <i>is there room here?</i> by lighting
+          nothing at all — and an unlit cabinet is also what this screen looks
+          like while it is loading, while a request is in flight, and when
+          something has gone wrong. <b>Absence is not a message.</b>
+        </p>
+        <p>
+          So the render is drained and dimmed, a badge sits on it in words, and
+          the panel states the count. All three, because the dim alone could be
+          a rendering fault and the badge alone leaves twenty doors looking
+          perfectly available underneath it. The button becomes the way out —
+          a disabled primary states the problem and offers nothing.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h4>Timing</h4>
+        <ul class="beats mono">
+          <li><span class="t">0.00s</span><span>cabinet up from 94%, settles</span></li>
+          <li><span class="t">0.45s</span><span>your doors light, 0.09s apart</span></li>
+          <li><span class="t">1.02s</span><span>one box only: push in to 2.9× on it</span></li>
+          <li><span class="t">—</span><span>two or more: it waits, wide</span></li>
+          <li><span class="t">on tap</span><span>0.72s to any door, or back out</span></li>
+        </ul>
+        <p style="margin-top:12px">
+          The push used to fire at 1.50s on its own in every state, which with
+          two boxes answered a question nobody had asked and hid the fact that
+          a second door was also yours. The <b>count</b> decides it now: the
+          frame moves on its own only when there is exactly one place it could
+          go. With two, the wide shot is the shot that says both are yours.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. the rest ================= -->
+<section>
+  <h2>The rest of the app</h2>
+  <p class="lede">
+    Three tabs: <b>Home</b>, <b>Cabinet</b>, <b>Settings</b>. History lives on
+    Home, under the parcels, where it is glanced at rather than visited.
+  </p>
+
+  <div class="gallery">
+
+    <!-- HOME -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span class="brand">Chào Minh</span></div>
+          <div class="side"><button class="qr-btn" aria-label="Scan a cabinet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></button><button class="dot-btn lg lg-bead" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button></div>
+        </div>
+
+        <div class="sheet">
+          <!-- The claim ticket. A big number, a real cut, and the time left
+               drawn along the foot. No picture of the cabinet anywhere on this
+               screen: the wall of doors is what the Cabinet tab is FOR, and
+               Home is about the claim, not about the hardware. -->
+          <section class="arrival" data-enter>
+            <article class="ticket card">
+              <div class="thead">
+                <span class="tplace">Back gate</span>
+              </div>
+              <div class="tnum">
+                <span><span class="tlabel">Door</span><b class="mono">04</b></span>
+                <em class="tpill soon">6h left</em>
+              </div>
+              <div class="tseam" aria-hidden="true"></div>
+              <div class="tfoot">
+                <span><em>Dropped</em><b class="mono">08:14</b></span>
+                <span><em>Collect by</em><b class="mono">14:20 <span>today</span></b></span>
+              </div>
+              <span class="tmeter"><i class="soon" data-left="0.12"></i></span>
+            </article>
+            <button class="go">
+              <span>Open door 04</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+            </button>
+          </section>
+
+          <div class="slabel" data-enter>Also waiting</div>
+          <button class="ticket tk-sm card" data-enter aria-label="Back gate, door 07, 31 hours left">
+            <span class="tsnum mono">07</span>
+            <span class="tsbody"><b>Back gate</b><span>Dropped 21:40 yesterday</span></span>
+            <span class="tsleft mono">31h</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            <span class="tmeter"><i data-left="0.65"></i></span>
+          </button>
+
+          <div class="slabel" data-enter>Where to walk</div>
+          <a class="whereto card" data-enter target="_blank" rel="noopener noreferrer"
+            href="https://www.google.com/maps/dir/?api=1&amp;destination=11.107471%2C106.611139&amp;travelmode=walking"
+            aria-label="Back gate cabinet, a 7 minute walk. Opens walking directions in your map app.">
+            <span class="wmap"><svg class="plan" viewBox="0 0 306 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#campus"/></svg></span>
+            <span class="wbar">
+              <span class="wtext"><b>Back gate</b><span>7 min walk · 540 m</span></span>
+              <span class="wgo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.3 3.3a1 1 0 0 0-1.1-.2L3.4 10.4a1 1 0 0 0 .1 1.9l7.1 2.1 2.1 7.1a1 1 0 0 0 1.9.1l7.3-16.8a1 1 0 0 0-.6-1.5z"/></svg></span>
+            </span>
+          </a>
+
+          <div class="slabel" data-enter>Collected<a href="#">All</a></div>
+          <ul class="ledger" data-enter>
+            <li><span class="no mono recess">02</span><span class="what">Library</span><span class="when">2 Aug</span></li>
+            <li><span class="no mono recess">17</span><span class="what">Back gate</span><span class="when">28 Jul</span></li>
+            <li><span class="no mono recess">09</span><span class="what">Library</span><span class="when">21 Jul</span></li>
+          </ul>
+        </div>
+
+        <nav class="nav lg lg-pop" role="tablist" aria-label="Sections">
+          <button role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</button>
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Cabinet</button>
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17.5 7H20M4 12h3M11.5 12H20M4 17h9M17.5 17H20"/><circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/></svg>Settings</button>
+        </nav>
+      </div></div>
+      <div class="cap"><span class="num">HOME</span><b>A claim ticket, not a photo album</b>
+        <span>The number is the thing you carry to the cabinet, so the number is the screen. Time left runs along the ticket's foot. The wall of doors lives on the Cabinet tab, where it answers a question.</span></div>
+    </div>
+
+    <!-- HOME empty -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span class="brand">Chào Minh</span></div>
+          <div class="side"><button class="qr-btn" aria-label="Scan a cabinet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></button><button class="dot-btn lg lg-bead" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button></div>
+        </div>
+        <div class="sheet">
+          <!-- The empty state is the same ticket with a different number on
+               it. "Nothing is waiting" and "there is room to send you
+               something" are different facts, and only the second is useful -
+               so the count of free boxes takes the place the door number
+               holds, and nothing else about the screen is redesigned. -->
+          <section class="arrival" data-enter>
+            <article class="ticket card empty">
+              <div class="thead">
+                <span class="tplace">Back gate</span>
+              </div>
+              <div class="tnum isfree">
+                <span><span class="tlabel">Boxes free</span><b class="mono">06</b></span>
+                <em class="tpill">Nearest to you</em>
+              </div>
+              <div class="tseam" aria-hidden="true"></div>
+              <div class="tfoot">
+                <p>Nothing waiting. Give a courier your number and any of the six is yours within the hour.</p>
+              </div>
+            </article>
+          </section>
+
+          <div class="slabel" data-enter>Where to walk</div>
+          <a class="whereto card" data-enter target="_blank" rel="noopener noreferrer"
+            href="https://www.google.com/maps/dir/?api=1&amp;destination=11.107471%2C106.611139&amp;travelmode=walking"
+            aria-label="Back gate cabinet, a 7 minute walk. Opens walking directions in your map app.">
+            <span class="wmap"><svg class="plan" viewBox="0 0 306 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#campus"/></svg></span>
+            <span class="wbar">
+              <span class="wtext"><b>Back gate</b><span>7 min walk · 540 m</span></span>
+              <span class="wgo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.3 3.3a1 1 0 0 0-1.1-.2L3.4 10.4a1 1 0 0 0 .1 1.9l7.1 2.1 2.1 7.1a1 1 0 0 0 1.9.1l7.3-16.8a1 1 0 0 0-.6-1.5z"/></svg></span>
+            </span>
+          </a>
+
+          <div class="slabel" data-enter>Collected<a href="#">All</a></div>
+          <ul class="ledger" data-enter>
+            <li><span class="no mono recess">04</span><span class="what">Back gate</span><span class="when">Today</span></li>
+            <li><span class="no mono recess">02</span><span class="what">Library</span><span class="when">2 Aug</span></li>
+            <li><span class="no mono recess">17</span><span class="what">Back gate</span><span class="when">28 Jul</span></li>
+            <li><span class="no mono recess">09</span><span class="what">Library</span><span class="when">21 Jul</span></li>
+          </ul>
+        </div>
+        <nav class="nav lg lg-pop" role="tablist" aria-label="Sections">
+          <button role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</button>
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Cabinet</button>
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17.5 7H20M4 12h3M11.5 12H20M4 17h9M17.5 17H20"/><circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/></svg>Settings</button>
+        </nav>
+      </div></div>
+      <div class="cap"><span class="num">HOME · EMPTY</span><b>The same ticket, a different number</b>
+        <span>Six boxes free is a fact worth a whole screen — it is what lets you tell a courier to send one today. Nothing is redesigned for the empty case.</span></div>
+    </div>
+
+
+    <!-- LOADING -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="grow" style="justify-content:center;align-items:center;gap:26px">
+          <canvas class="orb" data-size="132" role="img" aria-label="Thinking"></canvas>
+          <div style="text-align:center">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em">VGU Locker</div>
+            <div class="mono" style="font-size:11px;color:var(--ink-3);letter-spacing:.14em;margin-top:5px">CHECKING YOUR PARCELS</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="num">APP INIT</span><b>Loading</b>
+        <span>The ThinkingOrb from Ryan&rsquo;s components folder, in its <code>globe</code> structure. Its <code>ring</code> state renders a flat hoop — see DESIGN.md for the projection that collapses it.</span></div>
+    </div>
+
+    <!-- SCAN -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">Box 04</span></div>
+        </div>
+        <div class="grow">
+          <div class="aperture">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
+            <span class="sweep"></span>
+          </div>
+          <p style="margin:0;text-align:center;font-size:15px;font-weight:550">Scan the cabinet</p>
+        </div>
+        <div class="action"><button class="quiet">Use a code</button></div>
+      </div></div>
+      <div class="cap"><span class="num">SCAN</span><b>Three words</b>
+        <span>The aperture already says what to do. It was two sentences; the sentences were doing nothing.</span></div>
+    </div>
+
+    <!-- OPENED -->
+    <div class="slot">
+      <div class="phone"><div class="screen amber">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">Back gate</span></div>
+        </div>
+        <div class="grow" style="justify-content:center">
+          <div>
+            <div class="bignum mono">04</div>
+            <div class="bigcap">IS OPEN</div>
+          </div>
+          <p style="margin:20px 0 0;text-align:center;font-size:15px">Close the door when done.</p>
+        </div>
+        <div class="action"><button class="go onamber">Done</button></div>
+      </div></div>
+      <div class="cap"><span class="num">OPENED</span><b>The one saturated screen</b>
+        <span>Readable across a corridor. Identical in dark mode — a door being open is a fact about the world.</span></div>
+    </div>
+
+    <!-- TYPE CODE -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">Box 04</span></div>
+        </div>
+        <div class="heading"><h3>Enter code</h3><p>From your parcel notice</p></div>
+        <div class="grow">
+          <div class="otp mono">
+            <span class="on">8</span><span class="on">2</span><span class="caret"></span>
+            <span></span><span></span><span></span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding:11px 13px;border-radius:14px;background:color-mix(in srgb, var(--refuse) 14%, transparent);border:1px solid color-mix(in srgb, var(--refuse) 34%, transparent)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--refuse)" stroke-width="2.2" stroke-linecap="round" style="flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+            <span style="font-size:12.5px;color:var(--refuse)">Wrong code. Try again.</span>
+          </div>
+        </div>
+        <div class="action"><button class="go">Open box</button><button class="quiet">Scan instead</button></div>
+      </div></div>
+      <div class="cap"><span class="num">CODE</span><b>The back door, refusing</b>
+        <span>Shortened from the contract's wording — see the note below, it needs a contract change.</span></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">Settings</span></div>
+        </div>
+        <div class="sheet">
+          <div class="me card">
+            <span class="avatar mono">MN</span>
+            <span class="body"><b>Minh Nguyễn</b><span class="mono">0912 345 678</span></span>
+          </div>
+
+          <div class="slabel">Account</div>
+          <div class="stack">
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span class="t">PIN code</span><span class="v mono">Set</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/></svg></span><span class="t">Change password</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          </div>
+
+          <div class="slabel">Notices</div>
+          <div class="stack">
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><span class="t">Parcel arrived</span><button class="toggle" role="switch" aria-checked="true" aria-label="Parcel arrived notices"></button></div>
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="t">SMS backup</span><button class="toggle off" role="switch" aria-checked="false" aria-label="SMS backup"></button></div>
+          </div>
+
+          <div class="slabel">App</div>
+          <div class="stack">
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg></span><span class="t">Language</span><span class="v">Tiếng Việt</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div class="set card"><span class="ico recess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9c-4 1-8-3-9-9"/></svg></span><span class="t">Dark mode</span><button class="theme-switch" data-theme-toggle aria-pressed="false" aria-label="Dark mode"><span class="theme-switch__container"><span class="theme-switch__clouds"></span><span class="theme-switch__stars-container"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"/></svg></span><span class="theme-switch__circle-container"><span class="theme-switch__sun-moon-container"><span class="theme-switch__moon"><span class="theme-switch__spot"></span><span class="theme-switch__spot"></span><span class="theme-switch__spot"></span></span></span></span></span></button></div>
+          </div>
+        </div>
+        <nav class="nav lg lg-pop" role="tablist" aria-label="Sections">
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</button>
+          <button role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Cabinet</button>
+          <button role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17.5 7H20M4 12h3M11.5 12H20M4 17h9M17.5 17H20"/><circle cx="15" cy="7" r="2.1"/><circle cx="9" cy="12" r="2.1"/><circle cx="15" cy="17" r="2.1"/></svg>Settings</button>
+        </nav>
+      </div></div>
+      <div class="cap"><span class="num">SETTINGS</span><b>The third tab</b>
+        <span>PIN, password, notices, language, theme. Replaces History, which moved to Home.</span></div>
+    </div>
+
+    <!-- SIGN IN -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="authhero"></div>
+        <div class="grow auth">
+          <h3 class="display">Nhận hàng<br/>không cần<br/><em>chìa khoá</em></h3>
+          <p class="authlede">Any VGU locker, from your phone.</p>
+        </div>
+
+        <div class="authform">
+          <div class="rank">
+            <div class="fieldset">
+              <span class="flabel">Phone number</span>
+              <div class="input focus">
+                <span class="cc mono">+84</span>
+                <span>912 345 678</span>
+              </div>
+            </div>
+            <button class="go">
+              <span>Send code</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="divider"><i></i><span>or</span><i></i></div>
+
+          <div class="ways">
+            <button class="social">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/>
+                <path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/>
+                <path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.1l3.8 3c.9-2.7 3.4-4.3 6.4-4.3z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <button class="social">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3 3 7v5c0 5 3.8 8.4 9 10 5.2-1.6 9-5 9-10V7z"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span>VGU account</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="legal"><a href="#">Privacy</a><a href="#">Terms</a></div>
+      </div></div>
+      <div class="cap"><span class="num">SIGN IN</span><b>The cabinet, then one way in</b>
+        <span>The panel that held every control is gone — a recessed field, a filled button and an outlined pair carry the three ranks instead.</span></div>
+    </div>
+
+    <!-- OTP -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><button class="dot-btn lg lg-bead" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><span class="brand">VGU Locker</span></div>
+        </div>
+        <div class="grow auth authmid">
+          <h3 class="display" style="font-size:34px">Enter<br/>the <em>code</em></h3>
+          <p class="authlede mono">Sent to +84 ··· 678</p>
+        </div>
+        <div class="authform">
+          <div class="rank">
+            <div class="fieldset">
+              <span class="flabel">6-digit code</span>
+              <div class="otp mono">
+                <span class="on">4</span><span class="on">1</span><span class="on">7</span>
+                <span class="caret"></span><span></span><span></span>
+              </div>
+            </div>
+            <button class="go">Continue</button>
+          </div>
+          <div class="skip"><button class="quiet" disabled>Resend in 0:42</button></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="num">SIGN IN · CODE</span><b>One-time code</b>
+        <span>Only on the phone path. Signing in with Google skips it.</span></div>
+    </div>
+
+    <!-- ADD PHONE -->
+    <div class="slot">
+      <div class="phone"><div class="screen">
+        <div class="appbar">
+          <div class="side"><span class="brand">VGU Locker</span></div>
+        </div>
+        <div class="grow auth authmid">
+          <h3 class="display" style="font-size:34px">Couriers find you<br/><em>by number</em></h3>
+        </div>
+        <div class="authform">
+          <div class="rank">
+            <div class="fieldset">
+              <span class="flabel">Phone number</span>
+              <div class="input focus">
+                <span class="cc mono">+84</span>
+                <span>912 345 678</span>
+              </div>
+            </div>
+            <button class="go">Save number</button>
+          </div>
+          <div class="skip">
+            <button class="quiet">Skip for now</button>
+            <p class="hint">Parcels need a number.</p>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="num">SIGN IN · PHONE</span><b>After Google or VGU</b>
+        <span>The heading carries the reason, the label carries the ask, and the consequence sits under Skip — where the decision is made.</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= 3. what changed ================= -->
+<section>
+  <h2>What changed, and why</h2>
+  <div class="notes" style="max-width:none">
+
+    <div class="panel">
+      <h4>Sign in was a form, not a screen</h4>
+      <p>
+        One phone field and a button. It said nothing about what the product
+        is, and it made SMS the only way in. Rebuilt on your Stitch layout:
+        the mark, three lines of large tight type with the last in the accent,
+        the form on its own panel under the thumb.
+      </p>
+      <p>
+        <b>Google, and the VGU account, are not decoration.</b> Every SMS code
+        costs money per message — a real line item for a student project, paid
+        on every sign-in and every resend. Google is free, and VGU students
+        already have an account. Phone stays as the third way in for anyone who
+        wants it.
+      </p>
+      <p>
+        <b>Apple sign-in is dropped</b> even though Stitch has it. We are
+        Android-first by <a href="#" style="color:var(--accent)">ADR 0007</a>,
+        so it would be a button nobody on the target device can press.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h4>Social sign-in needs one more screen</h4>
+      <p>
+        The shipper finds a receiver by typing a <b>phone number</b> on the
+        cabinet. Sign in with Google and we have an email, not a number — so
+        there is an "one more thing" screen that asks for it, and says why in
+        one line.
+      </p>
+      <p>
+        This is a contract change: endpoints 1 and 2 assume phone-then-code.
+        Social sign-in needs a token exchange, and a way to attach a phone
+        number to an existing account. Free today because the contract has not
+        gone to the Server team; expensive once it has.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h4>Words cut</h4>
+      <ul class="beats mono" style="margin-top:4px">
+        <li><span class="t">Scan</span><span>13 words → <b>3</b>. The aperture already says what to do</span></li>
+        <li><span class="t">Opened</span><span>7 → <b>5</b></span></li>
+        <li><span class="t">Refusal</span><span>13 → <b>4</b></span></li>
+      </ul>
+      <p style="margin-top:12px">
+        Refusal wording is shared with the cabinet and fixed by
+        <code>api-contract.md</code>, so shortening it is a contract change
+        rather than a screen edit. Already done in the file.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h4>The map shows a walk, not a place</h4>
+      <p>
+        Two hand-drawn versions of this were wrong — one invented outright, one
+        read off satellite imagery by eye. It is not drawn now: the ways come
+        from the Overpass API and are projected straight into the card. But the
+        third version was wrong too, in a subtler way — it was framed round the
+        <i>whole campus</i>, so the walk you would actually take occupied about
+        a fifth of it. <b>A map of a place is not a map of a journey.</b>
+      </p>
+      <p>
+        The window is sized from the route now. The line is a real pedestrian
+        route over real ways — <code>valhalla1.openstreetmap.de</code>,
+        <code>costing=pedestrian</code> — from a building on campus to the gate
+        node: <b>543 m, 6 min 32 s</b>, which is where <span class="mono">7 min
+        walk · 540 m</span> comes from. It is computed once, at build time, and
+        baked into the SVG, because a published page has no network at runtime.
+      </p>
+      <p>
+        A dot and a pin, not two dots. Two coloured markers at the ends of a
+        line say <i>these are both places</i>; a dot and a pin say <i>you are
+        here, that is where you are going</i> with no legend and no copy.
+      </p>
+      <p>
+        <b>Tapping it hands off to Google Maps in walking mode</b>, with the
+        gate's coordinates as the destination. Nothing this app can draw beats
+        the map application already on the phone for the last hundred metres —
+        it has the live position, it re-routes when you turn the wrong way, and
+        it talks. So the card does not try: it answers <i>which gate, which
+        side, how far</i> at a glance and gets out of the way. No key, no SDK,
+        no request from the app at all.
+      </p>
+      <p>
+        The pin is an OpenStreetMap <code>barrier=gate</code> node at
+        <span class="mono">11.107471, 106.611139</span>, tagged
+        <code>opening_hours: Mo-Su 06:00-23:00</code> — seven metres from the
+        place Google labels <b>Cổng phụ Trường Đại học Việt Đức</b>. The other
+        three gates inside the box are <code>access=no</code> or
+        <code>locked=yes</code>, so this is the one a receiver can walk
+        through.
+      </p>
+      <p style="font-size:.82rem;color:var(--page-ink-2)">
+        Map data © OpenStreetMap contributors, ODbL — geometry and routing
+        both. Chosen over Google's tiles for exactly that reason: the tiles are
+        artwork and cannot be redrawn from, the data is open and can. This
+        credit belongs in the app's about screen once it has one.
+      </p>
+    </div>
+
+    <div class="panel ask">
+      <h4>Still open</h4>
+      <p>
+        <b>Amber or blue for your door</b> on the cabinet tab. Amber reads
+        instantly on steel but it is the door-open colour, and using it here
+        spends it early.
+      </p>
+      <p>
+        <b>Vietnamese or English leads.</b> The sign-in headline is Vietnamese
+        with English support underneath, which is a bet, not a decision.
+        PRODUCT.md still has this open.
+      </p>
+      <p>
+        <b>Which way in is the default.</b> Right now the phone field has
+        focus and Google sits under a divider. If SMS cost is the deciding
+        factor it should be the other way round.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+</div>
