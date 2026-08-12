@@ -6,6 +6,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +23,9 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -117,6 +120,22 @@ fun CabinetArt(
                 translationX = (zoomTarget?.tx ?: 0f) * progress * size.width
                 translationY = (zoomTarget?.ty ?: 0f) * progress * size.height
                 transformOrigin = TransformOrigin.Center
+            }
+            // Tapping the thing you are looking at is the first instinct; the
+            // chip below the picture is the second. The mock-up puts an
+            // invisible polygon on each lit door for exactly this, and the
+            // port had the callback but nothing to call it — `onDoorTapped`
+            // was a dead parameter, so the render did not respond to touch
+            // at all.
+            //
+            // After graphicsLayer in the chain, so the point arrives in the
+            // render's own coordinates and the polygons still fit it however
+            // far the camera has pushed in.
+            .pointerInput(yours) {
+                detectTapGestures { at ->
+                    doorAt(at, size.width.toFloat(), size.height.toFloat(), yours)
+                        ?.let(onDoorTapped)
+                }
             },
     ) {
         Image(
@@ -187,6 +206,42 @@ fun CabinetArt(
             }
         }
     }
+}
+
+/**
+ * Which of [yours] was tapped, or null for a tap on the cabinet's body.
+ *
+ * Only lit doors are targets. A free door is information, not a control — the
+ * mock-up gives it no hit polygon either.
+ */
+private fun doorAt(at: Offset, w: Float, h: Float, yours: List<YourDoor>): String? {
+    if (w <= 0f || h <= 0f) return null
+    val x = at.x / w
+    val y = at.y / h
+    return yours.firstOrNull { door ->
+        DOOR_POLYGONS[unpad(door.n)]?.let { encloses(it, x, y) } == true
+    }?.n
+}
+
+/**
+ * Ray casting, in the projection's own unit square.
+ *
+ * The doors are convex quads and a bounding box would nearly work, but they
+ * sit edge to edge: a box test lets a tap near a shared border pick the
+ * neighbour. Counting crossings cannot get a corner wrong.
+ */
+private fun encloses(corners: List<Pair<Float, Float>>, x: Float, y: Float): Boolean {
+    var inside = false
+    var j = corners.lastIndex
+    for (i in corners.indices) {
+        val (xi, yi) = corners[i]
+        val (xj, yj) = corners[j]
+        if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+            inside = !inside
+        }
+        j = i
+    }
+    return inside
 }
 
 /** A door's four projected corners as a path in the current draw size. */

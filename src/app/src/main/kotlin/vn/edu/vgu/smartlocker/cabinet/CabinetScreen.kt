@@ -144,7 +144,11 @@ fun CabinetScreen(
                 mine.size > 1 -> DoorSwitch(
                     doors = mine,
                     selected = effective,
-                    onSelect = { selected = it; framed = it },
+                    // Toggles, the same as a tap on the door. Picking the box
+                    // you are already looking at pulls the camera back out —
+                    // the receiver is standing at the cabinet wanting to see
+                    // one door, then the other, then the whole wall again.
+                    onSelect = { n -> selected = n; framed = if (framed == n) null else n },
                 )
             }
             if (mode == CabinetMode.TWO || mode == CabinetMode.ONE) {
