@@ -15,10 +15,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
@@ -86,6 +89,10 @@ fun LiveMap(
     val accent = t.accent.toArgb()
     val underlay = t.ground2.toArgb()
 
+    // Room round the walk so neither end sits on the edge. The card is small
+    // and can spare little; opened out there is room to breathe.
+    val edgePad = with(LocalDensity.current) { (if (interactive) 56.dp else 16.dp).roundToPx() }
+
     AndroidView(
         factory = { view },
         modifier = modifier,
@@ -106,11 +113,19 @@ fun LiveMap(
                     // to switch off.
                     isAttributionEnabled = true
                 }
+                // Frame by the route's own bounds, not by a zoom number.
+                //
+                // The zoom was worked out on paper for a card assumed to be
+                // 326dp by 112dp. On any other size - a wider phone, the
+                // opened-out sheet, a font scale that changes the row height -
+                // it is the wrong number, and the walk sits off the picture
+                // with the gate cut off the end. Bounds ask the map what size
+                // it actually is, which is also the rule for the cabinet
+                // screen: never assume a size.
                 if (!wiring.framed) {
-                    map.cameraPosition = CameraPosition.Builder()
-                        .target(Route.MID)
-                        .zoom(if (interactive) Route.ZOOM + 1f else Route.ZOOM)
-                        .build()
+                    map.moveCamera(
+                        CameraUpdateFactory.newLatLngBounds(Route.BOUNDS, edgePad),
+                    )
                     wiring.framed = true
                 }
 
@@ -230,17 +245,16 @@ private object Route {
     /** OSM node 12093474313, barrier=gate, open 06:00–23:00. */
     val GATE_POINT: Point = Point.fromLngLat(106.611139, 11.107471)
 
-    /** Centre of the route's own bounds, not of the campus. */
-    val MID = LatLng(11.106908, 106.612697)
-
     /**
-     * Chosen so the whole walk fits the card, height first.
+     * What the camera is asked to fit.
      *
-     * A zoom level puts `256 * 2^z` dp round the earth, so at latitude 11.1°
-     * one metre is `256 * 2^z / 39_326_000` dp. The route's bounds are about
-     * 350 m across and 270 m tall; the card is roughly 326 dp by 112 dp.
-     * Width alone would allow z 17.1, height only 15.96, and the smaller wins
-     * or the ends fall off the top and bottom. 15.6 leaves a margin.
+     * Built from the walk itself rather than written down, so correcting a
+     * coordinate cannot leave the framing pointing at the old one. There was a
+     * hand-computed centre and zoom here before, worked out for a card assumed
+     * to be 326dp by 112dp; the map knows its own size and the bounds let it
+     * use that.
      */
-    const val ZOOM = 15.6
+    val BOUNDS: LatLngBounds = LatLngBounds.Builder()
+        .includes(LINE.map { LatLng(it.latitude(), it.longitude()) })
+        .build()
 }
