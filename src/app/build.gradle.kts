@@ -79,6 +79,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests {
+            // Robolectric needs the real resources - the theme, the fonts and
+            // the colours are what the parity tests are checking. Without this
+            // it gets an empty resource table and every colour comes out
+            // transparent.
+            isIncludeAndroidResources = true
+        }
+    }
+
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
@@ -144,4 +154,15 @@ dependencies {
     // release build.
     implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
+
+    // The design-parity loop: draw a composable to a PNG on this machine and
+    // compare it to the mock-up. See docs/roadmap/phase-1.5-design-parity.md.
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    // The empty activity the test host runs the composable in. debug- rather
+    // than testImplementation because it is a manifest, and it has to be
+    // merged into the app under test rather than sit on the test classpath.
+    debugImplementation(libs.androidx.ui.test.manifest)
 }

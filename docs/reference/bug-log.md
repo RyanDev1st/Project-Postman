@@ -14,7 +14,7 @@ Add a row the moment you see a bug. Do not wait until you understand it.
 
 | ID | Device + OS | Screen | What happened | What should happen | Status | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| BUG-002 | Ryan's phone, Android | Settings — dark mode toggle | Faint circles spread out around the knob and sit on the screen behind the toggle. Ryan: "awkward layered fading circles around the moon". | The circles are the design's own — four white 10% rings around the knob — but the pill clips them, so they only lighten the sky inside the pill and never appear outside it. | open | Claude |
+| BUG-002 | Ryan's phone, Android | Settings — dark mode toggle | Faint circles spread out around the knob and sit on the screen behind the toggle. Ryan: "awkward layered fading circles around the moon". | The circles are the design's own — four white 10% rings around the knob — but the pill clips them, so they only lighten the sky inside the pill and never appear outside it. | fixed — the knob now draws inside the track's clip, and the extra 20% disc over the well is gone. Seen in `build/parity/theme-switch.png`. Needs re-testing on Ryan's phone | Claude |
 
 ## Closed bugs
 

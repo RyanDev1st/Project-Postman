@@ -24,6 +24,12 @@ sqlite = "3.49.1.0"
 # Not Google's: see ADR 0014.
 maplibre = "11.11.0"
 
+# Draws Compose to a PNG on this machine, with no phone and no emulator, so a
+# component can be compared against the mock-up before anybody installs
+# anything. Checked on Maven Central 2026-08-12: 4.15.1 is the newest stable.
+robolectric = "4.15.1"
+junit = "4.13.2"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -60,6 +66,16 @@ sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlit
 # from OpenFreeMap, which needs no key and no account. Google wanted a card
 # on file before it would serve a map it charges nothing for. See ADR 0014.
 maplibre = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
+
+# The design-parity loop. Robolectric runs the Android graphics stack on the
+# JVM; ui-test-junit4 puts a composable on a root and hands back the pixels.
+# Roborazzi was the obvious third package here and is not used: with
+# GraphicsMode.NATIVE these two already rasterise, and one screenshot library
+# fewer is one fewer thing to keep on a version.
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

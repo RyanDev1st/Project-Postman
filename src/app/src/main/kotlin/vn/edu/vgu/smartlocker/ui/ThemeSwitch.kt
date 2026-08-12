@@ -86,17 +86,24 @@ fun ThemeSwitch(
                 )
             }
 
+            // Everything is inside the track's clip, the knob included.
+            //
+            // The knob used to be drawn outside it, on the reasoning that a
+            // halo spilling past the edge is what gives it lift. That was a
+            // guess, and the CSS says the opposite in one word: the pill is
+            // `overflow: hidden`, so the four white rings round the knob stop
+            // at its edge and read as the sky lightening around the sun.
+            // Unclipped they are four grey circles sitting on the screen
+            // behind the toggle, which is BUG-002.
             clipPath(track) {
                 drawRect(lerp(DAY_SKY, NIGHT_SKY, t))
                 drawClouds(u, t)
                 drawStars(u, t)
-            }
 
-            // The knob rides outside the track's own clip: its halo spills
-            // past the edge, which is what gives it its lift.
-            val left = u(CIRCLE_OFFSET) + knob * u(TRACK_W - CIRCLE_D + 2 * -CIRCLE_OFFSET)
-            translate(left = left, top = u(CIRCLE_OFFSET)) {
-                drawKnob(u, t)
+                val left = u(CIRCLE_OFFSET) + knob * u(TRACK_W - CIRCLE_D + 2 * -CIRCLE_OFFSET)
+                translate(left = left, top = u(CIRCLE_OFFSET)) {
+                    drawKnob(u, t)
+                }
             }
         }
     }
@@ -107,10 +114,20 @@ private fun DrawScope.drawKnob(u: (Float) -> Float, t: Float) {
     val r = u(CIRCLE_D) / 2f
     val centre = Offset(r, r)
 
-    // inset 0 0 0 3.375em + two 0.625em/1.25em spreads, all white at 10%
+    // Four shadows in the CSS, two circles here, and that is not a shortcut.
+    //
+    // The two `inset 0 0 0 3.375em` fill the knob itself with white 10% twice
+    // over; the two spreads, 0.625em and 1.25em, ring it outside. An outer
+    // box-shadow does not paint under its own border box, so the insets own
+    // the middle and the spreads own the ring - and 10% over 10% is 19% in
+    // both places. So the disc out to r + 6.25 is one even 19%, which is what
+    // these two circles paint, and the band beyond it is 10%.
+    //
+    // A third circle used to sit on top at 20% to stand for the insets. It
+    // was painting 19% + 20% = 35% over them, and the knob well came out
+    // brighter than the sky it is supposed to be a dip in.
     drawCircle(Color.White.copy(alpha = 0.10f), radius = r + u(12.5f), center = centre)
     drawCircle(Color.White.copy(alpha = 0.10f), radius = r + u(6.25f), center = centre)
-    drawCircle(Color.White.copy(alpha = 0.20f), radius = r, center = centre)
 
     val sunR = u(SUN_D) / 2f
     val sun = Path().apply { addOval(androidx.compose.ui.geometry.Rect(centre - Offset(sunR, sunR), Size(sunR * 2, sunR * 2))) }
