@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -82,6 +83,12 @@ fun GlassBead(
     backdrop = backdrop,
     bloom = Bloom.BEAD,
     onClick = onClick,
+    // A round button centres what is in it. A Box defaults to its top-left
+    // corner instead, so every bead in the app bar has been drawing its icon
+    // up in the corner of a 30dp circle rather than in the middle of it —
+    // which is the whole of "the top left and top right icons are awkwardly
+    // offset". The same fault as the nav's tabs, in a different component.
+    contentAlignment = Alignment.Center,
     content = content,
 )
 
@@ -105,6 +112,7 @@ private fun Glass(
     backdrop: BackdropState?,
     bloom: Bloom,
     onClick: (() -> Unit)? = null,
+    contentAlignment: Alignment = Alignment.TopStart,
     content: @Composable BoxScope.() -> Unit,
 ) {
     // The app's scheme, not the phone's. With the in-app toggle these
@@ -112,23 +120,32 @@ private fun Glass(
     val t = LocalLockerTokens.current
     val dark = t.dark
 
-    val body = if (dark) {
-        Brush.linearGradient(
-            0.00f to Color.White.copy(alpha = 0.150f),
-            0.44f to Color.White.copy(alpha = 0.055f),
-            1.00f to Color.White.copy(alpha = 0.020f),
-            start = Offset.Zero,
-            end = Offset(900f, 400f),
-        )
-    } else {
-        Brush.linearGradient(
-            0.00f to Color.White.copy(alpha = 0.92f),
-            0.46f to Color.White.copy(alpha = 0.68f),
-            1.00f to Color.White.copy(alpha = 0.55f),
-            start = Offset.Zero,
-            end = Offset(900f, 400f),
-        )
-    }
+    // `rdev/liquid-glass-react`, at its defaults — the material Ryan named.
+    //
+    // Two stacked bands rather than one fade. Each runs transparent at both
+    // ends and peaks in the middle third, so the sheen is a BAND crossing the
+    // pane, not a wash pouring off one corner. That is the difference a
+    // linear fade cannot make: a fade says "lit from over there", a band says
+    // "this is a curved surface catching one light". The mock-up's own `.lg`
+    // is the fade, and it is why the pane read as flat.
+    //
+    // Numbers from src/index.tsx 525-556, with the mouse terms at rest.
+    val bandLow = Brush.linearGradient(
+        0.00f to Color.White.copy(alpha = 0.00f),
+        0.33f to Color.White.copy(alpha = 0.12f),
+        0.66f to Color.White.copy(alpha = 0.40f),
+        1.00f to Color.White.copy(alpha = 0.00f),
+        start = Offset.Zero,
+        end = Offset(0f, 900f),
+    )
+    val bandHigh = Brush.linearGradient(
+        0.00f to Color.White.copy(alpha = 0.00f),
+        0.33f to Color.White.copy(alpha = 0.32f),
+        0.66f to Color.White.copy(alpha = 0.60f),
+        1.00f to Color.White.copy(alpha = 0.00f),
+        start = Offset.Zero,
+        end = Offset(900f, 0f),
+    )
 
     Box(
         modifier = modifier
@@ -154,7 +171,12 @@ private fun Glass(
                 if (backdrop?.working == true) Modifier
                 else Modifier.background(t.ground.copy(alpha = 0.94f), shape)
             )
-            .background(body, shape)
+            // The two bands are faint on their own and are meant to be: at
+            // rest this material is mostly the refraction and the edge. They
+            // are drawn at a fraction on a dark ground, where white at 40%
+            // across a whole pane would be a headlight.
+            .background(bandLow, shape, alpha = if (dark) 0.35f else 0.65f)
+            .background(bandHigh, shape, alpha = if (dark) 0.22f else 0.45f)
             .drawWithContent {
                 bloom(bloom, dark)
                 drawContent()
@@ -162,6 +184,7 @@ private fun Glass(
                 rim(dark, shape)
             }
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        contentAlignment = contentAlignment,
         content = content,
     )
 }
