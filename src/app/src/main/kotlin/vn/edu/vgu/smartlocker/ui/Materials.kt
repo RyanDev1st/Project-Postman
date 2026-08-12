@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -137,15 +139,40 @@ fun Recess(
     val t = LocalLockerTokens.current
     Box(
         modifier = modifier
-            .background(t.field, shape)
-            .background(
-                Brush.verticalGradient(
-                    listOf(t.recessIn, Color.Transparent, Color.Transparent, t.recessLit),
-                    startY = 0f,
-                    endY = 200f,
-                ),
-                shape,
-            ),
+            .clip(shape)
+            .background(t.field)
+            .drawBehind {
+                // `inset 0 1.5px 3px 0 var(--recess-in)` — the ground's shade
+                // thrown a short way in from the top edge, and it is SHORT:
+                // 1.5dp of offset plus 3dp of blur, so 4.5dp in total.
+                //
+                // This used to be a gradient run to a fixed `endY = 200f`,
+                // which is not a length the design ever mentions and is not a
+                // length at all on a box of a different height: on a tall
+                // recess the shade never finished, and on a 44dp settings
+                // field it was cut off part-way. Either way the edge read as
+                // a soft wash across the whole control rather than as a lip
+                // it is set down behind.
+                val depth = (1.5f + 3f).dp.toPx()
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        0f to t.recessIn,
+                        1f to Color.Transparent,
+                        startY = 0f,
+                        endY = depth,
+                    ),
+                    size = Size(size.width, depth),
+                )
+
+                // `inset 0 -1px 0 0 var(--recess-lit)` — where the surface
+                // comes back up. One pixel, no blur.
+                val lit = 1.dp.toPx()
+                drawRect(
+                    color = t.recessLit,
+                    topLeft = Offset(0f, size.height - lit),
+                    size = Size(size.width, lit),
+                )
+            },
         content = content,
     )
 }

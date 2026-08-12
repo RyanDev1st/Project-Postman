@@ -55,6 +55,7 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 @Composable
 fun LiveMap(
     modifier: Modifier = Modifier,
+    interactive: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     val t = LocalLockerTokens.current
@@ -91,23 +92,31 @@ fun LiveMap(
         update = { v ->
             v.getMapAsync { map ->
                 map.uiSettings.apply {
-                    isScrollGesturesEnabled = false
-                    isZoomGesturesEnabled = false
+                    // On the card the map is a picture: a map that pans under
+                    // the finger eats the scroll of the screen it sits in.
+                    // Opened out it is a map, and it moves.
+                    isScrollGesturesEnabled = interactive
+                    isZoomGesturesEnabled = interactive
+                    isDoubleTapGesturesEnabled = interactive
                     isRotateGesturesEnabled = false
                     isTiltGesturesEnabled = false
-                    isDoubleTapGesturesEnabled = false
                     isCompassEnabled = false
                     isLogoEnabled = false
                     // Required by OpenFreeMap and by OSM's licence. Not ours
                     // to switch off.
                     isAttributionEnabled = true
                 }
-                map.cameraPosition = CameraPosition.Builder()
-                    .target(Route.MID)
-                    .zoom(Route.ZOOM)
-                    .build()
+                if (!wiring.framed) {
+                    map.cameraPosition = CameraPosition.Builder()
+                        .target(Route.MID)
+                        .zoom(if (interactive) Route.ZOOM + 1f else Route.ZOOM)
+                        .build()
+                    wiring.framed = true
+                }
 
-                if (!wiring.clickBound) {
+                // Only the card hands the tap on. Opened out, a tap is how
+                // you use the map.
+                if (!interactive && !wiring.clickBound) {
                     map.addOnMapClickListener { click(); true }
                     wiring.clickBound = true
                 }
@@ -128,6 +137,10 @@ fun LiveMap(
  * every scheme change, and MapLibre would stack a second listener each time. */
 private class MapWiring {
     var clickBound = false
+
+    /** The camera is placed once. Setting it on every update would drag the
+     * view back to the route the moment you panned away from it. */
+    var framed = false
 }
 
 /**
