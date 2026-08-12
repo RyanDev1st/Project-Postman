@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.BlendMode
@@ -76,7 +79,13 @@ fun CabinetArt(
     // The one timeline: arrive, light, then (one box only) push in.
     val arrive = remember { Animatable(0.94f) }
     val light = remember { Animatable(0f) }
-    val zoom = remember { Animatable(1f) }
+    // One number for the whole camera: 0 is the wide shot, 1 is framed on
+    // `framing`. The design tweens scale, xPercent and yPercent in a single
+    // call with one duration and one ease, so they are one parameter here —
+    // and a single parameter cannot get the scale and the pan out of step
+    // with each other, which is what happened when they were separate.
+    val travel = remember { Animatable(0f) }
+    var framing by remember { mutableStateOf<Zoom?>(null) }
 
     // Which door the camera is on: the one that was tapped, or — when a
     // single box is yours — that one, because the screen frames it unasked.
@@ -92,14 +101,26 @@ fun CabinetArt(
     // The camera. This used to run only when framedDoor was null, so tapping
     // a door computed a target and then never moved to it — the zoom simply
     // did nothing.
+    //
+    // `framing` is the shot being travelled to, or travelled away from, and
+    // it is held until the travel finishes. That is the whole of the broken
+    // zoom out: the pan was read live off `zoomTarget`, which goes null the
+    // instant you ask for the wide shot, so the picture jumped sideways to
+    // centre and only then scaled down — and left the next push-in starting
+    // from a place the camera was never at.
+    //
+    // Same duration both ways, because the design gives one: `duration: 0.72`
+    // on the tween that carries scale and pan together.
     LaunchedEffect(activeDoor, framedDoor) {
         val target = zoomTarget
         if (target == null) {
-            zoom.animateTo(1f, tween(520, easing = LinearOutSlowInEasing))
+            travel.animateTo(0f, tween(720, easing = LinearOutSlowInEasing))
+            framing = null
         } else {
+            framing = target
             // The unasked push-in waits; one you asked for goes at once.
             if (framedDoor == null) delay(600)
-            zoom.animateTo(target.scale, tween(720, easing = LinearOutSlowInEasing))
+            travel.animateTo(1f, tween(720, easing = LinearOutSlowInEasing))
         }
     }
 
@@ -109,16 +130,16 @@ fun CabinetArt(
             .aspectRatio(1f)
             .clipToBounds()
             .graphicsLayer {
-                val z = zoom.value
-                val k = zoomTarget?.scale ?: 1f
-                val progress = if (k == 1f) 0f else ((z - 1f) / (k - 1f)).coerceIn(0f, 1f)
+                val shot = framing
+                val p = travel.value
+                val z = 1f + ((shot?.scale ?: 1f) - 1f) * p
                 scaleX = z * arrive.value
                 scaleY = z * arrive.value
                 // tx and ty are fractions of the render; translation is in
                 // pixels. Without the size they were fractions of a pixel,
                 // so the camera scaled but never panned onto the door.
-                translationX = (zoomTarget?.tx ?: 0f) * progress * size.width
-                translationY = (zoomTarget?.ty ?: 0f) * progress * size.height
+                translationX = (shot?.tx ?: 0f) * p * size.width
+                translationY = (shot?.ty ?: 0f) * p * size.height
                 transformOrigin = TransformOrigin.Center
             }
             // Tapping the thing you are looking at is the first instinct; the
