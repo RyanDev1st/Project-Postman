@@ -73,15 +73,9 @@ class BackdropState internal constructor(internal val layer: GraphicsLayer) {
 @Composable
 fun rememberBackdrop(): BackdropState {
     val layer = rememberGraphicsLayer()
-    val density = LocalDensity.current
-    return remember(layer) {
-        BackdropState(layer).also {
-            if (it.supported) {
-                val r = with(density) { BLUR.toPx() }
-                layer.renderEffect = frostEffect(r)
-            }
-        }
-    }
+    // No render effect here. The blur belongs to the layer that reaches the
+    // screen, and this one never does — see [backdropBlur].
+    return remember(layer) { BackdropState(layer) }
 }
 
 /**
@@ -120,6 +114,7 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
     // is shared by every pane at once.
     val paneLayer = rememberGraphicsLayer()
     val refraction = rememberRefraction()
+    val blurPx = with(LocalDensity.current) { BLUR.toPx() }
 
     return this
         .onGloballyPositioned { paneOrigin = it.positionInRoot() }
@@ -127,7 +122,30 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
             val path = Path().apply {
                 addOutline(shape.createOutline(size, layoutDirection, this@drawWithContent))
             }
-            paneLayer.renderEffect = refraction?.effectFor(size, this@drawWithContent)
+
+            // Both effects go on THIS layer, because this is the one that is
+            // drawn to the screen.
+            //
+            // The blur used to sit on the source layer instead, which is only
+            // ever drawn nested inside this layer's recording and never
+            // straight to a canvas. Meanwhile this layer's effect was set from
+            // `refraction` alone — and refraction is AGSL, which needs API 33,
+            // so on any phone below that it is null and the pane was drawing
+            // a raw, sharp copy of the screen behind it. That is why the word
+            // COLLECTED could be read through the nav bar at full sharpness
+            // while the blur was nominally 20dp: there was no lens, only a
+            // tinted shape. Every number tuned on top of that was paint on a
+            // window.
+            //
+            // Chained, so the frost runs first and the refraction bends the
+            // frosted result — the order the material needs, and the order
+            // `backdrop-filter` uses.
+            val frost = frostEffect(blurPx)
+            val bend = refraction?.effectFor(size, this@drawWithContent)?.asAndroidRenderEffect()
+            paneLayer.renderEffect =
+                (if (bend != null) RenderEffectApi.createChainEffect(bend, frost) else frost)
+                    .asComposeRenderEffect()
+
             paneLayer.record(IntSize(size.width.toInt(), size.height.toInt())) {
                 val d = state.sourceOrigin - paneOrigin
                 translate(d.x, d.y) { drawLayer(state.layer) }
@@ -136,6 +154,8 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
             drawContent()
         }
 }
+
+private typealias RenderEffectApi = android.graphics.RenderEffect
 
 /**
  * Twenty, measured off the live demo rather than read off the README.
@@ -168,12 +188,11 @@ private val BLUR = 20.dp
  * colour filter takes the blur as its input rather than the other way round.
  */
 @RequiresApi(Build.VERSION_CODES.S)
-private fun frostEffect(radius: Float): RenderEffect {
+private fun frostEffect(radius: Float): android.graphics.RenderEffect {
     val blur = android.graphics.RenderEffect.createBlurEffect(
         radius, radius, android.graphics.Shader.TileMode.DECAL,
     )
     val boost = ColorMatrix().apply { setSaturation(1.40f) }
     return android.graphics.RenderEffect
         .createColorFilterEffect(ColorMatrixColorFilter(boost), blur)
-        .asComposeRenderEffect()
 }

@@ -1,37 +1,34 @@
-0.4.0 — the liquid-glass material, and the corner controls.
+0.6.0 — the blur was never running.
 
-Check the version first. Long-press the app icon, App info. It should read
-0.4.0. Every build from here carries a new number, so if it says something
-else the install did not take and nothing below applies.
+Check the version first: long-press the app icon, App info. It must read
+0.6.0.
 
-The corner controls, top left and top right. The icon was being drawn in the
-top-left corner of its own circle instead of the middle of it — a round button
-that never centred what was in it. They also went from a black disc with a lit
-rim to actual glass: they were carrying a 94% blackout meant for the nav bar,
-which floats over text and must not be read through. Nothing sits behind a
-corner control but the background, so it was paying for a risk it does not
-have.
+Ryan spotted it from one screenshot: the word COLLECTED was perfectly sharp
+through the nav bar. At 20dp of blur that word should be an unreadable smear.
+It was not blurred at all, so the bar was never frosted glass — it was a
+transparent tinted shape with a lit edge, and every number tuned on top of it
+across the last five builds was paint on a window.
 
-The glass. Four changes, in the order they matter:
+The cause. A blur belongs to a layer, and it only happens when that layer is
+drawn to a canvas. The blur was attached to the layer that records the screen,
+which is never drawn to a canvas directly — it is only ever copied inside
+another layer. The layer that does reach the screen had its effect set from
+the refraction shader alone, and that shader needs Android 13; below it, the
+value is nothing. So the pane drew a raw, sharp copy of whatever was behind
+it.
 
-  - The edge is a complete bright hairline now, all the way round. It used to
-    fade to nothing across about three quarters of the perimeter, so the pane
-    had no visible boundary along its bottom and right and read as a smudge
-    rather than as an object.
-  - The light comes from the top centre, not off the top-left corner. On a bar
-    of three equal tabs a corner light lands as a bright patch over the first
-    tab with the other two in shade — it looks like a stain on the glass.
-  - The sheen is two bands crossing the pane rather than one fade pouring off
-    a corner. A fade says "lit from over there"; a band says "this is a curved
-    surface catching one light".
-  - The shadow is one wide soft fall instead of two or three stacked dark
-    ones. Stacked shadows under a pane that exists to pass light put a bruise
-    on the ground under it.
+Both effects are now on the layer that reaches the screen, chained, so the
+frost happens first and the refraction bends the frosted result.
 
-Still this app's own numbers, not the library's: the refraction strength. It
-is close — the same chromatic aberration, and a bend that reaches the same
-maximum — but it scales with the size of the component where the library uses
-one fixed figure.
+**The one thing to check.** Scroll Home so a word passes under the nav bar. If
+it goes soft and unreadable, the glass is real. If you can still read it, the
+blur is still not running and nothing else about the material is worth
+discussing until it is.
 
-What to look at: the nav bar over a screen that scrolls under it, and the two
-controls in the top corners.
+One honest limit, unchanged. This material is a lens: it has almost no
+substance of its own and everything it shows is what lies behind it, blurred
+and saturated. The demo looks the way it does because it sits on a busy colour
+photograph. Our ground is near-black and flat, so over empty background the
+glass will always be quiet. Where it should now look right is over real
+content — the nav bar with the parcel cards or the cabinet render running
+under it.
