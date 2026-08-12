@@ -49,6 +49,21 @@ class BackdropState internal constructor(internal val layer: GraphicsLayer) {
     internal var sourceOrigin by mutableStateOf(Offset.Zero)
 
     val supported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    /**
+     * Whether a pane may actually rely on the blur.
+     *
+     * [supported] says the API exists. It does not say the source ever drew:
+     * if [backdropSource] is not on the tree, or is on a node with no size,
+     * the layer stays empty and every pane sampling it gets nothing — which
+     * is how a nav bar ends up transparent enough to read COLLECTED through.
+     *
+     * A pane asks this, not [supported], so the failure is safe: no proven
+     * recording means a near-opaque frost, which is a duller material than
+     * the design and still a material, rather than a window.
+     */
+    var working by mutableStateOf(false)
+        internal set
 }
 
 @Composable
@@ -77,8 +92,9 @@ fun Modifier.backdropSource(state: BackdropState): Modifier =
     this
         .onGloballyPositioned { state.sourceOrigin = it.positionInRoot() }
         .drawWithContent {
-            if (state.supported) {
+            if (state.supported && size.minDimension > 0f) {
                 state.layer.record { this@drawWithContent.drawContent() }
+                if (!state.working) state.working = true
             }
             drawContent()
         }
