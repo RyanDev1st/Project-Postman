@@ -39,9 +39,30 @@ The map is **lite mode**: one styled bitmap, not a GL surface. The card is
 112dp tall inside a scrolling screen, and a full map there swallows the scroll
 and spends a frame budget on something the size of a stamp.
 
-The route line stays **baked**. Displaying a map is free; asking Google for
-directions is the part that is billed. The gate does not move, so the walk is
-computed once and shipped.
+The route line stays **baked**. Asking Google for directions is the part that
+is billed. The gate does not move, so the walk is computed once and shipped.
+
+## What it costs
+
+Nothing, checked against Google's own SKU table on 2026-08-12 rather than
+from memory:
+
+| SKU | Free cap | Then |
+| --- | --- | --- |
+| `Maps SDK` `6DE1-4D9C-5B67` — the native Android one, ours | **Unlimited** | — |
+| `Dynamic Maps` `FAF4-3B2D-51B2` — the web one | 10,000 | $7.00 / 1,000 |
+| `Static Maps` `3C2D-B525-2E5F` | 10,000 | $2.00 / 1,000 |
+
+The SDK's own page says it in words: "All mobile usage of the Maps SDK for
+Android is unlimited." The billed rows are web SKUs this app never calls.
+
+**But billing must still be enabled on the Cloud project** — a card on file,
+never charged for a $0 SKU. That is the real cost of this decision, and it is
+not money: it is that somebody's card is attached to the project.
+
+This is the second reason to restrict the key to the package and the signing
+certificate. An unrestricted key lifted out of the APK can be pointed at the
+*billed* web SKUs from anyone's website, on that card.
 
 ## Why
 
