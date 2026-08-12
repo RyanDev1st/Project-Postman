@@ -300,7 +300,17 @@
 
 /* The sun does not become the moon. The moon SLIDES ACROSS it, from
    translateX(100%), clipped by the sun's own overflow. */
+/* `display: block` is load-bearing, and it is the whole of BUG-001. Every
+   other part of this component is blockified by something - the container
+   says so itself, the circle is a flex container, the sun is a flex item, the
+   clouds, stars and spots are absolutely positioned. The moon is a `<span>`
+   with none of that, so it stayed inline; `width` and `height` do not apply
+   to an inline box, and it measured 0x0 in both states. Dark mode showed the
+   sun. The component was written with `<div>`s and a `<button>` takes
+   phrasing content only, so converting them to `<span>`s to make the markup
+   valid deleted the moon in silence. */
 .theme-switch__moon {
+  display: block;
   transform: translateX(100%);
   width: 100%; height: 100%;
   background-color: var(--moon-bg); border-radius: inherit;

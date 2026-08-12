@@ -17,9 +17,25 @@ design port — DESIGN.md is a record and can lag the screens.
 | `map.py` | fetches the ways and the Valhalla route, bakes the symbol |
 | `route.json` | the engine, the date and the maneuvers the symbol came from |
 | `build.py` | inlines fonts, GSAP and the render into one artifact page |
+| `reference-harness.html` | each component on its own, for photographing and measuring against the Android port |
 
 The built artifact is `preview.html` (self-contained, ~2 MB); rebuild it with
 `python map.py && python build.py` from the folder it was generated in.
+
+## Checking the port against this folder
+
+`reference-harness.html` loads the real stylesheets and the real `liquid.js`
+and holds each component in the markup it has in `body.html`. Serve this
+folder and open it, or screenshot it headlessly — the commands are in
+[phase-1.5](../../roadmap/phase-1.5-design-parity.md). Two hash flags:
+
+- `#block=<n>&zoom=<n>` — keep one component and blow it up.
+- `#probe=<css selector>` — print each match's box and its computed transform,
+  colour, radius, shadow, padding and type as JSON.
+
+Prefer the probe to looking at it. A screenshot said the dark-mode toggle drew
+a sun; the probe said the moon measured 0 by 0 and named the cause. That is
+BUG-001.
 
 ## What the port must reproduce
 

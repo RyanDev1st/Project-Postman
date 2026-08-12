@@ -37,6 +37,36 @@ Two halves, both of which run on this machine with no phone:
 Then a block is done when its two pictures match, and *only* then does it go
 in a build.
 
+### Running the reference half
+
+It works today. `scratch_reference.html` in `docs/designs/mockup` loads the
+real `screens.css`, the real `glass.css` and the real `liquid.js`, and holds
+the components in the markup they have in `body.html`. Serve the folder, then:
+
+```sh
+python -m http.server 8731 --bind 127.0.0.1        # from docs/designs/mockup
+chrome --headless --disable-gpu --no-sandbox \
+  --user-data-dir=<a writable dir> \
+  --screenshot=<an absolute path> \
+  --window-size=390,860 --hide-scrollbars \
+  --force-device-scale-factor=2 --virtual-time-budget=5000 \
+  "http://127.0.0.1:8731/scratch_reference.html"
+```
+
+Two things the harness does that a plain screenshot does not:
+
+- `#block=<n>&zoom=<n>` keeps one component and blows it up, so it can be
+  looked at at pixel scale.
+- `#probe=<css selector>` prints each match's box and its computed transform,
+  colour, radius, shadow, padding and type as JSON. **Prefer this to looking.**
+  It is what found BUG-001 — a screenshot showed a sun in dark mode and left
+  the reason open, while the probe said `box: [.., .., 0, 0]` and named it.
+
+Two traps, both already paid for: Chrome will not write a screenshot to a
+relative path in the session scratch directory, so pass an absolute one; and
+the harness disables every transition, because a reference is a still and the
+first capture caught the moon half way across the sun.
+
 **What this cannot check:** `RenderEffect` and AGSL do not run without a GPU,
 so the backdrop blur and the rim refraction will not appear in a JVM render.
 Those two stay device-checked. Everything else — layout, padding, colour,
