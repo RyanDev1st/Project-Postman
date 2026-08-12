@@ -15,20 +15,27 @@ nav, cards lifted off the ground, recesses set into it.
 Nothing talks to a server yet, so every parcel on screen is made up. The
 design sources now live in docs/designs/mockup/, next to the port.
 
-Fixed since the last build, after screenshots off a real phone:
+Fixed since the last build, after a second round of screenshots:
 
-  Geist and Geist Mono now ship. The app was running Roboto and Android's
-  stock monospace, which put a typewriter face on every number.
-  The campus map draws. It was scaled about the canvas centre instead of
-  the origin, which put the whole thing off the left edge of the card.
-  The sign-in cabinet is back — the 175% zoom was silently coerced away.
-  The nav is glass again, not transparent: it was reading the phone's
-  light-or-dark setting instead of the app's own.
-  Dark mode has its change back — dark sweeps down, light rises up.
-  Buttons, beads and cards had their shadows drawn over their own faces.
-  Nothing hides under the nav bar any more, and the sixth code cell is
-  no longer off the edge of the screen.
+  The Dark mode row has its real component now — the sun-and-moon switch
+  from the design, not a plain toggle. Clouds fall out, stars come down,
+  and the moon slides across the sun.
+  The theme change is one pass again. It used to cover the screen with a
+  blank rectangle for half a second; the curtain now runs behind the
+  content, so every card and letter stays put and recolours in place.
+  The glass is glass. There was no blur behind it at all, so the nav was
+  a window and the word COLLECTED could be read straight through it.
+  Every screen has its light back. The accent wash was being painted over
+  by the opaque ground on top of it.
+  The Cabinet tab moves. Tapping a door worked out where to push in to and
+  then never went, and the automatic push-in for a single box did the same.
 
-What to look at: the amber — does a lit door read as yours from arm's length,
-and is the number still legible through it? Then the theme toggle in
-Settings, in both directions.
+Also new: the map card is a real map — Google's tiles in the app's own two
+schemes, the walk drawn over them, and your own position on it. It needs a
+key, and this build has none, so the card still shows the drawn plan. That
+one is not testable yet.
+
+What to look at: the theme switch in Settings, both directions — the
+component itself and the change behind it. Then hold the nav bar over the
+cabinet render and check you cannot read anything through it. Then the
+Cabinet tab: tap a door and see whether the camera lands on it.
