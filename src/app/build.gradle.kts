@@ -33,8 +33,8 @@ android {
         // failed to install from a fix that failed to work. That is not a
         // cosmetic problem: it makes every report ambiguous, including
         // "this has all the same problems as the prior release".
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
 
         // One ABI, not four.
         //

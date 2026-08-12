@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -97,11 +98,24 @@ private enum class Bloom(
     val rx: Float, val ry: Float, val cx: Float, val cy: Float,
     val peak: Float, val mid: Float?, val midStop: Float, val end: Float,
 ) {
-    /** `radial-gradient(126% 74% at 20% -14%, .30, .06 42%, transparent 62%)` */
-    PANE(1.26f, 0.74f, 0.20f, -0.14f, 0.30f, 0.06f, 0.42f, 0.62f),
+    /**
+     * `radial-gradient(circle at 50% 0%, rgba(255,255,255,.5), transparent 50%)`
+     *
+     * Top **centre**, not the top-left corner. The mock-up put the light at
+     * 20% -14%, off the corner, and a corner light on a 300dp-wide bar lands
+     * as a bright patch over the first tab with the other two in shade — it
+     * reads as a stain on the glass rather than as glass. One light straight
+     * above the middle is symmetrical, which is what makes a bar of three
+     * equal tabs look like one object.
+     */
+    PANE(1.00f, 0.62f, 0.50f, 0.00f, 0.50f, 0.14f, 0.24f, 0.50f),
 
-    /** `radial-gradient(84% 60% at 30% 0%, .48, transparent 58%)` */
-    BEAD(0.84f, 0.60f, 0.30f, 0.00f, 0.48f, null, 0f, 0.58f),
+    /**
+     * The same light, tighter and brighter — a bead is nearly all edge, so
+     * almost none of its face is left to carry a gradient.
+     * `radial-gradient(circle at 50% 0%, rgba(255,255,255,1), transparent 80%)`
+     */
+    BEAD(0.90f, 0.75f, 0.50f, 0.00f, 0.72f, 0.24f, 0.34f, 0.80f),
 }
 
 @Composable
@@ -167,9 +181,22 @@ private fun Glass(
             // safety, not a material: a pane you can read a word through is a
             // window, and the word COLLECTED could be read straight through
             // the nav bar on the build that shipped.
+            //
+            // How heavy the scrim is depends on what the pane is over, and
+            // the two are not the same risk. A pane floats over the page and
+            // a word read through it is a failure. A bead sits in the app
+            // bar, where there is nothing behind it but ground - the content
+            // starts below the bar and never runs under it - so the same
+            // scrim buys no safety at all and costs the bead its whole
+            // material. At 94% every corner control was a black disc with a
+            // lit rim, which is what "the 2 UI elements on the top left and
+            // right - all bad" was describing.
             .then(
                 if (backdrop?.working == true) Modifier
-                else Modifier.background(t.ground.copy(alpha = 0.94f), shape)
+                else Modifier.background(
+                    t.ground.copy(alpha = if (bloom == Bloom.BEAD) 0.30f else 0.94f),
+                    shape,
+                )
             )
             // The two bands are faint on their own and are meant to be: at
             // rest this material is mostly the refraction and the edge. They
@@ -180,8 +207,7 @@ private fun Glass(
             .drawWithContent {
                 bloom(bloom, dark)
                 drawContent()
-                lip(dark)
-                rim(dark, shape)
+                edge(dark, shape)
             }
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = contentAlignment,
@@ -224,67 +250,74 @@ private fun DrawScope.bloom(b: Bloom, dark: Boolean) {
 }
 
 /**
- * The four inset edges, each its own strength.
+ * The edge: a bright hairline all the way round, and a soft return under it.
  *
- * Dark: top .40, left .10, right .06, bottom .05 — a catch of light on top
- * and almost nothing elsewhere. Light mode is not the same recipe at lower
- * alpha: a white lip on a pale ground has nothing to be brighter than, so
- * the top goes to solid white and the *bottom* carries the thickness as a
- * shade instead.
+ * `0 0 0 0.5px rgba(255,255,255,.5) inset` and
+ * `0 1px 3px rgba(255,255,255,.25) inset`, which is a **complete** ring — not
+ * an arc.
+ *
+ * This reverses a decision. The previous edge was a sweep lit from the
+ * top-left that fell to nothing across about three quarters of the perimeter,
+ * on the mock-up's argument that a full ring is "chalk" and that a real
+ * specular highlight is bright on one side only. That is true of a polished
+ * curved solid. It is not true of a thin sheet with a *cut edge*, which is
+ * what this material is: the cut catches light all the way round and the
+ * gradient across the face says which way the sheet is tilted. Fading three
+ * quarters of it away left the pane with no perceptible boundary along its
+ * bottom and right, which is a large part of why it read as a smudge rather
+ * than as an object with a shape.
+ *
+ * Half a pixel, so it stays a hairline at any density and never becomes a
+ * drawn border.
  */
-private fun DrawScope.lip(dark: Boolean) {
-    val px = 1.dp.toPx()
-    val w = size.width
-    val h = size.height
-    if (dark) {
-        drawRect(Color.White.copy(alpha = 0.40f), Offset.Zero, Size(w, px))
-        drawRect(Color.White.copy(alpha = 0.10f), Offset.Zero, Size(px, h))
-        drawRect(Color.White.copy(alpha = 0.06f), Offset(w - px, 0f), Size(px, h))
-        drawRect(Color.White.copy(alpha = 0.05f), Offset(0f, h - px), Size(w, px))
-    } else {
-        drawRect(Color.White, Offset.Zero, Size(w, px))
-        drawRect(Color(0xFF091620).copy(alpha = 0.06f), Offset(0f, h - px), Size(w, px))
+private fun DrawScope.edge(dark: Boolean, shape: Shape) {
+    val ring = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@edge)) }
+    val hair = if (dark) 0.50f else 0.85f
+
+    // The soft return, first and underneath: a white glow thrown down from
+    // the inside of the top edge. It is what gives the hairline something to
+    // sit on, and without it the ring reads as a drawn outline.
+    clipPath(ring) {
+        val depth = (1f + 3f).dp.toPx()
+        drawRect(
+            brush = Brush.verticalGradient(
+                0f to Color.White.copy(alpha = if (dark) 0.25f else 0.55f),
+                1f to Color.Transparent,
+                startY = 0f,
+                endY = depth,
+            ),
+            size = Size(size.width, depth),
+        )
     }
-}
 
-/**
- * The rim — a specular arc, not a border.
- *
- * `liquid.js` rejected the drawn ring outright: "no hard inset ring at all —
- * that was the chalk". What Apple's edge actually is, is a highlight bright
- * along the arc the light catches and gone on the opposite side. So this is
- * a sweep that reaches zero at both ends, lit from the top-left where the
- * bloom's light source is, leaving about three quarters of the perimeter
- * with no line on it at all.
- */
-private fun DrawScope.rim(dark: Boolean, shape: Shape) {
-    val px = 1.dp.toPx()
-    val peak = if (dark) 0.55f else 0.95f
-    val ring = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@rim)) }
-    val sweep = Brush.sweepGradient(
-        0.00f to Color.White.copy(alpha = peak * 0.20f),
-        0.10f to Color.White.copy(alpha = peak),
-        0.28f to Color.White.copy(alpha = peak * 0.35f),
-        0.45f to Color.Transparent,
-        0.80f to Color.Transparent,
-        1.00f to Color.White.copy(alpha = peak * 0.20f),
-        center = Offset(size.width * 0.20f, 0f),
+    drawPath(
+        ring,
+        color = Color.White.copy(alpha = hair),
+        style = Stroke(width = 0.5.dp.toPx()),
     )
-    drawPath(ring, brush = sweep, style = Stroke(width = px))
 }
 
 /**
- * `.lg` gets two shadows, `.lg-pop` three — and in light mode they are the
- * ink's own colour rather than black, because black on a pale steel ground
- * goes grey and muddy where a tinted shade stays clean.
+ * One shadow, wide and soft: `0 12px 40px rgba(0,0,0,.25)`.
+ *
+ * The mock-up stacks two on `.lg` and three on `.lg-pop`, at up to 60% black.
+ * Stacked dark shadows under a pane whose whole job is to let light through
+ * put a bruise on the ground beneath it, and on a near-black ground that
+ * bruise is the most visible thing about the component. The liquid-glass
+ * shadow is a single wide fall at a quarter black — enough to say the pane is
+ * off the surface, not enough to draw attention to itself.
+ *
+ * A popped pane keeps a deeper one, because it genuinely is further off.
+ * Light mode tints rather than blackens: black on a pale steel ground goes
+ * grey and muddy where a tinted shade stays clean.
  */
 private fun Modifier.glassShadow(dark: Boolean, lift: Lift, shape: Shape): Modifier {
     val tint = if (dark) Color.Black else Color(0xFF091620)
     val (elevation, alpha) = when {
-        lift == Lift.POPPED && dark -> 18.dp to 0.50f
-        lift == Lift.POPPED -> 18.dp to 0.20f
-        dark -> 10.dp to 0.44f
-        else -> 10.dp to 0.18f
+        lift == Lift.POPPED && dark -> 20.dp to 0.34f
+        lift == Lift.POPPED -> 20.dp to 0.16f
+        dark -> 12.dp to 0.25f
+        else -> 12.dp to 0.12f
     }
     return shadow(
         elevation = elevation,

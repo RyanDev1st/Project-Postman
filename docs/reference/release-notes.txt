@@ -1,38 +1,37 @@
-Design rebuild — first build checked against the mock-up before sending.
+0.4.0 — the liquid-glass material, and the corner controls.
 
-What changed, and why it should look different:
+Check the version first. Long-press the app icon, App info. It should read
+0.4.0. Every build from here carries a new number, so if it says something
+else the install did not take and nothing below applies.
 
-1. The glass. Blur drops from 24px to 6px and saturation from 190% to 140%,
-   which are the liquid-glass defaults Ryan asked for. The old numbers blurred
-   four times too hard, so there was nothing left behind the pane to refract.
-   Also gone: a near-black layer painted under the white film that was never in
-   the design at all, and was turning frosted glass into a tinted window.
+The corner controls, top left and top right. The icon was being drawn in the
+top-left corner of its own circle instead of the middle of it — a round button
+that never centred what was in it. They also went from a black disc with a lit
+rim to actual glass: they were carrying a 94% blackout meant for the nav bar,
+which floats over text and must not be read through. Nothing sits behind a
+corner control but the background, so it was paying for a risk it does not
+have.
 
-2. The dark-mode toggle. The faint rings round the knob now stop at the edge of
-   the pill, as they should — clipped they read as sky lightening round the
-   sun; loose they were circles floating on the screen. The knob well was also
-   too bright, and the pill had no shadow of its own.
+The glass. Four changes, in the order they matter:
 
-3. The nav bar. Every icon and label was pinned to the left edge of its own
-   tab. They sit in the middle now. Labels are the right size and case, and the
-   selected pill has its lit top edge back, so it reads as a raised pane rather
-   than a flat coloured lozenge.
+  - The edge is a complete bright hairline now, all the way round. It used to
+    fade to nothing across about three quarters of the perimeter, so the pane
+    had no visible boundary along its bottom and right and read as a smudge
+    rather than as an object.
+  - The light comes from the top centre, not off the top-left corner. On a bar
+    of three equal tabs a corner light lands as a bright patch over the first
+    tab with the other two in shade — it looks like a stain on the glass.
+  - The sheen is two bands crossing the pane rather than one fade pouring off
+    a corner. A fade says "lit from over there"; a band says "this is a curved
+    surface catching one light".
+  - The shadow is one wide soft fall instead of two or three stacked dark
+    ones. Stacked shadows under a pane that exists to pass light put a bruise
+    on the ground under it.
 
-4. The cabinet camera. Tapping to go wide used to jerk the picture sideways
-   before pulling back, and left the next push-in starting from the wrong
-   place. Scale and pan now travel together, 720ms each way.
+Still this app's own numbers, not the library's: the refraction strength. It
+is close — the same chromatic aberration, and a bend that reaches the same
+maximum — but it scales with the size of the component where the library uses
+one fixed figure.
 
-5. The map. It frames itself to the walk instead of a zoom worked out for a
-   card of an assumed size. The walk shown starts at the academic block — it is
-   a fixed route to the gate, not one from where you are standing.
-
-6. The card. Its shadow is tucked under the foot rather than thrown evenly on
-   all sides, and its fill no longer breaks when the theme changes.
-
-What to look at first: the nav bar over a scrolling screen, and the dark-mode
-toggle in Settings.
-
-Not done yet: the full liquid-glass material — its edge gradients, its
-displacement scale and its chromatic aberration are still this app's own
-numbers, not the library's. This build changes the blur and the saturation
-only.
+What to look at: the nav bar over a screen that scrolls under it, and the two
+controls in the top corners.

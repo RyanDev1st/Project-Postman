@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -155,6 +156,39 @@ class DesignParityTest {
                 labels = listOf("Home", "Cabinet", "Settings"),
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
+        }
+    }
+
+    /**
+     * The app bar's corner controls, over a word, at the size they are drawn.
+     *
+     * The icon centring is the point: a bead is a round button and its icon
+     * belongs in the middle of it, which a Box does not do by default.
+     */
+    @Test
+    fun beads() = shoot("beads") {
+        Box {
+            Text(
+                text = "07 14:20",
+                modifier = Modifier.align(Alignment.CenterStart),
+                style = MaterialTheme.typography.headlineLarge,
+                color = LocalLockerTokens.current.ink,
+            )
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                listOf(AppIcons.Back, AppIcons.Bell).forEach { icon ->
+                    GlassBead(modifier = Modifier.size(30.dp), onClick = {}) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = LocalLockerTokens.current.ink2,
+                        )
+                    }
+                }
+            }
         }
     }
 
