@@ -138,19 +138,21 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
 }
 
 /**
- * Six pixels, not twenty-four.
+ * Twenty, measured off the live demo rather than read off the README.
  *
- * From `rdev/liquid-glass-react` at its documented defaults, which is the
- * material Ryan asked for by name: `blur((overLight ? 12 : 4) + blurAmount *
- * 32)` with `blurAmount = 0.0625`, so 4 + 2.
+ * `liquid-glass-react` documents `blurAmount: 0.0625`, and the filter is
+ * `blur(4 + blurAmount * 32)`, so the documented default is 6px. The demo at
+ * liquid-glass.maxrovensky.com — which is the thing Ryan looked at and asked
+ * for — computes `blur(20px) saturate(1.4)`, so it runs `blurAmount: 0.5`.
  *
- * The number matters more than it looks. Liquid glass is barely blurred - the
- * effect is carried by *refraction*, by the edge bending what is behind it,
- * and a 24px blur destroys the very detail the displacement exists to bend.
- * Blurred that hard there is nothing left to refract and the pane reads as a
- * grey smear with a lit border, which is what it did.
+ * That is worth writing down because it went the wrong way once already:
+ * 24 was dropped to 6 on the README's authority, when the number being judged
+ * against was 20 all along. The saturation was the part that was really wrong,
+ * at 190 against the demo's 140.
+ *
+ * Read the docs, then go and look at the thing.
  */
-private val BLUR = 6.dp
+private val BLUR = 20.dp
 
 /**
  * `backdrop-filter: blur(6px) saturate(140%)` — the liquid-glass defaults.
