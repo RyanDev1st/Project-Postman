@@ -135,14 +135,25 @@ private fun Glass(
             .glassShadow(dark, lift, shape)
             .clip(shape)
             .then(if (backdrop != null) Modifier.backdropBlur(backdrop, shape) else Modifier)
-            // The frost. With a working blur behind it this only takes the
-            // last of the contrast; without one it is doing the whole job.
+            // Nothing between the blur and the white film when the blur is
+            // real. The material is `background` plus `backdrop-filter` and
+            // that is all it is; the CSS has no dark layer anywhere in it.
             //
-            // It is deliberately heavy when the blur is absent, because the
-            // failure has to be safe: a pane you can read a word through is
-            // a window, and that is what shipped - the word COLLECTED could
-            // be read straight through the nav bar.
-            .background(t.ground.copy(alpha = if (backdrop?.working == true) 0.55f else 0.97f), shape)
+            // There used to be one: the ground colour, near-black, at 55%.
+            // With the blur working that is a smoked pane rather than a
+            // frosted one - the light the film is supposed to carry was being
+            // painted out from underneath before the film went on. It is the
+            // difference between glass and a tinted window, and it is why the
+            // bar read as a dark slab with a lit border.
+            //
+            // Without a blur there is no glass to have. The scrim then is a
+            // safety, not a material: a pane you can read a word through is a
+            // window, and the word COLLECTED could be read straight through
+            // the nav bar on the build that shipped.
+            .then(
+                if (backdrop?.working == true) Modifier
+                else Modifier.background(t.ground.copy(alpha = 0.94f), shape)
+            )
             .background(body, shape)
             .drawWithContent {
                 bloom(bloom, dark)

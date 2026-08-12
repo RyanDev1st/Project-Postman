@@ -1,6 +1,9 @@
 package vn.edu.vgu.smartlocker.ui
 
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,11 +12,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.addOutline
-import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -75,7 +78,7 @@ fun rememberBackdrop(): BackdropState {
         BackdropState(layer).also {
             if (it.supported) {
                 val r = with(density) { BLUR.toPx() }
-                layer.renderEffect = BlurEffect(r, r, TileMode.Decal)
+                layer.renderEffect = frostEffect(r)
             }
         }
     }
@@ -135,3 +138,39 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
 }
 
 private val BLUR = 24.dp
+
+/**
+ * `backdrop-filter: blur(24px) saturate(190%) brightness(1.06)`.
+ *
+ * All three, and the two that were missing are most of the look. A blur alone
+ * gives a grey smear: colour is exactly what a 24px blur averages away, and
+ * averaged colour is dull colour. Pushing saturation to 190% afterwards puts
+ * it back and then some, which is why glass over a photograph glows instead of
+ * greying, and the 6% brightness lifts the whole film off a dark ground.
+ *
+ * Order matters — saturate the blurred result, not the sharp source. The
+ * colour filter therefore takes the blur as its input rather than the other
+ * way round.
+ */
+@RequiresApi(Build.VERSION_CODES.S)
+private fun frostEffect(radius: Float): RenderEffect {
+    val blur = android.graphics.RenderEffect.createBlurEffect(
+        radius, radius, android.graphics.Shader.TileMode.DECAL,
+    )
+    val boost = ColorMatrix().apply {
+        setSaturation(1.90f)
+        postConcat(
+            ColorMatrix(
+                floatArrayOf(
+                    1.06f, 0f, 0f, 0f, 0f,
+                    0f, 1.06f, 0f, 0f, 0f,
+                    0f, 0f, 1.06f, 0f, 0f,
+                    0f, 0f, 0f, 1f, 0f,
+                ),
+            ),
+        )
+    }
+    return android.graphics.RenderEffect
+        .createColorFilterEffect(ColorMatrixColorFilter(boost), blur)
+        .asComposeRenderEffect()
+}
