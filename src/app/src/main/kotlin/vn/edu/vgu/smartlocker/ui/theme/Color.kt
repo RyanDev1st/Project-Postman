@@ -25,7 +25,7 @@ data class LockerTokens(
     val ground: Color,      // the app background
     val ground2: Color,     // one step off the ground — the map's paper
     val surface: Color,     // a raised card
-    val surface2: Color,    // a card's lower half
+    val surface2: Color,    // the second surface, for Material's own slots
     val field: Color,       // set INTO the ground — inputs, code boxes, chips
     val hair: Color,        // a card's border, and every rule
     val lip: Color,         // the lit top edge of a card

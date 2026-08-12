@@ -17,11 +17,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
@@ -100,25 +107,65 @@ fun CardMaterial(
             // Shadow before the clip. The other way round the card clipped
             // away its own shadow, so every clickable card — each Settings
             // row, the map — sat flat on the ground with no lift at all.
-            .shadow(
-                elevation = 10.dp,
-                shape = shape,
-                ambientColor = t.shadow,
-                spotColor = t.shadow,
-            )
+            .drawBehind { cardShadow(shape, t.shadow) }
             .then(if (onClick != null) Modifier.clip(shape).clickable(onClick = onClick) else Modifier)
-            .background(Brush.verticalGradient(listOf(t.surface, t.surface2)), shape)
-            .border(1.dp, t.hair, shape)
+            // The colour that changes with the theme, and the shading that
+            // does not, kept apart on purpose. A gradient between two theme
+            // tokens cannot be interpolated, so on a theme change half the
+            // card animates and half of it jumps. Fixed white and black
+            // alphas over one flat surface colour never have that problem.
+            .background(t.surface, shape)
             .background(
                 Brush.verticalGradient(
-                    listOf(t.lip, Color.Transparent),
-                    startY = 0f,
-                    endY = 1.5f,
+                    listOf(Color.White.copy(alpha = 0.028f), Color.Black.copy(alpha = 0.05f)),
                 ),
                 shape,
-            ),
+            )
+            .border(1.dp, t.hair, shape)
+            // The lit top edge: `border-top-color` and `inset 0 1px 0 0`,
+            // which is two lit pixels stacked, not one. Drawn after the
+            // border so it replaces the hairline along the top rather than
+            // sitting under it.
+            .drawBehind {
+                clipPath(Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }) {
+                    drawRect(color = t.lip, size = Size(size.width, 2.dp.toPx()))
+                }
+            },
         content = content,
     )
+}
+
+/**
+ * `0 10px 26px -18px` — and the third number is the one that matters.
+ *
+ * A negative spread shrinks the shape **before** it is blurred, so the shadow
+ * ends up smaller than the card and tucked under it: visible as a soft seam at
+ * the foot, nothing at the sides. `Modifier.shadow` cannot say that at all —
+ * it takes an elevation and throws a symmetrical halo, which is a different
+ * material. Hence a path drawn by hand, inset by the spread, offset down, and
+ * blurred by a shadow layer under a transparent fill.
+ */
+private fun DrawScope.cardShadow(shape: Shape, color: Color) {
+    val spread = 18.dp.toPx()
+    val w = size.width - 2 * spread
+    val h = size.height - 2 * spread
+    // A card shorter than 36dp has no shadow left once the spread is taken
+    // off it. That is what the CSS does too, and it is not a fault.
+    if (w <= 0f || h <= 0f) return
+
+    val path = Path().apply {
+        addOutline(shape.createOutline(Size(w, h), layoutDirection, this@cardShadow))
+        translate(Offset(spread, spread))
+    }
+    drawIntoCanvas { canvas ->
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            this.color = android.graphics.Color.TRANSPARENT
+            // CSS states a blur diameter; the platform wants a radius.
+            setShadowLayer(26.dp.toPx() / 2f, 0f, 10.dp.toPx(), color.toArgb())
+        }
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
+    }
 }
 
 /**
