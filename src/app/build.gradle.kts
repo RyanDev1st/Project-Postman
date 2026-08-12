@@ -27,6 +27,20 @@ android {
         // person reads, and it is the number P1-01 puts on the screen.
         versionCode = 1
         versionName = "0.1.0"
+
+        // One ABI, not four.
+        //
+        // MapLibre ships libmaplibre.so per architecture, 8-11 MB each, and
+        // carrying all four put the debug APK at 55.6 MB - a real cost when
+        // the build is downloaded to a phone on mobile data. arm64-v8a is
+        // every Android phone sold since about 2017, which is every phone
+        // this is tested on.
+        //
+        // The cost is emulators: an x86_64 image will not install this. Add
+        // "x86_64" to the list below to get one back.
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {
