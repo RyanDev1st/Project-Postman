@@ -137,39 +137,40 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
         }
 }
 
-private val BLUR = 24.dp
+/**
+ * Six pixels, not twenty-four.
+ *
+ * From `rdev/liquid-glass-react` at its documented defaults, which is the
+ * material Ryan asked for by name: `blur((overLight ? 12 : 4) + blurAmount *
+ * 32)` with `blurAmount = 0.0625`, so 4 + 2.
+ *
+ * The number matters more than it looks. Liquid glass is barely blurred - the
+ * effect is carried by *refraction*, by the edge bending what is behind it,
+ * and a 24px blur destroys the very detail the displacement exists to bend.
+ * Blurred that hard there is nothing left to refract and the pane reads as a
+ * grey smear with a lit border, which is what it did.
+ */
+private val BLUR = 6.dp
 
 /**
- * `backdrop-filter: blur(24px) saturate(190%) brightness(1.06)`.
+ * `backdrop-filter: blur(6px) saturate(140%)` — the liquid-glass defaults.
  *
- * All three, and the two that were missing are most of the look. A blur alone
- * gives a grey smear: colour is exactly what a 24px blur averages away, and
- * averaged colour is dull colour. Pushing saturation to 190% afterwards puts
- * it back and then some, which is why glass over a photograph glows instead of
- * greying, and the 6% brightness lifts the whole film off a dark ground.
+ * Two filters, not three. The mock-up's own `.lg` asks for 190% saturation
+ * and a 6% brightness lift on top of a 24px blur, and all three together are
+ * what made the pane look like frosted plastic: over-blurred, then
+ * over-corrected to hide it. The library Ryan pointed at does far less -
+ * a light blur and a modest saturation - and lets the refraction carry the
+ * material.
  *
- * Order matters — saturate the blurred result, not the sharp source. The
- * colour filter therefore takes the blur as its input rather than the other
- * way round.
+ * Order matters: saturate the blurred result, not the sharp source, so the
+ * colour filter takes the blur as its input rather than the other way round.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 private fun frostEffect(radius: Float): RenderEffect {
     val blur = android.graphics.RenderEffect.createBlurEffect(
         radius, radius, android.graphics.Shader.TileMode.DECAL,
     )
-    val boost = ColorMatrix().apply {
-        setSaturation(1.90f)
-        postConcat(
-            ColorMatrix(
-                floatArrayOf(
-                    1.06f, 0f, 0f, 0f, 0f,
-                    0f, 1.06f, 0f, 0f, 0f,
-                    0f, 0f, 1.06f, 0f, 0f,
-                    0f, 0f, 0f, 1f, 0f,
-                ),
-            ),
-        )
-    }
+    val boost = ColorMatrix().apply { setSaturation(1.40f) }
     return android.graphics.RenderEffect
         .createColorFilterEffect(ColorMatrixColorFilter(boost), blur)
         .asComposeRenderEffect()

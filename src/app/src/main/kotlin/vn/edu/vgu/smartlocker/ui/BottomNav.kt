@@ -189,7 +189,12 @@ fun BottomNav(
                                 // be. The bar is measured in the design and
                                 // a label a point too big crowds the icon.
                                 fontSize = 9.5.sp,
-                                lineHeight = 11.sp,
+                                // The label's line box, measured off the
+                                // reference: 14.2px, which is `normal` line
+                                // height on 9.5px. Set to 11 the whole bar
+                                // came out 3px short — 7 + 17 + 2 + line + 7
+                                // is the only thing that sets its height.
+                                lineHeight = 14.25.sp,
                                 letterSpacing = 0.07.em,
                                 fontWeight = FontWeight.SemiBold,
                             ),
