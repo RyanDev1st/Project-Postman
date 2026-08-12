@@ -25,8 +25,16 @@ android {
 
         // versionCode counts up and never repeats. versionName is what a
         // person reads, and it is the number P1-01 puts on the screen.
-        versionCode = 1
-        versionName = "0.1.0"
+        // Bump BOTH on every build that is sent to a phone.
+        //
+        // Six releases went out on versionCode 1 and versionName 0.1.0. The
+        // app prints its version name on screen, so all six printed the same
+        // thing, and a tester holding the phone could not tell a build that
+        // failed to install from a fix that failed to work. That is not a
+        // cosmetic problem: it makes every report ambiguous, including
+        // "this has all the same problems as the prior release".
+        versionCode = 2
+        versionName = "0.2.0"
 
         // One ABI, not four.
         //
