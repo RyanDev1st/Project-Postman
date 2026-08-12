@@ -135,9 +135,15 @@ private fun DrawScope.drawNorth(t: LockerTokens, paper: Color) {
     drawContext.canvas.nativeCanvas.drawText(CampusMapData.NORTH_LABEL, tx, ty + 4f, p)
 }
 
-/** The one element on Home that is not about a parcel: which gate, which
- * side of campus, how far — and it hands off to Google Maps in walking mode
- * with the gate's real coordinates. No key, no SDK, no request at all. */
+/**
+ * The one element on Home that is not about a parcel: which gate, which side
+ * of campus, how far — and it hands off to the Maps app for the walk itself.
+ *
+ * The picture is [LiveMap] when this build has a Maps key: real tiles, and
+ * the phone's own position on them. Without one it is [CampusMap], the plan
+ * baked from the same OSM data — which is honest about the route but shows
+ * the same scene wherever the phone is. That was the whole map until now.
+ */
 @Composable
 fun MapCard(
     cabinet: String = "Back gate",
@@ -152,11 +158,11 @@ fun MapCard(
         shape = RoundedCornerShape(18.dp),
     ) {
         Column(modifier = Modifier) {
-            CampusMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(112.dp),
-            )
+            val picture = Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+            if (hasMapsKey) LiveMap(modifier = picture, onClick = onClick)
+            else CampusMap(modifier = picture)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
