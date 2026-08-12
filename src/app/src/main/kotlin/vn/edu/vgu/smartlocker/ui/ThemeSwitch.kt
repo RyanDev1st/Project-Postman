@@ -14,11 +14,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -86,6 +91,16 @@ fun ThemeSwitch(
                 )
             }
 
+            // The pill's own two shadows, drawn first so they sit behind it.
+            // A box-shadow changes no layout, so these are allowed outside
+            // the canvas' bounds and nothing here is clipped to it.
+            //
+            // The white one is the whole read: 94% white, a touch under the
+            // pill. Without it the toggle is a flat lozenge lying on the
+            // screen rather than a dish set into it.
+            shadow(track, dy = -u(0.62f), blur = u(0.62f), color = Color.Black.copy(alpha = 0.25f))
+            shadow(track, dy = u(0.62f), blur = u(1.25f), color = Color.White.copy(alpha = 0.94f))
+
             // Everything is inside the track's clip, the knob included.
             //
             // The knob used to be drawn outside it, on the reasoning that a
@@ -104,8 +119,42 @@ fun ThemeSwitch(
                 translate(left = left, top = u(CIRCLE_OFFSET)) {
                     drawKnob(u, t)
                 }
+
+                // The rim, thrown inward from the top edge. Two identical
+                // inset shadows in the CSS, 25% black each, so 44% together,
+                // over 0.05em of offset plus 0.187em of blur. It is the last
+                // thing painted - the CSS puts it on z-index 1 and the knob
+                // on 0, so it falls across the sun as well as the sky.
+                val rim = u(0.5f + 1.87f)
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.44f),
+                        1f to Color.Transparent,
+                        startY = 0f,
+                        endY = rim,
+                    ),
+                    size = Size(size.width, rim),
+                )
             }
         }
+    }
+}
+
+/**
+ * One CSS `box-shadow`, cast by this path and nothing else.
+ *
+ * A transparent fill with a shadow layer under it, which is how the platform
+ * draws a shadow without also drawing the thing casting it. CSS states a blur
+ * *diameter* and Android wants a radius, hence the half.
+ */
+private fun DrawScope.shadow(path: Path, dy: Float, blur: Float, color: Color) {
+    drawIntoCanvas { canvas ->
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            this.color = android.graphics.Color.TRANSPARENT
+            setShadowLayer(blur / 2f, 0f, dy, color.toArgb())
+        }
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
 }
 
