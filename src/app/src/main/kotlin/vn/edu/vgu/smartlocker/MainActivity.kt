@@ -49,6 +49,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Debug builds can be launched straight onto a screen:
+        //
+        //   adb shell am start -n <pkg>/.MainActivity --es screen HOME
+        //
+        // This exists for the design-parity loop. RenderEffect and AGSL need a
+        // real Android runtime on a GPU, so the glass can only be looked at on
+        // a device or an emulator — and the screens worth looking at sit
+        // behind a sign-in that needs a server the team does not have yet.
+        // Three separate faults in the backdrop reached a tester because
+        // there was no way to see it here.
+        //
+        // It chooses a starting screen and nothing else. No token is minted
+        // and no session is claimed, so it cannot stand in for signing in:
+        // once the real API is wired, a screen opened this way has no
+        // credentials and will fail its first call, which is correct.
+        val start = if (BuildConfig.DEBUG) {
+            intent?.getStringExtra("screen")
+                ?.let { name -> Screen.entries.firstOrNull { it.name == name } }
+        } else null
+
         setContent {
             val systemDark = isSystemInDarkTheme()
             var dark by remember { mutableStateOf(systemDark) }
@@ -56,7 +77,7 @@ class MainActivity : ComponentActivity() {
             // before the theme flips, so it cannot be told after the fact.
             ThemeWipe(dark = dark, onDarkChanged = { dark = it }) { requestToggle ->
                 SmartLockerTheme(dark = dark) {
-                    AppSkeleton(dark = dark, onToggleDark = requestToggle)
+                    AppSkeleton(dark = dark, onToggleDark = requestToggle, start = start)
                 }
             }
         }
@@ -67,8 +88,10 @@ class MainActivity : ComponentActivity() {
 fun AppSkeleton(
     dark: Boolean,
     onToggleDark: () -> Unit,
+    /** Debug-only starting screen — see [MainActivity.onCreate]. */
+    start: Screen? = null,
 ) {
-    var screen by remember { mutableStateOf(Screen.SIGN_IN) }
+    var screen by remember { mutableStateOf(start ?: Screen.SIGN_IN) }
     var lastMain by remember { mutableStateOf(Screen.HOME) }
     var scanBox by remember { mutableStateOf("04") }
 

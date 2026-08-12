@@ -94,6 +94,10 @@ fun Modifier.backdropSource(state: BackdropState): Modifier =
                 state.layer.record { this@drawWithContent.drawContent() }
                 if (!state.working) state.working = true
             }
+            // Drawn normally, not as the layer. A GraphicsLayer is recorded
+            // once and drawn once in a frame; drawing it here as well as
+            // inside the pane's own layer made the pane's copy come out
+            // blank, and the whole nav bar went see-through.
             drawContent()
         }
 

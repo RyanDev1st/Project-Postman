@@ -60,21 +60,41 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
  * where [ThemeWipe] needs it: the ground wipes while every card and letter
  * stays put on top and recolours in place.
  */
+/**
+ * The ground and the light on it, as a modifier.
+ *
+ * Extracted because two things have to paint it, and they must not disagree.
+ * [LockerBackdrop] paints it under every screen — and the glass has to sample
+ * it too. A pane samples a recorded layer, and the ground was painted by a
+ * parent *outside* that recording, so what the nav bar sampled was a
+ * transparent sheet with a few widgets floating on it. Blur a transparent
+ * sheet and you get a transparent sheet: the bar had no material at all and
+ * the page showed through it, sharp.
+ *
+ * Painting it twice costs one rectangle and makes the two copies identical by
+ * construction.
+ */
+@Composable
+fun Modifier.lockerGround(): Modifier {
+    val t = LocalLockerTokens.current
+    return this
+        .background(t.ground)
+        .background(
+            Brush.verticalGradient(
+                listOf(t.accent.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
+                startY = 0f,
+                endY = 900f,
+            ),
+        )
+}
+
 @Composable
 fun LockerBackdrop(content: @Composable BoxScope.() -> Unit) {
-    val t = LocalLockerTokens.current
     val curtain = LocalThemeCurtain.current
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(t.ground)
-            .background(
-                Brush.verticalGradient(
-                    listOf(t.accent.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
-                    startY = 0f,
-                    endY = 900f,
-                ),
-            )
+            .lockerGround()
             .drawWithContent {
                 if (curtain.fraction > 0f && curtain.color != Color.Transparent) {
                     // Origin top: the bottom edge is what moves, upward.

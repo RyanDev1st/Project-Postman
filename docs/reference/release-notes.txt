@@ -1,34 +1,37 @@
-0.6.0 — the blur was never running.
+0.7.0 — the blur works. Seen working, not hoped for.
 
-Check the version first: long-press the app icon, App info. It must read
-0.6.0.
+Check the version: long-press the app icon, App info. It must read 0.7.0.
 
-Ryan spotted it from one screenshot: the word COLLECTED was perfectly sharp
-through the nav bar. At 20dp of blur that word should be an unreadable smear.
-It was not blurred at all, so the bar was never frosted glass — it was a
-transparent tinted shape with a lit edge, and every number tuned on top of it
-across the last five builds was paint on a window.
+Scroll Home so the COLLECTED list passes under the nav bar. Those words should
+be soft, dissolved, unreadable. Until this build they were razor sharp, which
+is what Ryan spotted from a screenshot and called a transparent knockoff. He
+was right, and it was not a matter of degree — there was no blur at all.
 
-The cause. A blur belongs to a layer, and it only happens when that layer is
-drawn to a canvas. The blur was attached to the layer that records the screen,
-which is never drawn to a canvas directly — it is only ever copied inside
-another layer. The layer that does reach the screen had its effect set from
-the refraction shader alone, and that shader needs Android 13; below it, the
-value is nothing. So the pane drew a raw, sharp copy of whatever was behind
-it.
+Three faults stacked on top of each other, each hiding the next:
 
-Both effects are now on the layer that reaches the screen, chained, so the
-frost happens first and the refraction bends the frosted result.
+1. The blur was attached to the layer that records the screen. That layer is
+   never drawn to a canvas, and an effect only happens when its layer is
+   drawn. The layer that does reach the screen took its effect from the
+   refraction shader alone, and that shader needs Android 13 — below it the
+   value is nothing, so the line cleared the effect instead of setting one.
 
-**The one thing to check.** Scroll Home so a word passes under the nav bar. If
-it goes soft and unreadable, the glass is real. If you can still read it, the
-blur is still not running and nothing else about the material is worth
-discussing until it is.
+2. With that fixed the bar was still see-through, because what the glass
+   samples is a recording of the page, and the page's background was painted
+   by a parent outside that recording. The glass was sampling a transparent
+   sheet. Blur a transparent sheet and you get a transparent sheet.
 
-One honest limit, unchanged. This material is a lens: it has almost no
-substance of its own and everything it shows is what lies behind it, blurred
-and saturated. The demo looks the way it does because it sits on a busy colour
-photograph. Our ground is near-black and flat, so over empty background the
-glass will always be quiet. Where it should now look right is over real
-content — the nav bar with the parcel cards or the cabinet render running
-under it.
+3. Moving the background in did nothing at first, because "inside" is a matter
+   of modifier order, and it was still declared on the wrong side of the
+   recording.
+
+None of these are settings. No amount of tuning alphas, gradients or light
+direction — five builds of it — could have reached them.
+
+**Everything else in this build is unchanged.** The material's numbers are the
+same as 0.6.0. What changed is that they now apply to something.
+
+One honest limit. This material is a lens: it shows what is behind it,
+blurred and saturated, and has little substance of its own. Over the parcel
+cards and the cabinet render it should now read as glass. Over empty
+background it will always be quiet, because our ground is near-black and flat
+and there is nothing there to bend.

@@ -20,6 +20,7 @@ import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.BottomNav
 import vn.edu.vgu.smartlocker.ui.ScanButton
 import vn.edu.vgu.smartlocker.ui.backdropSource
+import vn.edu.vgu.smartlocker.ui.lockerGround
 import vn.edu.vgu.smartlocker.ui.rememberBackdrop
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
@@ -49,7 +50,16 @@ fun MainShell(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .backdropSource(backdrop),
+                    // The ground goes INSIDE what the glass samples, and
+                    // "inside" is a matter of modifier ORDER. `drawContent()`
+                    // draws what comes after it in the chain, so a background
+                    // declared before `backdropSource` is painted outside the
+                    // recording — and a pane sampling that recording gets a
+                    // transparent sheet, which blurs to a transparent sheet.
+                    // That is why the bar had no material and the page read
+                    // straight through it, sharp.
+                    .backdropSource(backdrop)
+                    .lockerGround(),
             ) {
                 TabAppBar(screen = screen, onToggleDark = onToggleDark)
                 Column(

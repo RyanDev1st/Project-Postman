@@ -33,8 +33,8 @@ android {
         // failed to install from a fix that failed to work. That is not a
         // cosmetic problem: it makes every report ambiguous, including
         // "this has all the same problems as the prior release".
-        versionCode = 6
-        versionName = "0.6.0"
+        versionCode = 7
+        versionName = "0.7.0"
 
         // One ABI, not four.
         //
@@ -48,6 +48,16 @@ android {
         // "x86_64" to the list below to get one back.
         ndk {
             abiFilters += "arm64-v8a"
+
+            // `-Pemulator` adds x86_64 for a local emulator, and nothing else
+            // changes. The emulator is the only place the glass can be
+            // checked before it reaches a phone: RenderEffect and AGSL need a
+            // real Android runtime on a GPU, and Robolectric is neither. Three
+            // separate faults in the backdrop shipped because there was no way
+            // to look at it here.
+            //
+            // Off by default, so what goes to a tester stays one architecture.
+            if (project.hasProperty("emulator")) abiFilters += "x86_64"
         }
     }
 
