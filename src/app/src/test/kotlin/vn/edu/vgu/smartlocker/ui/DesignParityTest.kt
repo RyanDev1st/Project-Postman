@@ -132,6 +132,33 @@ class DesignParityTest {
     }
 
     /**
+     * The bar, over text, with the middle tab selected — the same three tabs
+     * and the same word underneath as the reference harness.
+     *
+     * The blur behind it will not appear here. Its geometry will: where the
+     * items sit, how big the labels are, and whether the selected pill reads
+     * as a second pane or as a coloured lozenge.
+     */
+    @Test
+    fun bottomNav() = shoot("bottom-nav") {
+        Box {
+            Text(
+                text = "COLLECTED",
+                modifier = Modifier.align(Alignment.TopStart),
+                style = MaterialTheme.typography.headlineLarge,
+                color = LocalLockerTokens.current.ink,
+            )
+            BottomNav(
+                selected = 1,
+                onSelect = {},
+                icons = listOf(AppIcons.Home, AppIcons.Cabinet, AppIcons.Settings),
+                labels = listOf("Home", "Cabinet", "Settings"),
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
+    }
+
+    /**
      * Put the content on the app's own ground, settle every animation, and
      * write the pixels out.
      *

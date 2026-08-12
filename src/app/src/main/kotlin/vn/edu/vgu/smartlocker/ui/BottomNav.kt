@@ -25,12 +25,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /** A settings switch: on is a fill, off is a recess — the knob has slid back
@@ -119,16 +124,44 @@ fun BottomNav(
                                     )
                                     .clip(RoundedCornerShape(999.dp))
                                     .background(t.accent.copy(alpha = 0.24f))
+                                    // The white wash stops at 62%, not at the
+                                    // foot. Run to the foot it lightens the
+                                    // whole pill evenly and the lift goes.
                                     .background(
                                         Brush.verticalGradient(
-                                            listOf(Color.White.copy(alpha = 0.13f), Color.Transparent),
+                                            0.0f to Color.White.copy(alpha = 0.13f),
+                                            0.62f to Color.Transparent,
+                                            1.0f to Color.Transparent,
                                         )
                                     )
                                     .border(1.dp, t.accent.copy(alpha = 0.26f), RoundedCornerShape(999.dp))
+                                    // `inset 0 1px 0 0 rgba(255,255,255,.42)`
+                                    // and `inset 0 -1px 0 0 rgba(0,0,0,.14)`.
+                                    // The lit top edge is what lifts the pill
+                                    // off the bar; without it the 24% wash is
+                                    // a flat coloured lozenge.
+                                    .drawBehind {
+                                        val px = 1.dp.toPx()
+                                        drawRect(
+                                            color = Color.White.copy(alpha = 0.42f),
+                                            size = Size(size.width, px),
+                                        )
+                                        drawRect(
+                                            color = Color.Black.copy(alpha = 0.14f),
+                                            topLeft = Offset(0f, size.height - px),
+                                            size = Size(size.width, px),
+                                        )
+                                    }
                             } else Modifier.clip(RoundedCornerShape(999.dp)),
                         )
                         .clickable { onSelect(i) }
                         .padding(vertical = 7.dp, horizontal = 3.dp),
+                    // The tab is `flex: 1` with `align-items: center`, so its
+                    // content sits in the middle of the tab. Without this the
+                    // Column wraps its own width and lands against the left
+                    // edge of each tab — three labels all pushed off-centre,
+                    // which is what "positioned awkwardly" was.
+                    contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -137,12 +170,26 @@ fun BottomNav(
                         androidx.compose.material3.Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            modifier = Modifier.size(17.dp),
+                            modifier = Modifier
+                                .size(17.dp)
+                                // `translateY(-1px) scale(1.06)` on the
+                                // selected tab. The icon rises out of the
+                                // pill; it is the only thing that moves.
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.offset(y = (-1).dp).scale(1.06f)
+                                    } else Modifier
+                                ),
                             tint = if (isSelected) t.accent else t.ink3,
                         )
                         Text(
-                            text = label,
+                            text = label.uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(
+                                // 9.5px, not whatever labelSmall happens to
+                                // be. The bar is measured in the design and
+                                // a label a point too big crowds the icon.
+                                fontSize = 9.5.sp,
+                                lineHeight = 11.sp,
                                 letterSpacing = 0.07.em,
                                 fontWeight = FontWeight.SemiBold,
                             ),

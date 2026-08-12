@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -145,6 +147,37 @@ fun CardMaterial(
  * material. Hence a path drawn by hand, inset by the spread, offset down, and
  * blurred by a shadow layer under a transparent fill.
  */
+/**
+ * An `inset` box-shadow: cast by the edge, falling inward.
+ *
+ * Drawn the way the platform allows one at all — the shape is punched out of a
+ * far larger rectangle with an even-odd fill, and it is that ring which casts
+ * the shadow. Everything outside the shape is then clipped away, leaving only
+ * the part that fell inside. A gradient cannot stand in for this: a gradient
+ * runs one way, and an inset shadow comes in from all four edges at once, by a
+ * different amount on each depending on where the offset pushed it.
+ */
+private fun DrawScope.innerShadow(shape: Shape, color: Color, dy: Float, blur: Float) {
+    val outline = Path().apply {
+        addOutline(shape.createOutline(size, layoutDirection, this@innerShadow))
+    }
+    val ring = Path().apply {
+        fillType = PathFillType.EvenOdd
+        addRect(Rect(-size.width, -size.height, size.width * 2f, size.height * 2f))
+        addPath(outline)
+    }
+    clipPath(outline) {
+        drawIntoCanvas { canvas ->
+            val paint = android.graphics.Paint().apply {
+                isAntiAlias = true
+                this.color = android.graphics.Color.TRANSPARENT
+                setShadowLayer(blur / 2f, 0f, dy, color.toArgb())
+            }
+            canvas.nativeCanvas.drawPath(ring.asAndroidPath(), paint)
+        }
+    }
+}
+
 private fun DrawScope.cardShadow(shape: Shape, color: Color) {
     val spread = 18.dp.toPx()
     val w = size.width - 2 * spread
@@ -190,25 +223,18 @@ fun Recess(
             .background(t.field)
             .drawBehind {
                 // `inset 0 1.5px 3px 0 var(--recess-in)` — the ground's shade
-                // thrown a short way in from the top edge, and it is SHORT:
-                // 1.5dp of offset plus 3dp of blur, so 4.5dp in total.
-                //
-                // This used to be a gradient run to a fixed `endY = 200f`,
-                // which is not a length the design ever mentions and is not a
-                // length at all on a box of a different height: on a tall
-                // recess the shade never finished, and on a 44dp settings
-                // field it was cut off part-way. Either way the edge read as
-                // a soft wash across the whole control rather than as a lip
-                // it is set down behind.
-                val depth = (1.5f + 3f).dp.toPx()
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        0f to t.recessIn,
-                        1f to Color.Transparent,
-                        startY = 0f,
-                        endY = depth,
-                    ),
-                    size = Size(size.width, depth),
+                // thrown in from the edge. From EVERY edge, which is the part
+                // a gradient down from the top cannot do: the shadow's box is
+                // dropped 1.5dp, so the top gets 1.5 + 3 of shade, the sides
+                // get the blur alone, and the bottom is left almost clear.
+                // That difference between the four edges is the whole read.
+                // Shaded on the top only, the control looks like a card with
+                // a dark lip; shaded on all four it is a dish.
+                innerShadow(
+                    shape = shape,
+                    color = t.recessIn,
+                    dy = 1.5f.dp.toPx(),
+                    blur = 3f.dp.toPx(),
                 )
 
                 // `inset 0 -1px 0 0 var(--recess-lit)` — where the surface
