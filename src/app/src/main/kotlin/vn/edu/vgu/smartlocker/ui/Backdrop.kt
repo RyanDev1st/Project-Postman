@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 /**
@@ -109,16 +110,26 @@ fun Modifier.backdropSource(state: BackdropState): Modifier =
 fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
     if (!state.supported) return this
     var paneOrigin by remember { mutableStateOf(Offset.Zero) }
+
+    // The pane's own layer. The source layer holds the whole screen blurred;
+    // this holds just the patch under this pane, and it is what carries the
+    // refraction — a render effect belongs to a layer, and the source layer
+    // is shared by every pane at once.
+    val paneLayer = rememberGraphicsLayer()
+    val refraction = rememberRefraction()
+
     return this
         .onGloballyPositioned { paneOrigin = it.positionInRoot() }
         .drawWithContent {
             val path = Path().apply {
                 addOutline(shape.createOutline(size, layoutDirection, this@drawWithContent))
             }
-            clipPath(path) {
+            paneLayer.renderEffect = refraction?.effectFor(size, this@drawWithContent)
+            paneLayer.record(IntSize(size.width.toInt(), size.height.toInt())) {
                 val d = state.sourceOrigin - paneOrigin
                 translate(d.x, d.y) { drawLayer(state.layer) }
             }
+            clipPath(path) { drawLayer(paneLayer) }
             drawContent()
         }
 }
