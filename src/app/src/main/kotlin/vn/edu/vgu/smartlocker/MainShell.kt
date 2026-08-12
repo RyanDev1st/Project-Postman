@@ -19,6 +19,8 @@ import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.BottomNav
 import vn.edu.vgu.smartlocker.ui.ScanButton
+import vn.edu.vgu.smartlocker.ui.backdropSource
+import vn.edu.vgu.smartlocker.ui.rememberBackdrop
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
@@ -37,10 +39,18 @@ fun MainShell(
     content: @Composable () -> Unit,
 ) {
     val t = LocalLockerTokens.current
+    // What the nav's glass bends. The app bar and the content are inside it;
+    // the nav is outside, or it would be sampling a layer it is part of.
+    val backdrop = rememberBackdrop()
+
     // Insets and the gutter belong to MainActivity, which wraps every screen.
     // Repeating them here inset the tab screens twice.
     Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .backdropSource(backdrop),
+            ) {
                 TabAppBar(screen = screen, onToggleDark = onToggleDark)
                 Column(
                     modifier = Modifier
@@ -58,6 +68,7 @@ fun MainShell(
                 onSelect = { onSelectTab(tabOf(it)) },
                 icons = listOf(AppIcons.Home, AppIcons.Cabinet, AppIcons.Settings),
                 labels = listOf("HOME", "CABINET", "SETTINGS"),
+                backdrop = backdrop,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(top = 12.dp),

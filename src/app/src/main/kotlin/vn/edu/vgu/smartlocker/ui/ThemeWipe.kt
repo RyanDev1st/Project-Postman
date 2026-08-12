@@ -1,44 +1,53 @@
 package vn.edu.vgu.smartlocker.ui
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.layer.drawLayer
-import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
+import vn.edu.vgu.smartlocker.ui.theme.DarkTokens
+import vn.edu.vgu.smartlocker.ui.theme.LightTokens
+
+/** The curtain's state, read by [LockerBackdrop], which is the only thing
+ *  that draws it. */
+data class ThemeCurtain(
+    val color: Color = Color.Transparent,
+    val fraction: Float = 0f,
+)
+
+val LocalThemeCurtain = compositionLocalOf { ThemeCurtain() }
 
 /**
- * The theme change, with a direction.
+ * The theme change: a curtain **behind** the content.
  *
- * A theme that swaps in one frame is a flicker — nothing tells you the two
- * schemes are the same room under a different light. So the outgoing frame
- * is held still and the new one is uncovered behind it: **going dark, the
- * dark sweeps down from the top; coming back to light, the light rises from
- * the bottom.** Down for night, up for morning, which is the way the sky
- * does it and the only mnemonic anybody needs.
+ * The curtain is filled with the **outgoing** ground colour and held at full
+ * height, covering the ground. The theme swaps underneath it, hidden. The
+ * curtain then shrinks from the top, so its bottom edge travels upward and
+ * the new ground is revealed from the floor up.
  *
- * How it works: the whole app is recorded into a graphics layer every frame.
- * On a toggle the last recorded frame is lifted out as a still image, the
- * theme flips underneath it, and the still is clipped back a line at a time.
- * Nothing is animated twice — the app below has already finished changing,
- * and what moves is one rectangle.
+ * Behind the content, and that single fact is the whole design:
  *
- * That is deliberate. The mock-up's first attempt put a transition on every
- * element on the page, roughly fourteen thousand animations for one tap,
- * and it stuttered so badly the toggle's own knob refused to move
- * (DESIGN.md, "Two earlier versions and what each got wrong").
+ *  - Every card, rule and letter stays exactly where it is, on top, in full
+ *    view, and changes its own colours as the new ground lands underneath.
+ *    Nothing is ever hidden.
+ *  - The mock-up first put the curtain **over** everything instead. For half
+ *    a second the screen was a blank rectangle: nothing transitioned, the
+ *    content was covered and then uncovered, already changed. A snapshot of
+ *    the outgoing frame laid on top has the same fault in a nicer costume,
+ *    and this file used to do exactly that.
+ *
+ * One pass, upward, 480 ms. The component Ryan supplied runs two — fall,
+ * swap, rise — which is 1100 ms end to end with a dead beat in the middle,
+ * and `duration` is a documented prop on it precisely so the caller can say
+ * otherwise. Easing is the component's own `cubic-bezier(.76, 0, .24, 1)`.
  */
 @Composable
 fun ThemeWipe(
@@ -47,63 +56,28 @@ fun ThemeWipe(
     content: @Composable (requestToggle: () -> Unit) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val layer = rememberGraphicsLayer()
-    val sweep = remember { Animatable(0f) }
-
-    var outgoing by remember { mutableStateOf<ImageBitmap?>(null) }
-    var downward by remember { mutableStateOf(true) }
+    val fraction = remember { Animatable(0f) }
+    var outgoing by remember { mutableStateOf(Color.Transparent) }
 
     val requestToggle: () -> Unit = {
-        // One at a time. A second tap mid-sweep would capture a half-wiped
-        // frame and wipe that, which looks like a fault rather than a change.
-        if (outgoing == null) {
+        if (!fraction.isRunning) {
             scope.launch {
-                val still = runCatching { layer.toImageBitmap() }.getOrNull()
-                downward = !dark
+                // The ground being left. Read before the swap: after it the
+                // tokens already describe the scheme arriving.
+                outgoing = (if (dark) DarkTokens else LightTokens).ground
+                fraction.snapTo(1f)
                 onDarkChanged(!dark)
-                if (still == null) return@launch
-                outgoing = still
-                sweep.snapTo(0f)
-                sweep.animateTo(1f, tween(DURATION_MS, easing = FastOutSlowInEasing))
-                outgoing = null
+                fraction.animateTo(0f, tween(480, easing = CURTAIN))
+                outgoing = Color.Transparent
             }
         }
     }
 
-    // One root, so the still is explicitly on top of the app rather than
-    // relying on whatever the host happens to do with two siblings.
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawWithContent {
-                    layer.record { this@drawWithContent.drawContent() }
-                    drawLayer(layer)
-                },
-        ) {
-            content(requestToggle)
-        }
-
-        outgoing?.let { still ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        val h = size.height
-                        // Keep the part of the old frame the sweep has not
-                        // reached yet: below the line going down, above it
-                        // coming back up.
-                        val top = if (downward) sweep.value * h else 0f
-                        val bottom = if (downward) h else (1f - sweep.value) * h
-                        if (bottom > top) {
-                            clipRect(0f, top, size.width, bottom) {
-                                drawImage(still)
-                            }
-                        }
-                    },
-            ) {}
-        }
+    CompositionLocalProvider(
+        LocalThemeCurtain provides ThemeCurtain(outgoing, fraction.value),
+    ) {
+        content(requestToggle)
     }
 }
 
-private const val DURATION_MS = 520
+private val CURTAIN = CubicBezierEasing(0.76f, 0f, 0.24f, 1f)

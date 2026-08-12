@@ -74,19 +74,29 @@ fun CabinetArt(
     val arrive = remember { Animatable(0.94f) }
     val light = remember { Animatable(0f) }
     val zoom = remember { Animatable(1f) }
-    val zoomTarget = remember(framedDoor) { framedDoor?.let { zoomFor(it) } }
 
-    LaunchedEffect(yours.size, framedDoor) {
-        if (framedDoor == null) {
-            arrive.snapTo(0.94f)
-            zoom.snapTo(1f)
-        }
+    // Which door the camera is on: the one that was tapped, or — when a
+    // single box is yours — that one, because the screen frames it unasked.
+    val activeDoor = framedDoor ?: yours.singleOrNull()?.n
+    val zoomTarget = remember(activeDoor) { activeDoor?.let { zoomFor(it) } }
+
+    LaunchedEffect(Unit) {
         arrive.animateTo(1f, tween(450, easing = FastOutSlowInEasing))
+    }
+    LaunchedEffect(yours.isNotEmpty()) {
         if (yours.isNotEmpty()) light.animateTo(1f, tween(420, easing = LinearOutSlowInEasing))
-        if (yours.size == 1 && framedDoor == null) {
-            val z = zoomFor(yours.first().n)
-            delay(600)
-            zoom.animateTo(z.scale, tween(720, easing = LinearOutSlowInEasing))
+    }
+    // The camera. This used to run only when framedDoor was null, so tapping
+    // a door computed a target and then never moved to it — the zoom simply
+    // did nothing.
+    LaunchedEffect(activeDoor, framedDoor) {
+        val target = zoomTarget
+        if (target == null) {
+            zoom.animateTo(1f, tween(520, easing = LinearOutSlowInEasing))
+        } else {
+            // The unasked push-in waits; one you asked for goes at once.
+            if (framedDoor == null) delay(600)
+            zoom.animateTo(target.scale, tween(720, easing = LinearOutSlowInEasing))
         }
     }
 
@@ -98,11 +108,14 @@ fun CabinetArt(
             .graphicsLayer {
                 val z = zoom.value
                 val k = zoomTarget?.scale ?: 1f
-                val progress = if (k == 1f) 0f else (z - 1f) / (k - 1f)
+                val progress = if (k == 1f) 0f else ((z - 1f) / (k - 1f)).coerceIn(0f, 1f)
                 scaleX = z * arrive.value
                 scaleY = z * arrive.value
-                translationX = (zoomTarget?.tx ?: 0f) * progress
-                translationY = (zoomTarget?.ty ?: 0f) * progress
+                // tx and ty are fractions of the render; translation is in
+                // pixels. Without the size they were fractions of a pixel,
+                // so the camera scaled but never panned onto the door.
+                translationX = (zoomTarget?.tx ?: 0f) * progress * size.width
+                translationY = (zoomTarget?.ty ?: 0f) * progress * size.height
                 transformOrigin = TransformOrigin.Center
             },
     ) {

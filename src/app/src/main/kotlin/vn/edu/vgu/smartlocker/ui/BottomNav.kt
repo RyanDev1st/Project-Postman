@@ -87,9 +87,14 @@ fun BottomNav(
     icons: List<androidx.compose.ui.graphics.vector.ImageVector>,
     labels: List<String>,
     modifier: Modifier = Modifier,
+    backdrop: BackdropState? = null,
 ) {
     val t = LocalLockerTokens.current
-    GlassPane(modifier = modifier, shape = RoundedCornerShape(999.dp)) {
+    GlassPane(
+        modifier = modifier,
+        shape = RoundedCornerShape(999.dp),
+        backdrop = backdrop,
+    ) {
         Row(
             modifier = Modifier.padding(5.dp),
             horizontalArrangement = Arrangement.spacedBy(3.dp),

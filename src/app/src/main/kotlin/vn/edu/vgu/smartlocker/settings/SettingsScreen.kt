@@ -37,6 +37,7 @@ import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.LockerToggle
 import vn.edu.vgu.smartlocker.ui.Recess
+import vn.edu.vgu.smartlocker.ui.ThemeSwitch
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 
@@ -125,8 +126,12 @@ fun SettingsScreen(
         SectionLabel("App")
         Stack {
             SettingsRow(icon = AppIcons.Globe, title = "Language", value = "Tiếng Việt", onClick = onLanguage)
+            // Not a LockerToggle. Dark mode gets the day/night switch from
+            // the mock-up — the sun, the moon crossing it, the clouds and
+            // the stars. The other two rows are plain on/off and keep the
+            // plain control.
             SettingsRow(icon = AppIcons.Moon, title = "Dark mode") {
-                LockerToggle(checked = dark, onCheckedChange = { onToggleDark() })
+                ThemeSwitch(checked = dark, onCheckedChange = { onToggleDark() })
             }
         }
 

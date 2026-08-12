@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -36,13 +37,26 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
  * with a hairline round it. The two additions are the design's own.
  */
 
-/** The ground, with the accent light falling from above the app bar. */
+/**
+ * The ground, with the accent light falling from above the app bar, and the
+ * theme curtain between the two.
+ *
+ * Order matters twice here. The ground is laid **first** and the wash goes
+ * on top of it — the other way round the opaque ground painted the wash out
+ * completely and the screens had no light on them at all.
+ *
+ * Then the curtain, above the ground and below everything else, which is
+ * where [ThemeWipe] needs it: the ground wipes while every card and letter
+ * stays put on top and recolours in place.
+ */
 @Composable
 fun LockerBackdrop(content: @Composable BoxScope.() -> Unit) {
     val t = LocalLockerTokens.current
+    val curtain = LocalThemeCurtain.current
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(t.ground)
             .background(
                 Brush.verticalGradient(
                     listOf(t.accent.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
@@ -50,7 +64,16 @@ fun LockerBackdrop(content: @Composable BoxScope.() -> Unit) {
                     endY = 900f,
                 ),
             )
-            .background(t.ground),
+            .drawWithContent {
+                if (curtain.fraction > 0f && curtain.color != Color.Transparent) {
+                    // Origin top: the bottom edge is what moves, upward.
+                    drawRect(
+                        color = curtain.color,
+                        size = size.copy(height = size.height * curtain.fraction),
+                    )
+                }
+                drawContent()
+            },
         content = content,
     )
 }
@@ -142,12 +165,14 @@ fun GlassPane(
     modifier: Modifier = Modifier,
     shape: Shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp),
     pop: Boolean = false,
+    backdrop: BackdropState? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     // The app's scheme, not the phone's. With the in-app toggle these
     // disagree, and a dark-recipe pane (white at 2-15% alpha) over a pale
     // ground is invisible — the nav read as completely transparent.
-    val dark = LocalLockerTokens.current.dark
+    val t = LocalLockerTokens.current
+    val dark = t.dark
     val body = if (dark) {
         Brush.linearGradient(
             colors = listOf(
@@ -172,6 +197,13 @@ fun GlassPane(
     val edge = if (dark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.9f)
     val shadow = if (dark) Color.Black.copy(alpha = 0.44f) else Color(0x20091A20)
 
+    // A frost under the pane, so nothing behind it can be read.
+    //
+    // With a real backdrop blur this only has to stop the last of the
+    // contrast; without one it is doing the whole job, and it is heavier
+    // for that reason. A pane you can read a word through is a window.
+    val frost = if (backdrop?.supported == true) 0.55f else 0.94f
+
     Box(
         modifier = modifier
             .shadow(
@@ -180,6 +212,9 @@ fun GlassPane(
                 ambientColor = shadow,
                 spotColor = shadow,
             )
+            .clip(shape)
+            .then(if (backdrop != null) Modifier.backdropBlur(backdrop, shape) else Modifier)
+            .background(t.ground.copy(alpha = frost), shape)
             .background(body, shape)
             .border(1.dp, edge, shape),
         content = content,
