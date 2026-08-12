@@ -51,7 +51,8 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0010-c4-offline-exception.md](adr/0010-c4-offline-exception.md) | The one case a pickup may happen with no server | accepted |
 | [adr/0011-google-sign-in-no-passwords.md](adr/0011-google-sign-in-no-passwords.md) | Google is a second door onto a phone-proved account. No passwords | superseded by 0012 |
 | [adr/0012-passwords-on-a-phone-account.md](adr/0012-passwords-on-a-phone-account.md) | Passwords after all, set on a phone account. No email, no reset flow, lockout on disk | accepted |
-| [adr/0013-a-real-map-and-its-key.md](adr/0013-a-real-map-and-its-key.md) | A real Google map on Home, its key in gitignored `local.properties`, the drawn plan as fallback | accepted |
+| [adr/0013-a-real-map-and-its-key.md](adr/0013-a-real-map-and-its-key.md) | A real Google map on Home, its key in gitignored `local.properties`, the drawn plan as fallback | superseded by 0014 |
+| [adr/0014-openfreemap-not-google.md](adr/0014-openfreemap-not-google.md) | OpenFreeMap tiles drawn by MapLibre. No key, no account, no card. The baked plan deleted | accepted |
 
 ## Findings — dated reports
 

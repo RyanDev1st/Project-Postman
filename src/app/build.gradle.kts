@@ -1,8 +1,3 @@
-// Imported, not written as java.util.Properties: inside a build script
-// `java` is Gradle's own Java extension, so the qualified name resolves to
-// the wrong thing and does not compile.
-import java.util.Properties
-
 plugins {
     // No Kotlin plugin here. Since AGP 9.0 the Android plugin brings Kotlin
     // with it, and adding org.jetbrains.kotlin.android on top is an error.
@@ -13,26 +8,6 @@ plugins {
     // nothing Firebase goes into the APK, and the app talks to the Server
     // team's API, not to Firebase. See docs/reference/releasing.md.
     alias(libs.plugins.firebase.appdistribution)
-}
-
-/**
- * The Maps API key, read from `local.properties` — which git ignores.
- *
- * A Maps key has to reach the APK: the SDK reads it from the manifest, and
- * there is no server in front of it to hold one for us. So the rule it has to
- * satisfy is the repo's real one — no key **in the repository** — and the key
- * is restricted in the Google Cloud console to this package and this signing
- * certificate, so a copy lifted out of the APK will not work anywhere else.
- *
- * Absent, this is blank, and the Home card falls back to the drawn plan. A
- * missing key must never fail the build: everyone else has to be able to
- * clone this and get an app. See ADR 0013.
- */
-val mapsApiKey: String = rootProject.file("local.properties").let { f ->
-    if (!f.exists()) "" else Properties()
-        .apply { f.inputStream().use { load(it) } }
-        .getProperty("MAPS_API_KEY", "")
-        .trim()
 }
 
 android {
@@ -52,11 +27,6 @@ android {
         // person reads, and it is the number P1-01 puts on the screen.
         versionCode = 1
         versionName = "0.1.0"
-
-        // Two readers, one value: the manifest tells the SDK, BuildConfig
-        // tells the app whether there is anything to tell it.
-        manifestPlaceholders["mapsApiKey"] = mapsApiKey
-        buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
     }
 
     buildTypes {
@@ -154,7 +124,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.compose.animation)
-    implementation(libs.maps.compose)
+    implementation(libs.maplibre)
 
     // Preview support. debugImplementation so the tooling never ships in a
     // release build.

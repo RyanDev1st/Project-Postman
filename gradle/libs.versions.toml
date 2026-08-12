@@ -20,9 +20,9 @@ firebaseAppdistribution = "5.3.0"
 # Checked on Maven Central 2026-08-11. Newest stable of each.
 bouncycastle = "1.80"
 sqlite = "3.49.1.0"
-# Checked on Maven Central 2026-08-12. Pulls play-services-maps itself, so
-# that version is not written twice.
-mapsCompose = "6.6.0"
+# Checked on Maven Central 2026-08-12. Renders the OpenFreeMap vector tiles.
+# Not Google's: see ADR 0014.
+maplibre = "11.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,10 +56,10 @@ bouncycastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.re
 # and the lockout counter. A file, no server to run. See ADR 0012.
 sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
 
-# The real map on the Home card. Google's own Compose wrapper round the Maps
-# SDK for Android — displaying a map costs nothing, and the route line is
-# baked, so no billed Directions call is ever made. See ADR 0013.
-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+# The real map on the Home card. MapLibre draws the tiles; the tiles come
+# from OpenFreeMap, which needs no key and no account. Google wanted a card
+# on file before it would serve a map it charges nothing for. See ADR 0014.
+maplibre = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,8 +1,13 @@
 # 0013 — A real map on Home, and where its key lives
 
-- **Status:** accepted
+- **Status:** superseded by [0014](0014-openfreemap-not-google.md)
 - **Date:** 2026-08-12
 - **Deciders:** Ryan
+
+> Superseded the same day. The pricing below is correct — the native SKU is
+> billed at nothing — but Google will not issue a working key until a card is
+> on the account, and it asked for a ₫630,000 authorisation to prove it. The
+> map moved to OpenFreeMap, which needs neither.
 
 ## Context
 

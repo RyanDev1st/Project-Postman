@@ -30,12 +30,21 @@ Fixed since the last build, after a second round of screenshots:
   The Cabinet tab moves. Tapping a door worked out where to push in to and
   then never went, and the automatic push-in for a single box did the same.
 
-Also new: the map card is a real map — Google's tiles in the app's own two
-schemes, the walk drawn over them, and your own position on it. It needs a
-key, and this build has none, so the card still shows the drawn plan. That
-one is not testable yet.
+Also new: the map card is a real map. Not Google — OpenStreetMap data served
+by OpenFreeMap and drawn by MapLibre, which needs no key and no account. It
+picks up the app's own light or dark scheme, the walk to the gate is drawn
+over it, and your own position shows as the blue dot once you allow location.
+The app asks for coarse location the first time Home draws; say no and the
+map still works, it just cannot show where you are.
+
+The drawn campus plan that used to sit there is gone. It always showed the
+same scene wherever the phone was, which is the thing being fixed.
+
+The app is a good deal bigger — the map renderer is about 40 MB of native
+code. Worth knowing before you download it on mobile data.
 
 What to look at: the theme switch in Settings, both directions — the
 component itself and the change behind it. Then hold the nav bar over the
 cabinet render and check you cannot read anything through it. Then the
-Cabinet tab: tap a door and see whether the camera lands on it.
+Cabinet tab: tap a door and see whether the camera lands on it. Then the map
+— does it show where you actually are, and does it turn dark with the app?
