@@ -15,14 +15,23 @@ import re
 import sys
 from pathlib import Path
 
+# A phase number, which may have a decimal: `1` or `1.5`.
+#
+# Phase 1.5 was inserted ahead of Phase 2 rather than renumbering six phases
+# and every task ID in them. This script did not know that: it globbed
+# `phase-*.md` and so read the file, but neither its ID pattern nor its phase
+# table pattern would match a dot, so the phase could not be listed in the
+# README without the check failing. The convention came first; this follows it.
+PH = r'\d+(?:\.\d+)?'
+
 # A task line, with the optional state marker in front of the title.
 TASK = re.compile(
-    r'^- \[([ x])\] \*\*(?:(?:⏸️ LATER|🔴 BLOCKED|🟡 DOING) — )?(P\d+-\d+)\*\*', re.M)
+    r'^- \[([ x])\] \*\*(?:(?:⏸️ LATER|🔴 BLOCKED|🟡 DOING) — )?(P' + PH + r'-\d+)\*\*', re.M)
 FULL = re.compile(
-    r'^- \[([ x])\] \*\*(?:(?:⏸️ LATER|🔴 BLOCKED|🟡 DOING) — )?(P\d+-\d+)\*\*.*\n'
+    r'^- \[([ x])\] \*\*(?:(?:⏸️ LATER|🔴 BLOCKED|🟡 DOING) — )?(P' + PH + r'-\d+)\*\*.*\n'
     r'\s*- Owner: [^·]+·\s*Needs: ([^·]+?)\s*·\s*Blocks: (.+)$', re.M)
 # The phase table in the master README: `... phase-2-register.md) · `0/7``
-PHASE_ROW = re.compile(r'\((phase-\d+-[a-z-]+\.md)\)\s*·\s*`(\d+)/(\d+)`')
+PHASE_ROW = re.compile(r'\((phase-' + PH + r'-[a-z-]+\.md)\)\s*·\s*`(\d+)/(\d+)`')
 TOTAL_ROW = re.compile(r'\*\*Total: (\d+) / (\d+)\.\*\*')
 
 faults = []
@@ -49,7 +58,8 @@ for f in files:
     ids = TASK.findall(text)
     all_ids += [i for _, i in ids]
     d = sum(1 for s, _ in ids if s == 'x')
-    later_ids |= set(re.findall(r'^- \[ \] \*\*⏸️ LATER — (P\d+-\d+)\*\*', text, re.M))
+    later_ids |= set(
+        re.findall(r'^- \[ \] \*\*⏸️ LATER — (P' + PH + r'-\d+)\*\*', text, re.M))
     total += len(ids)
     ticked += d
     per_file[os.path.basename(f)] = (d, len(ids))

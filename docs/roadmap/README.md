@@ -4,18 +4,17 @@ The plan for the app side of VGU Smart Locker. One file per phase. Every task is
 
 Product: a **parcel drop-off locker**, with two front-ends — the phone app and the cabinet screen. See [ADR 0003](../adr/0003-parcel-locker-product.md).
 
-> ### ⚠️ This board does not say what is actually being worked on
+> ### ⚠️ Phase 1.5 is on the board now, and none of it is ticked
 >
-> **Ryan has put the app design first, as a "Phase 1.5", ahead of Phase 2.** The work is **under way** — the mock-up now lives in [`docs/designs/mockup/`](../designs/mockup/) and the Compose port is in `src/app/`. What is missing is the **board entry**: Phase 1.5 has no file, no task IDs, and no `Verify` lines, so nothing below reflects it and the totals do not count it. Until it is written down, this board points at Phase 2, and **Phase 2 is not what is next**.
+> **Ryan put the app design first, as a "Phase 1.5", ahead of Phase 2.** It has a file, ten task IDs and a `Verify` line each, and the totals count it. This board no longer points at Phase 2.
 >
-> **The build on App Distribution is still the Phase 1 skeleton** — release `13civfbiqdom0`, seven screens, nothing talking to a server. The port has not been built and sent, so **a tester opening the app today is not looking at the current design**. Do not read that build as a review of the redesign; `docs/reference/release-notes.txt` describes the port, not the APK on their phone.
+> **The tester build is current.** Release `5mrcmp0mlql80`, version 0.10.0, 2026-08-13. The old warning here said App Distribution was still serving the Phase 1 skeleton and that a tester was not looking at the current design — that stopped being true at 0.8.0 and this note was left standing. Six design builds have gone out since.
 >
-> Two things are outstanding:
+> **What is not done is the proving.** Eight of the ten blocks are marked `🟡 DOING`: the code is in, it has shipped, and it looks right on a device. Not one has been through the reference-versus-port picture comparison that this phase exists to impose, because **P1.5-01, the loop itself, is still half built** — the Chrome reference half works, the JVM render half has never rendered a component. Shipping is not the check. Until P1.5-01 closes, every block below it is being judged the way the previous three failed ports were judged: by eye, on a phone.
 >
-> 1. **Write Phase 1.5 down** — a file, tasks with IDs, a `Verify` line each, like every other phase, and raise the totals in the same change.
-> 2. **Build and send the ported app**, so the tester link stops showing the skeleton.
+> One task is `🔴 BLOCKED` — P1.5-08, the theme switch, on BUG-003.
 >
-> Server work has run in parallel — endpoints 19, 20 and 21 are built and tested — because it blocks nothing on the app side and needs nothing from a phone. It is not a substitute for either of the above.
+> Server work has run in parallel — endpoints 19, 20 and 21 are built and tested — because it blocks nothing on the app side and needs nothing from a phone.
 
 ## Task format
 
@@ -97,8 +96,10 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `11/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
-- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9` · **CURRENT**
+- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
+- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `0/10` · **CURRENT**
+      Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/9`
       A receiver registers with a phone number and stays logged in.
 - [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
@@ -114,7 +115,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 14 / 77.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 14 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

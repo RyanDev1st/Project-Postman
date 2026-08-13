@@ -126,5 +126,66 @@ take their colours from `LockerTokens` rather than from constants.
 
 ## Tasks
 
-Numbered when this file is added to the board. Nothing here is ticked until
-its two pictures match.
+**Progress: 0 / 10.**
+
+One task per block in the table above — the blocks were already agreed, these
+are the same ten with IDs so the board can count them. IDs carry the phase's
+own number, `P1.5-nn`, because inserting this phase ahead of Phase 2 was the
+whole point of calling it 1.5.
+
+**Nothing here is ticked until its two pictures match and Ryan has said so.**
+A great deal of this work has been done and shipped — 0.8.0 through 0.10.0 —
+and none of it has been through the reference-versus-port comparison this
+phase exists to impose. Shipping is not the check. Where a task is marked
+`🟡 DOING` the code is in and looks right on a device; what is missing is the
+PNG pair.
+
+- [ ] **🟡 DOING — P1.5-01** — The parity loop itself
+      - Owner: Claude · Needs: — · Blocks: P1.5-02, P1.5-03, P1.5-04, P1.5-06, P1.5-07, P1.5-08, P1.5-09, P1.5-10
+      - Verify: one command renders a Compose component to PNG on this machine, and one renders the same component from the mock-up in Chrome, with no phone involved
+      - Notes: the reference half works — `scratch_reference.html` with `#probe=`. The JVM half is wired in `build.gradle.kts` but has never rendered a component
+
+- [ ] **🟡 DOING — P1.5-02** — Tokens: colour, type, spacing
+      - Owner: Claude · Needs: P1.5-01 · Blocks: P1.5-03, P1.5-04, P1.5-06, P1.5-07, P1.5-08, P1.5-09, P1.5-10
+      - Verify: the two PNGs of a token sheet match, and no component sets a size, radius or colour the scales do not name
+      - Notes: measured and rebuilt 2026-08-13 — one 1.2 type ratio, four radii, seven spacing values, `ink3` brought to WCAG AA. See `docs/findings/2026-08-13-design-language.md`. The audit is evidence; the PNG pair is not done
+
+- [ ] **P1.5-03** — `card` and `recess`
+      - Owner: _unassigned_ · Needs: P1.5-02 · Blocks: —
+      - Verify: the two PNGs match for both materials, in both schemes
+      - Notes: recess was rebuilt 2026-08-12 and is still unverified by eye
+
+- [ ] **🟡 DOING — P1.5-04** — `lg` glass: body, bloom, lip, rim
+      - Owner: Claude · Needs: P1.5-02 · Blocks: P1.5-05, P1.5-06, P1.5-07
+      - Verify: the two PNGs match for a pane over the same backdrop
+      - Notes: ported from `rdev/liquid-glass-react`'s own displacement map rather than guessed. Ryan on 0.9.0: good in light, too much refraction in dark, since halved
+
+- [ ] **🟡 DOING — P1.5-05** — The backdrop blur
+      - Owner: Claude · Needs: P1.5-04 · Blocks: P1.5-06, P1.5-07
+      - Verify: device only — text behind the nav bar is blurred, not tinted, on a real phone
+      - Notes: `RenderEffect` and AGSL need a GPU, so this one can never have a JVM picture. Working on the emulator since 0.8.2
+
+- [ ] **🟡 DOING — P1.5-06** — The nav bar
+      - Owner: Claude · Needs: P1.5-02, P1.5-04, P1.5-05 · Blocks: —
+      - Verify: the two PNGs match on item metrics, not only the pane
+      - Notes: labels were 9.5sp on a tone failing AA; both fixed in the token pass
+
+- [ ] **🟡 DOING — P1.5-07** — The app bar and its beads
+      - Owner: Claude · Needs: P1.5-02, P1.5-04, P1.5-05 · Blocks: —
+      - Verify: the two PNGs match, and the beads read as lit glass rather than dark blobs
+      - Notes: the beads were not glass at all until 0.8.2 — the bar was inside the recorded backdrop source, so it could not sample it. Touch targets are 30dp against Material's 48dp guidance and that is still an open question for Ryan
+
+- [ ] **🔴 BLOCKED — P1.5-08** — The theme switch
+      - Owner: _unassigned_ · Needs: P1.5-02 · Blocks: —
+      - Verify: the two PNGs match, sun and moon, in both schemes
+      - Notes: BUG-003 — the switch is a speckled grey blob in dark mode only. Blocked on that bug, which is not yet reproduced on a real phone
+
+- [ ] **🟡 DOING — P1.5-09** — The cabinet camera
+      - Owner: Claude · Needs: P1.5-02 · Blocks: —
+      - Verify: pushing in and pulling out both land where the design says, and the next push-in starts from where the last one ended
+      - Notes: zoom-out was broken and corrupted the following zoom-in; fixed by holding the shot being travelled to. 0.10.0 also puts the other doors out while one is framed
+
+- [ ] **🟡 DOING — P1.5-10** — The map card
+      - Owner: Claude · Needs: P1.5-02 · Blocks: —
+      - Verify: the two PNGs match on framing, and the walk drawn is the walk described
+      - Notes: real OpenFreeMap tiles ([ADR 0014](../adr/0014-openfreemap-not-google.md)), framed by the route's own bounds rather than a hand-computed zoom. 0.10.0 measures the distance off the line, 542.5 m against the router's 543
