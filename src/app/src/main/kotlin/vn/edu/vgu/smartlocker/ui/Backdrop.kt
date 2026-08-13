@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
  * What the glass has to bend.
@@ -129,6 +130,9 @@ fun Modifier.backdropBlur(state: BackdropState): Modifier {
     val refraction = rememberRefraction()
     val density = LocalDensity.current
     val blurPx = with(density) { BLUR.toPx() }
+    // A dark page shows the bend far more than a light one — see
+    // [Refraction.DARK].
+    val bend = if (LocalLockerTokens.current.dark) Refraction.DARK else 1f
     // How much wider than the pane the recording is, on every side, so the
     // lens has real content to bend rather than a hole. See [Refraction.PAD].
     val padPx = with(density) { Refraction.PAD.toPx() }
@@ -150,9 +154,6 @@ fun Modifier.backdropBlur(state: BackdropState): Modifier {
             // tinted shape. Every number tuned on top of that was paint on a
             // window.
             //
-            // Chained, so the frost runs first and the refraction bends the
-            // frosted result — the order the material needs, and the order
-            // `backdrop-filter` uses.
             // The recording is the pane plus a margin all round. The blur
             // wants it as much as the lens does: `DECAL` treats everything
             // past the layer as transparent, so without the margin the frost
@@ -167,8 +168,9 @@ fun Modifier.backdropBlur(state: BackdropState): Modifier {
             val recorded = state.layer.size
 
             val frost = frostEffect(blurPx)
-            val bend = refraction
+            val lens = refraction
                 ?.effectFor(
+                    strength = bend,
                     layer = outer,
                     pane = size,
                     contentAt = at,
@@ -198,7 +200,7 @@ fun Modifier.backdropBlur(state: BackdropState): Modifier {
             // content. The library does the same thing at the end of its own
             // chain with a `feGaussianBlur` after the three passes.
             paneLayer.renderEffect =
-                (if (bend != null) RenderEffectApi.createChainEffect(frost, bend) else frost)
+                (if (lens != null) RenderEffectApi.createChainEffect(frost, lens) else frost)
                     .asComposeRenderEffect()
 
             paneLayer.record(IntSize(outer.width.toInt(), outer.height.toInt())) {

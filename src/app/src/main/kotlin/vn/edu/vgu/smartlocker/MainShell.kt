@@ -14,12 +14,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.AppBar
@@ -68,6 +71,12 @@ fun MainShell(
     // height moves with the text scale.
     var barHeight by remember { mutableIntStateOf(0) }
 
+    // How far this copy of the ground sits below the one [LockerBackdrop]
+    // paints across the whole window. Without it the two lights stack inside
+    // the gutter and the difference shows as a warm rectangle over the app
+    // bar — see [lockerGround].
+    var groundTop by remember { mutableFloatStateOf(0f) }
+
     // Insets and the gutter belong to MainActivity, which wraps every screen.
     // Repeating them here inset the tab screens twice.
     Box(modifier = Modifier.fillMaxSize()) {
@@ -82,8 +91,9 @@ fun MainShell(
                     // transparent sheet, which blurs to a transparent sheet.
                     // That is why the bar had no material and the page read
                     // straight through it, sharp.
+                    .onGloballyPositioned { groundTop = it.positionInWindow().y }
                     .backdropSource(backdrop)
-                    .lockerGround(),
+                    .lockerGround(topInWindow = groundTop),
             ) {
                 Spacer(Modifier.height(with(LocalDensity.current) { barHeight.toDp() }))
                 Column(

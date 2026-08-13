@@ -71,19 +71,32 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
  * sheet and you get a transparent sheet: the bar had no material at all and
  * the page showed through it, sharp.
  *
- * Painting it twice costs one rectangle and makes the two copies identical by
- * construction.
+ * Painting it twice costs one rectangle. It only makes the two copies
+ * identical if they agree about where the top of the page is, and [topInWindow]
+ * is how they do.
+ *
+ * They did not agree, and it was visible. [LockerBackdrop] covers the whole
+ * window, while the shell's copy sits inside the 17dp gutter and the system
+ * bar inset — about 78px lower. Both started their light at their own y = 0,
+ * so inside the gutter the page carried two lights instead of one and came out
+ * warmer than the margin around it. That is the square over the top bar: a
+ * rectangle from x 34 to 746 and y 78 to 166, warmer by four or five counts.
+ * It shows at the top and nowhere else because the light has run out by 900px,
+ * and it is the accent colour, so it reads orange in light and blue in dark.
+ *
+ * Pass the copy's distance from the top of the window and its light picks up
+ * exactly where the one underneath it had got to.
  */
 @Composable
-fun Modifier.lockerGround(): Modifier {
+fun Modifier.lockerGround(topInWindow: Float = 0f): Modifier {
     val t = LocalLockerTokens.current
     return this
         .background(t.ground)
         .background(
             Brush.verticalGradient(
                 listOf(t.accent.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
-                startY = 0f,
-                endY = 900f,
+                startY = -topInWindow,
+                endY = 900f - topInWindow,
             ),
         )
 }

@@ -92,12 +92,13 @@ class Refraction internal constructor(
         pane: Size,
         contentAt: Offset,
         contentSize: Size,
+        strength: Float,
         density: Density,
     ): androidx.compose.ui.graphics.RenderEffect? {
         if (pane.width < 1f || pane.height < 1f) return null
         if (contentSize.width < 1f || contentSize.height < 1f) return null
         val key = "${layer.width.toInt()}x${layer.height.toInt()}x${pane.width.toInt()}" +
-            "@${contentAt.x.toInt()},${contentAt.y.toInt()}"
+            "@${contentAt.x.toInt()},${contentAt.y.toInt()}s$strength"
         if (key == lastKey) return lastEffect
 
         // Where real pixels are, in the layer's own coordinates. Not the same
@@ -124,9 +125,9 @@ class Refraction internal constructor(
         // overflow is cropped. So the side it is drawn at is the region's
         // LONGER edge, and it is centred on the pane.
         shader.setFloatUniform("side", REGION * maxOf(pane.width, pane.height))
-        // 70 CSS pixels is 70dp here. Negative, because `mode: "standard"`
-        // negates the scale.
-        shader.setFloatUniform("scale", -DISPLACEMENT * density.density)
+        // 70 CSS pixels is 70dp here. Negative, because the library negates
+        // the scale for every baked mode.
+        shader.setFloatUniform("scale", -DISPLACEMENT * strength * density.density)
 
         val effect = RenderEffect
             .createRuntimeShaderEffect(shader, "content")
@@ -143,6 +144,23 @@ class Refraction internal constructor(
 
         /** `<filter x="-35%" width="170%">` — index.tsx 51. */
         const val REGION = 1.70f
+
+        /**
+         * What a dark page gets, against a light page's full strength.
+         *
+         * The bend is the same geometry either way; what changes is how much
+         * it shows. A lens moves pixels, and moving a pixel is only visible
+         * where its neighbour differs from it. A dark page is near-black
+         * ground carrying near-white type — about the highest local contrast
+         * this app has — so the same displacement drags bright letters into
+         * the rim and reads as a smear. The light page is dark type on pale
+         * steel, a shorter step, and the same bend reads as glass.
+         *
+         * The number is the library's own, not one picked to taste: it halves
+         * `displacementScale` for the case it finds difficult too, its panes
+         * over bright ground (index.tsx 489).
+         */
+        const val DARK = 0.5f
 
         /**
          * How far outside itself a pane has to reach, in dp.

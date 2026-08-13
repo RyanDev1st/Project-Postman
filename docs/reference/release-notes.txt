@@ -1,49 +1,48 @@
-0.8.1 — the top bar, and a real edge on the glass.
+0.8.2 — the square over the top bar, and a calmer bend in the dark.
 
-Check the version first: long-press the app icon, App info. It must read 0.8.1.
+Check the version first: long-press the app icon, App info. It must read 0.8.2.
 
-Look at the three round buttons in the top bar — menu, scan, bell.
+The square is gone.
 
-Until this build they were not glass at all. They were being handed no
-backdrop, so they fell through to the plain fallback: a flat disc of ground
-colour at 30% with a ring drawn round it. A material nothing else on the
-screen uses, sitting in the corner of every screen. That is the fault over the
-top bar.
+It was the page's own light, painted twice. Every screen stands on a ground
+with an accent light falling from the top. That ground is painted once across
+the whole window, and once more inside the shell, because the glass can only
+bend what has been recorded and the recording starts inside the gutter.
 
-They were given none because the bar sat inside the very recording the glass
-reads, and a pane cannot sample a layer it is part of. The bar is now drawn
-over the content instead of above it in the flow, the same way the bottom nav
-already was, so the beads can read what is behind them. It is also the best
-place in the app for glass to be: the light on the page runs out well before
-the foot of the screen, so the top is the one region with anything behind the
-glass worth bending.
+Two copies is fine. Two copies that disagree about where the top of the page
+is, is not. Each started its light at its own first row, and the inner one
+starts about 78 pixels lower — so inside the gutter the page carried two
+lights instead of one and came out warmer than the margin around it. That is
+the whole of it: a rectangle from x 34 to 746 and y 78 to 166, warmer by four
+or five counts out of 255. It showed at the top and nowhere else because the
+light has run out by 900 pixels, and it took the accent colour, so it read
+orange in light and blue in dark.
 
-The rim is no longer notched. Every pane was being clipped a second time with
-a path clip, and a path clip on a phone's canvas has hard edges — no
-smoothing. Along the nav bar's long sides the steps were too small to notice.
-Around a 30dp circle the whole rim was visibly stepped.
+The inner copy is now told how far down it sits, and its light picks up
+exactly where the one underneath had got to. Measured across the gutter edge:
+the step was 6 counts, it is now 1. At the top edge it was 4, now 1.
 
-The glass now has a real edge. The library ships three displacement images and
-this port used the default, which measured out as a flat ramp corner to corner
-— a uniform shrink of the backdrop, no thickness. The one called "prominent"
-is shaped instead: nothing at all through the middle, then all of the work in
-two bands near the rim. That is a bevel, and it is what a thick piece of glass
-does to what is behind it. A flat ramp cannot make one at any strength.
+This was not new in 0.8.1. The same rectangle measures identically in 0.8.0 —
+it has been there since the ground was first painted twice, which was the fix
+that made the nav bar stop being see-through.
 
-Its blue channel is empty, and the library reads y from blue for every mode,
-so its own "prominent" setting is a fixed shove upwards rather than a
-displacement. This reads green, which is the channel with the picture in it.
+Dark mode bends less now. Half as much, and light mode is untouched.
 
-The shadow is the library's now: twelve pixels down, forty of blur, a quarter
-black. That is a wide shallow pool, not an elevation, and `Modifier.shadow`
-cannot make one — it asks the platform what a solid object at that height
-would cast, which is much tighter and much darker at the edge.
+The bend is the same geometry in both, so this is not a correction, it is the
+material behaving differently on the two pages. A lens moves pixels, and
+moving a pixel only shows where its neighbour differs. The dark page is
+near-black ground under near-white type, the highest contrast anywhere in the
+app, so the same displacement drags bright letters into the rim and reads as a
+smear. The light page is dark type on pale steel, a much shorter step, and the
+same bend reads as glass.
 
-Honest limit, unchanged and worth saying again. This material shows what is
-behind it. The ground under the bottom nav is one flat near-black, so there is
-very little for it to show. The top bar now looks better than the bottom one
-for exactly that reason, and no further work on the glass will change it —
-what would change it is putting some light on the lower half of the page.
+Half is the library's own figure — it halves its displacement for the case it
+finds difficult too.
 
 Still open: the Dark mode switch on Settings is a speckled grey blob, BUG-003.
 Not caused by this.
+
+Still true: the ground under the bottom nav is one flat near-black, so there
+is very little there for the glass to show. The top bar looks better than the
+bottom one for that reason alone. Putting some light on the lower half of the
+page is what would change it, and that is a design decision, not a bug.
