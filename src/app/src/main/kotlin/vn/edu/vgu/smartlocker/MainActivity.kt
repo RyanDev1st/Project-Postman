@@ -127,6 +127,15 @@ fun AppSkeleton(
     var lastMain by remember { mutableStateOf(Screen.HOME) }
     var scanBox by remember { mutableStateOf("04") }
 
+    // The number being signed in with, local part — see `VnMobile`. Held here
+    // rather than in SignInScreen because the code screen has to show it, and
+    // going back to correct a typo must not lose it.
+    //
+    // In memory only. Nothing about signing in is written down yet: the token
+    // store exists (P1-06) but there is no server to mint a token, so there is
+    // nothing to keep.
+    var number by remember { mutableStateOf("") }
+
     fun gotoMain(tab: Screen) {
         lastMain = tab
         screen = tab
@@ -157,12 +166,15 @@ fun AppSkeleton(
         ) {
             when (screen) {
                 Screen.SIGN_IN -> SignInScreen(
+                    number = number,
+                    onNumberChange = { number = it },
                     onSendCode = { screen = Screen.CODE },
                     onGoogle = { screen = Screen.ADD_PHONE },
                 )
                 Screen.CODE -> CodeScreen(
                     onDone = { gotoMain(Screen.HOME) },
                     onBack = { screen = Screen.SIGN_IN },
+                    number = number,
                 )
 
                 Screen.ADD_PHONE -> AddPhoneScreen(

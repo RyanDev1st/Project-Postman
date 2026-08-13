@@ -60,6 +60,9 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
  */
 @Composable
 fun SignInScreen(
+    /** The local part of the number, nine digits — see [VnMobile]. */
+    number: String,
+    onNumberChange: (String) -> Unit,
     onSendCode: () -> Unit,
     onGoogle: () -> Unit,
     onVgu: () -> Unit = {},
@@ -110,9 +113,16 @@ fun SignInScreen(
                         color = t.ink2,
                         modifier = Modifier.padding(start = 2.dp),
                     )
-                    PhoneField(number = "912 345 678")
+                    PhoneField(number = number, onChange = onNumberChange)
                 }
-                GoButton(text = stringResource(R.string.send_code), onClick = onSendCode)
+                // Off until the number could actually receive a code. The
+                // button used to be live against a fixed string, so it went
+                // on to the code screen whatever was — or was not — typed.
+                GoButton(
+                    text = stringResource(R.string.send_code),
+                    onClick = onSendCode,
+                    enabled = VnMobile.isComplete(number),
+                )
             }
 
             Divider()
@@ -219,52 +229,6 @@ private fun AuthHero() {
     }
 }
 
-/** The phone field — a recess, with the label above it, because a
- * placeholder leaves exactly when the field is in use. */
-@Composable
-fun PhoneField(
-    number: String,
-    onChange: (String) -> Unit = {},
-    modifier: Modifier = Modifier,
-    focused: Boolean = true,
-) {
-    val t = LocalLockerTokens.current
-    Recess(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "+84",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontFamily = NumberFace,
-                    color = t.ink2,
-                ),
-                modifier = Modifier.padding(end = 8.dp),
-            )
-            Box(
-                modifier = Modifier
-                    .height(18.dp)
-                    .width(1.dp)
-                    .background(t.hair),
-            )
-            Text(
-                text = number,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontFamily = NumberFace,
-                    color = if (number.isEmpty()) t.ink3 else t.ink,
-                ),
-            )
-        }
-    }
-}
-
 @Composable
 private fun Divider() {
     val t = LocalLockerTokens.current
@@ -302,11 +266,11 @@ private fun parse(d: String) = androidx.compose.ui.graphics.vector.PathParser().
 @Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun SignInPreview() {
-    PreviewTheme { SignInScreen({}, {}) }
+    PreviewTheme { SignInScreen("912345678", {}, {}, {}) }
 }
 
 @Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
 private fun SignInDarkPreview() {
-    PreviewTheme(dark = true) { SignInScreen({}, {}) }
+    PreviewTheme(dark = true) { SignInScreen("912345678", {}, {}, {}) }
 }

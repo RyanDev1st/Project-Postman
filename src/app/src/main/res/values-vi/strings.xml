@@ -35,6 +35,7 @@
     <string name="code_label">MÃ 6 SỐ</string>
     <string name="code_continue">Tiếp tục</string>
     <string name="code_resend_in">Gửi lại sau %1$s</string>
+    <string name="demo_any_code">Bản dùng thử — chưa có máy chủ, nên 6 chữ số bất kỳ đều vào được.</string>
     <string name="code_save_number">Lưu số</string>
     <string name="code_skip">Bỏ qua</string>
     <string name="code_need_number">Cần số điện thoại để nhận hàng.</string>

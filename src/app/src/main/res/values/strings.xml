@@ -49,6 +49,9 @@
     <string name="code_label">6-DIGIT CODE</string>
     <string name="code_continue">Continue</string>
     <string name="code_resend_in">Resend in %1$s</string>
+    <!-- Debug builds only. Shown under the code box while there is no server
+         to check the code against. Removed when P2-03 wires endpoint 3. -->
+    <string name="demo_any_code">Demo build — no server yet, so any 6 digits will let you in.</string>
     <string name="code_save_number">Save number</string>
     <string name="code_skip">Skip for now</string>
     <string name="code_need_number">Parcels need a number.</string>

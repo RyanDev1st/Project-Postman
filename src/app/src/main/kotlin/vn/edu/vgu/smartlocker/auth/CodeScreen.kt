@@ -23,6 +23,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.BuildConfig
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
@@ -63,6 +64,8 @@ private fun AuthDisplay(
 fun CodeScreen(
     onDone: () -> Unit,
     onBack: () -> Unit = {},
+    /** The number a code was asked for, local part — see [VnMobile]. */
+    number: String = "",
     resendAt: String = "0:42",
 ) {
     val t = LocalLockerTokens.current
@@ -88,7 +91,11 @@ fun CodeScreen(
         ) {
             AuthDisplay(first = "Enter", accent = "the code")
             Text(
-                text = stringResource(R.string.code_sent_to, "+84 ··· 678"),
+                text = stringResource(
+                    R.string.code_sent_to,
+                    if (number.isEmpty()) "+84 ··· 678"
+                    else "+84 " + VnMobile.spaced(number),
+                ),
                 style = MaterialTheme.typography.labelLarge.copy(fontFamily = NumberFace),
                 color = t.ink2,
                 modifier = Modifier.padding(top = 12.dp),
@@ -98,7 +105,11 @@ fun CodeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                // The block above is bottom-aligned in the space it is given,
+                // so without this its last line and this block's first sit
+                // against each other. 24dp is the interval between ranks on
+                // the sign-in screen, and these are two ranks.
+                .padding(top = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -108,9 +119,22 @@ fun CodeScreen(
                     color = t.ink2,
                     modifier = Modifier.padding(start = 2.dp),
                 )
-                OtpCells(code = code, caretIndex = code.length.coerceAtMost(5))
+                OtpCells(
+                    code = code,
+                    caretIndex = code.length.coerceAtMost(5),
+                    onChange = { code = it },
+                )
             }
-            GoButton(text = stringResource(R.string.code_continue), onClick = onDone)
+            // Six digits, or nothing happens. There is no server to say
+            // whether they are the RIGHT six — see the note below.
+            GoButton(
+                text = stringResource(R.string.code_continue),
+                onClick = onDone,
+                enabled = code.length == 6,
+            )
+            if (BuildConfig.DEBUG) {
+                DemoNote()
+            }
         }
 
         QuietButton(
@@ -119,6 +143,30 @@ fun CodeScreen(
             enabled = false,
         )
     }
+}
+
+/**
+ * The label the working rules ask for on any stand-in for the real thing.
+ *
+ * There is no server yet — P0-04 — so nothing can say whether a code is the
+ * right code, and `Continue` opens the app on any six digits. That is a hole
+ * where the check goes, and a hole has to be visible or somebody will take
+ * this screen for a working sign-in.
+ *
+ * **Debug builds only**, so it cannot reach a real user: the caller wraps it
+ * in `BuildConfig.DEBUG`, and a release build compiles the constant to false
+ * and drops the branch. When endpoint 3 is wired (P2-03), this and the branch
+ * around it go, and the check takes their place.
+ */
+@Composable
+private fun DemoNote() {
+    val t = LocalLockerTokens.current
+    Text(
+        text = stringResource(R.string.demo_any_code),
+        style = MaterialTheme.typography.labelSmall,
+        color = t.ink3,
+        modifier = Modifier.padding(horizontal = 2.dp),
+    )
 }
 
 /**
@@ -133,6 +181,7 @@ fun AddPhoneScreen(
     onSkip: () -> Unit,
 ) {
     val t = LocalLockerTokens.current
+    var number by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(brand = "VGU Locker")
@@ -159,9 +208,13 @@ fun AddPhoneScreen(
                     color = t.ink2,
                     modifier = Modifier.padding(start = 2.dp),
                 )
-                PhoneField(number = "")
+                PhoneField(number = number, onChange = { number = it })
             }
-            GoButton(text = stringResource(R.string.code_save_number), onClick = onSaved)
+            GoButton(
+                text = stringResource(R.string.code_save_number),
+                onClick = onSaved,
+                enabled = VnMobile.isComplete(number),
+            )
         }
 
         Column(
