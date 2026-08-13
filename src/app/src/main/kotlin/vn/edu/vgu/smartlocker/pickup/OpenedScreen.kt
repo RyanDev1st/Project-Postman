@@ -55,7 +55,7 @@ fun OpenedScreen(
             .background(DoorLight),
     ) {
         AppBar(
-            brand = "Back gate",
+            brand = stringResource(R.string.cabinet_back_gate),
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,

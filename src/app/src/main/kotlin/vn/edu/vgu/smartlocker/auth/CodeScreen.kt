@@ -89,7 +89,10 @@ fun CodeScreen(
                 .weight(1f),
             verticalArrangement = Arrangement.Bottom,
         ) {
-            AuthDisplay(first = "Enter", accent = "the code")
+            AuthDisplay(
+                first = stringResource(R.string.code_head_lead),
+                accent = stringResource(R.string.code_head_accent),
+            )
             Text(
                 text = stringResource(
                     R.string.code_sent_to,
@@ -192,7 +195,10 @@ fun AddPhoneScreen(
                 .weight(1f),
             verticalArrangement = Arrangement.Bottom,
         ) {
-            AuthDisplay(first = "Couriers find you", accent = "by number")
+            AuthDisplay(
+                first = stringResource(R.string.addphone_head_lead),
+                accent = stringResource(R.string.addphone_head_accent),
+            )
         }
 
         Column(

@@ -65,9 +65,24 @@ fun CabinetScreen(
     var selected by remember { mutableStateOf("04") }
     var framed by remember { mutableStateOf<String?>(null) }
 
+    // Sample parcels. The clock readings are data and stay as they are; the
+    // words around them — today, yesterday, left — are ours, and were the
+    // English left standing in an otherwise Vietnamese screen.
     val allMine = listOf(
-        YourDoor("04", "08:14 today", "6h left", 0.12f, soon = true),
-        YourDoor("07", "21:40 yesterday", "31h left", 0.65f, soon = false),
+        YourDoor(
+            "04",
+            stringResource(R.string.time_at_today, "08:14"),
+            stringResource(R.string.time_hours_left, "6"),
+            0.12f,
+            soon = true,
+        ),
+        YourDoor(
+            "07",
+            stringResource(R.string.time_at_yesterday, "21:40"),
+            stringResource(R.string.time_hours_left, "31"),
+            0.65f,
+            soon = false,
+        ),
     )
     val freeDoors = listOf("02", "05", "11", "14", "17", "20")
     val mine = when (mode) {
@@ -157,7 +172,7 @@ fun CabinetScreen(
                 val d = mine.first { it.n == effective }
                 SmallTicket(
                     claim = SmallClaim(
-                        cabinet = "Back gate",
+                        cabinet = stringResource(R.string.cabinet_back_gate),
                         box = d.n,
                         detail = stringResource(R.string.cab_dropped, d.at),
                         left = d.left,

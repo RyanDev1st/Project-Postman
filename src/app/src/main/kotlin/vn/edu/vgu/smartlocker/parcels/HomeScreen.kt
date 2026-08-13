@@ -38,29 +38,41 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
 /** One line of the ledger: what you already collected. */
 data class LedgerEntry(val box: String, val cabinet: String, val when_: String)
 
-private val SAMPLE = Claim(
-    cabinet = "Back gate",
+// The samples are composable functions rather than constants, because a place
+// name and the word "today" have to turn over with the language and a
+// top-level `val` is built once, in whatever language the process started in.
+// A default argument of a composable is evaluated inside the composition, so
+// these still read as defaults at the call site.
+
+@Composable
+private fun sample() = Claim(
+    cabinet = stringResource(R.string.cabinet_back_gate),
     box = "04",
     dropped = "08:14",
-    collectBy = "14:20  today",
-    left = "6h left",
+    collectBy = stringResource(R.string.time_at_today, "14:20"),
+    left = stringResource(R.string.time_hours_left, "6"),
     pct = 0.12f,
     soon = true,
 )
 
-private val SAMPLE_SECOND = SmallClaim(
-    cabinet = "Back gate",
+@Composable
+private fun sampleSecond() = SmallClaim(
+    cabinet = stringResource(R.string.cabinet_back_gate),
     box = "07",
-    detail = "Dropped 21:40 yesterday",
+    detail = stringResource(
+        R.string.cab_dropped,
+        stringResource(R.string.time_at_yesterday, "21:40"),
+    ),
     left = "31h",
     pct = 0.65f,
     soon = false,
 )
 
-private val SAMPLE_LEDGER = listOf(
-    LedgerEntry("02", "Library", "2 Aug"),
-    LedgerEntry("17", "Back gate", "28 Jul"),
-    LedgerEntry("09", "Library", "21 Jul"),
+@Composable
+private fun sampleLedger() = listOf(
+    LedgerEntry("02", stringResource(R.string.cabinet_library), stringResource(R.string.date_2_aug)),
+    LedgerEntry("17", stringResource(R.string.cabinet_back_gate), stringResource(R.string.date_28_jul)),
+    LedgerEntry("09", stringResource(R.string.cabinet_library), stringResource(R.string.date_21_jul)),
 )
 
 /**
@@ -81,9 +93,9 @@ fun HomeScreen(
     onOpen: (String) -> Unit = {},
     onOpenSecond: (String) -> Unit = {},
     onMap: () -> Unit = {},
-    parcels: List<Claim> = listOf(SAMPLE),
-    second: List<SmallClaim> = listOf(SAMPLE_SECOND),
-    ledger: List<LedgerEntry> = SAMPLE_LEDGER,
+    parcels: List<Claim> = listOf(sample()),
+    second: List<SmallClaim> = listOf(sampleSecond()),
+    ledger: List<LedgerEntry> = sampleLedger(),
     freeCount: Int = 6,
 ) {
     val t = LocalLockerTokens.current
@@ -98,7 +110,7 @@ fun HomeScreen(
             // different facts, and only the second is useful.
             ClaimTicket(
                 claim = Claim(
-                    cabinet = "Back gate",
+                    cabinet = stringResource(R.string.cabinet_back_gate),
                     box = "%02d".format(freeCount),
                     dropped = "",
                     collectBy = "",
@@ -107,7 +119,7 @@ fun HomeScreen(
                     soon = false,
                 ),
                 isFree = true,
-                freeNote = "Nothing waiting. Give a courier your number and any of the six is yours within the hour.",
+                freeNote = stringResource(R.string.home_nothing_waiting),
             )
         } else {
             ClaimTicket(claim = parcels.first())

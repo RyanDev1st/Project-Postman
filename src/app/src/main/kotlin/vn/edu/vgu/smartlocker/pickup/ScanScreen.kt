@@ -55,7 +55,7 @@ fun ScanScreen(
     val t = LocalLockerTokens.current
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(
-            brand = "Box 04",
+            brand = stringResource(R.string.box_label, "04"),
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,

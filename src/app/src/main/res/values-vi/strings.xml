@@ -36,6 +36,24 @@
     <string name="code_continue">Tiếp tục</string>
     <string name="code_resend_in">Gửi lại sau %1$s</string>
     <string name="demo_any_code">Bản dùng thử — chưa có máy chủ, nên 6 chữ số bất kỳ đều vào được.</string>
+
+    <string name="cabinet_back_gate">Cổng sau</string>
+    <string name="cabinet_library">Thư viện</string>
+
+    <string name="code_head_lead">Nhập</string>
+    <string name="code_head_accent">mã số</string>
+    <string name="addphone_head_lead">Người giao tìm bạn</string>
+    <string name="addphone_head_accent">qua số này</string>
+
+    <string name="home_nothing_waiting">Chưa có gì. Đưa số của bạn cho người giao, một trong sáu ô sẽ là của bạn trong vòng một giờ.</string>
+    <string name="box_label">Ô %1$s</string>
+
+    <string name="time_at_today">%1$s hôm nay</string>
+    <string name="time_at_yesterday">%1$s hôm qua</string>
+    <string name="time_hours_left">còn %1$s giờ</string>
+    <string name="date_2_aug">2 thg 8</string>
+    <string name="date_28_jul">28 thg 7</string>
+    <string name="date_21_jul">21 thg 7</string>
     <string name="code_save_number">Lưu số</string>
     <string name="code_skip">Bỏ qua</string>
     <string name="code_need_number">Cần số điện thoại để nhận hàng.</string>

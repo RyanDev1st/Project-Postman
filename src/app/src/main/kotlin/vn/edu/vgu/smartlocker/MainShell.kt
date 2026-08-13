@@ -248,7 +248,7 @@ private fun TabAppBar(
         )
 
         Screen.CABINET -> AppBar(
-            brand = "Back gate",
+            brand = stringResource(R.string.cabinet_back_gate),
             modifier = modifier,
             leading = {
                 AppBarBead(

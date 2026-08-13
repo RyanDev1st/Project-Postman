@@ -57,7 +57,7 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
  */
 @Composable
 fun MapCard(
-    cabinet: String = "Back gate",
+    cabinet: String = stringResource(R.string.cabinet_back_gate),
     walk: String = rememberWalkLabel(),
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},

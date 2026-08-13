@@ -52,6 +52,33 @@
     <!-- Debug builds only. Shown under the code box while there is no server
          to check the code against. Removed when P2-03 wires endpoint 3. -->
     <string name="demo_any_code">Demo build — no server yet, so any 6 digits will let you in.</string>
+
+    <!-- Cabinet names. Sample data until the server names its own cabinets,
+         but a place name is read by a person and has to turn over with the
+         rest of the app: "Back gate" in a Vietnamese screen is the thing
+         Ryan saw. When the server owns these, it owns translating them. -->
+    <string name="cabinet_back_gate">Back gate</string>
+    <string name="cabinet_library">Library</string>
+
+    <!-- The two auth headings. Two halves each: the second is drawn in the
+         accent, so they cannot be one string, and the split is not the same
+         in both languages. -->
+    <string name="code_head_lead">Enter</string>
+    <string name="code_head_accent">the code</string>
+    <string name="addphone_head_lead">Couriers find you</string>
+    <string name="addphone_head_accent">by number</string>
+
+    <string name="home_nothing_waiting">Nothing waiting. Give a courier your number and any of the six is yours within the hour.</string>
+    <string name="box_label">Box %1$s</string>
+
+    <!-- Words inside sample timestamps. The clock part is data; these are
+         ours, and were the English left standing in a Vietnamese screen. -->
+    <string name="time_at_today">%1$s today</string>
+    <string name="time_at_yesterday">%1$s yesterday</string>
+    <string name="time_hours_left">%1$sh left</string>
+    <string name="date_2_aug">2 Aug</string>
+    <string name="date_28_jul">28 Jul</string>
+    <string name="date_21_jul">21 Jul</string>
     <string name="code_save_number">Save number</string>
     <string name="code_skip">Skip for now</string>
     <string name="code_need_number">Parcels need a number.</string>
