@@ -50,7 +50,7 @@ fun LoadingScreen(label: String = "CHECKING YOUR PARCELS") {
     ) {
         Orb(modifier = Modifier.size(132.dp))
         Column(
-            modifier = Modifier.padding(top = 26.dp),
+            modifier = Modifier.padding(top = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -68,7 +68,7 @@ fun LoadingScreen(label: String = "CHECKING YOUR PARCELS") {
                     fontSize = 11.sp,
                 ),
                 color = t.ink3,
-                modifier = Modifier.padding(top = 5.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }

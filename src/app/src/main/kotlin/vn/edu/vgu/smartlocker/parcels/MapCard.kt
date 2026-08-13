@@ -63,7 +63,7 @@ fun MapCard(
     CardMaterial(
         modifier = modifier,
         onClick = { opened = true; onClick() },
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(22.dp),
     ) {
         Column(modifier = Modifier) {
             LiveMap(
@@ -75,7 +75,7 @@ fun MapCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 13.dp, vertical = 9.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -145,7 +145,7 @@ private fun MapSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 15.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 GlassBead(
@@ -167,7 +167,7 @@ private fun MapSheet(
                     shape = RoundedCornerShape(999.dp),
                     pop = true,
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                         Text(
                             text = cabinet,
                             style = MaterialTheme.typography.bodyMedium.copy(

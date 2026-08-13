@@ -78,7 +78,7 @@ fun ClaimTicket(
     val t = LocalLockerTokens.current
     CardMaterial(modifier = modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 13.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Text(
                 text = claim.cabinet.uppercase(),
@@ -89,7 +89,7 @@ fun ClaimTicket(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 7.dp, bottom = 2.dp),
+                    .padding(top = 8.dp, bottom = 2.dp),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 Column {
@@ -114,7 +114,7 @@ fun ClaimTicket(
                         claim.soon -> PillKind.SOON
                         else -> PillKind.NEUTRAL
                     },
-                    modifier = Modifier.padding(bottom = 11.dp),
+                    modifier = Modifier.padding(bottom = 12.dp),
                 )
             }
 
@@ -124,8 +124,8 @@ fun ClaimTicket(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 11.dp),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(22.dp),
+                    .padding(top = 12.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp),
             ) {
                 if (isFree) {
                     Text(
@@ -175,7 +175,7 @@ private fun Seam() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, bottom = 11.dp)
+            .padding(top = 12.dp, bottom = 12.dp)
             .height(1.5.dp),
     ) {
         Canvas(modifier = Modifier.fillMaxWidth()) {
@@ -259,7 +259,7 @@ fun SmallTicket(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
     ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -300,7 +300,7 @@ fun SmallTicket(
             DrainMeter(
                 pct = claim.pct,
                 soon = claim.soon,
-                modifier = Modifier.padding(top = 10.dp),
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }

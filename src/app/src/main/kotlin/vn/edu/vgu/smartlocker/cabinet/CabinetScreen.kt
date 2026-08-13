@@ -84,7 +84,7 @@ fun CabinetScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(horizontal = 1.dp)) {
+        Column {
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
@@ -94,7 +94,7 @@ fun CabinetScreen(
                 text = sub,
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink2,
-                modifier = Modifier.padding(top = 5.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -108,7 +108,7 @@ fun CabinetScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(28.dp),
         ) {
             CabinetArt(
                 yours = mine,
@@ -164,7 +164,7 @@ fun CabinetScreen(
         // render, never over a button. Without this "Scan to open" sat half
         // under the bar and "Use a code" was hidden by it completely.
         Column(
-            modifier = Modifier.padding(top = 10.dp, bottom = NavClearance),
+            modifier = Modifier.padding(top = 8.dp, bottom = NavClearance),
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             when (mode) {
@@ -198,17 +198,17 @@ private fun StatusCard(mode: CabinetMode) {
     val colour = if (free) t.free else t.refuse
     CardMaterial(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(22.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .clip(RoundedCornerShape(11.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .background(colour.copy(alpha = if (free) 0.15f else 0.16f)),
                 contentAlignment = Alignment.Center,
             ) {
@@ -245,8 +245,8 @@ private fun NoFreeBadge(modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(999.dp))
             .background(t.surface.copy(alpha = 0.92f))
             .border(1.dp, t.hair, RoundedCornerShape(999.dp))
-            .padding(horizontal = 19.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(

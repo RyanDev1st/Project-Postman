@@ -75,7 +75,7 @@ fun ScanScreen(
                 text = "Scan the cabinet",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 color = t.ink,
-                modifier = Modifier.padding(top = 18.dp),
+                modifier = Modifier.padding(top = 16.dp),
             )
         }
 
@@ -103,11 +103,11 @@ fun Aperture(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(Color(0xFF05070A)),
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val corner = 26.dp.toPx()
+            val corner = 28.dp.toPx()
             val inset = 16.dp.toPx()
             val stroke = 3.dp.toPx()
             val accent = t.accent

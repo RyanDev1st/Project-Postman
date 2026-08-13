@@ -42,7 +42,7 @@ fun Pill(
         modifier = modifier
             .clip(RoundedCornerShape(999.dp))
             .background(bg)
-            .padding(horizontal = 9.dp, vertical = 3.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp),
     ) {
         Text(
             text = text,

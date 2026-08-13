@@ -96,7 +96,7 @@ fun CodeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 26.dp),
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -104,7 +104,7 @@ fun CodeScreen(
                     text = "6-DIGIT CODE",
                     style = MaterialTheme.typography.labelMedium,
                     color = t.ink2,
-                    modifier = Modifier.padding(start = 3.dp),
+                    modifier = Modifier.padding(start = 2.dp),
                 )
                 OtpCells(code = code, caretIndex = code.length.coerceAtMost(5))
             }
@@ -147,7 +147,7 @@ fun AddPhoneScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 26.dp),
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -155,7 +155,7 @@ fun AddPhoneScreen(
                     text = "PHONE NUMBER",
                     style = MaterialTheme.typography.labelMedium,
                     color = t.ink2,
-                    modifier = Modifier.padding(start = 3.dp),
+                    modifier = Modifier.padding(start = 2.dp),
                 )
                 PhoneField(number = "")
             }
@@ -171,7 +171,7 @@ fun AddPhoneScreen(
                 text = "Parcels need a number.",
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink3,
-                modifier = Modifier.padding(horizontal = 3.dp),
+                modifier = Modifier.padding(horizontal = 2.dp),
             )
         }
     }

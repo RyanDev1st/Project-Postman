@@ -41,7 +41,7 @@ fun AppBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 1.dp, end = 1.dp, top = 5.dp, bottom = 9.dp),
+            .padding(top = 4.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -85,13 +85,13 @@ fun OpenedScreen(
                     fontSize = 11.sp,
                 ),
                 color = OnDoorLight.copy(alpha = 0.8f),
-                modifier = Modifier.padding(top = 10.dp),
+                modifier = Modifier.padding(top = 8.dp),
             )
             Text(
                 text = "Close the door when done.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = OnDoorLight,
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 16.dp),
             )
         }
 

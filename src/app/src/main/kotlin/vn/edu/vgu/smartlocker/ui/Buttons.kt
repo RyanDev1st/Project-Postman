@@ -104,7 +104,7 @@ fun QuietButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(8.dp),
         contentAlignment = Alignment.Center,
@@ -170,8 +170,8 @@ fun SocialButton(
             .clip(shape)
             .border(1.dp, t.hair, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(9.dp),
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box { leading() }

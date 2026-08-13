@@ -112,7 +112,7 @@ fun HomeScreen(
             GoButton(
                 text = "Open door ${parcels.first().box}",
                 onClick = { onOpen(parcels.first().box) },
-                modifier = Modifier.padding(top = 14.dp),
+                modifier = Modifier.padding(top = 12.dp),
             )
         }
 
@@ -146,7 +146,7 @@ fun SectionLabel(text: String, action: String? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 22.dp, bottom = 9.dp, start = 2.dp, end = 2.dp),
+            .padding(top = 24.dp, bottom = 8.dp, start = 2.dp, end = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -185,7 +185,7 @@ fun Ledger(entries: List<LedgerEntry>, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 9.dp, horizontal = 2.dp),
+                    .padding(vertical = 8.dp, horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Recess(

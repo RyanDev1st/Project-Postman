@@ -65,7 +65,7 @@ fun TypeCodeScreen(
             },
         )
 
-        Column(modifier = Modifier.padding(horizontal = 1.dp)) {
+        Column {
             Text(
                 text = "Enter code",
                 style = MaterialTheme.typography.headlineMedium,
@@ -75,7 +75,7 @@ fun TypeCodeScreen(
                 text = "From your parcel notice",
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink2,
-                modifier = Modifier.padding(top = 5.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
 
@@ -89,13 +89,13 @@ fun TypeCodeScreen(
             if (error) {
                 Row(
                     modifier = Modifier
-                        .padding(top = 14.dp)
+                        .padding(top = 12.dp)
                         .background(
                             t.refuse.copy(alpha = 0.14f),
-                            RoundedCornerShape(14.dp),
+                            RoundedCornerShape(16.dp),
                         )
-                        .border(1.dp, t.refuse.copy(alpha = 0.34f), RoundedCornerShape(14.dp))
-                        .padding(horizontal = 13.dp, vertical = 11.dp),
+                        .border(1.dp, t.refuse.copy(alpha = 0.34f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

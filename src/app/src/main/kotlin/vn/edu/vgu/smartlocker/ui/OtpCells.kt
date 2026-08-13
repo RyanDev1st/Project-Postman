@@ -58,7 +58,7 @@ fun OtpCells(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(vertical = 11.dp),
+                                .padding(vertical = 12.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Box(

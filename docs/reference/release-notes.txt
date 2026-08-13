@@ -1,54 +1,58 @@
-0.9.0 — the theme wipe, and one less control on the cabinet tab.
+0.9.1 — the design language: one type scale, four radii, one spacing grid.
 
-Check the version first: long-press the app icon, App info. It must read 0.9.0.
+Check the version first: long-press the app icon, App info. It must read 0.9.1.
 
-The app opens in LIGHT now, whatever the phone is set to. The design is drawn
-light first, and light is the scheme that reads standing outdoors at a cabinet
-in daylight, which is where this app gets used.
+Nothing new was added. Everything was made to agree with everything else.
 
-The theme wipe covers the whole screen now, and it runs the right way.
+The glass is a measured port now and it behaves like the source, so what was
+left reading cheap was everything around it. It was measured, all 39 code
+files. The fault was not any one value. It was that nothing in the app agreed
+with anything else in it: 42 spacing values, 12 corner radii, and three text
+sizes half a point apart. No single one of those is visible. The absence of
+a system is.
 
-It was covering only a thin frame. The wipe is a curtain of the outgoing
-colour, drawn as part of the ground. The ground is painted twice — once across
-the window, once inside the shell so the glass has something to sample — and
-only the outer copy was drawing the curtain. The inner copy carries the NEW
-colour and sits on top, so it painted the curtain out everywhere except the
-17dp margin. The page inside snapped instantly while a border wiped around it.
-That is the override over the top bar. The curtain now belongs to the ground
-itself, so every copy carries it and none can cover another's.
+The full measurement is docs/findings/2026-08-13-design-language.md.
 
-Direction now depends on which way you are going. Turning dark on, the old
-light page is held at the top and the dark one rises from the floor. Turning
-it off, the old dark page is held at the bottom and the light one comes down
-from above. Dark rises off the ground, light falls from the sky. One direction
-for both made one of the two feel backwards.
+Text now sits on one ratio, and the title outranks body text.
 
-Watch a tab change. Material's fade-through: the old screen fades out over
-90ms, the new one fades in and grows from 92% over 210ms after it. Tabs are
-siblings so nothing slides — neither is after the other. An instant cut
-between two pages of similar weight is the cheapest-feeling thing an app can
-do, and a tab change is the one moment the user triggers on purpose and
-watches.
+The brand in the top bar and your name on Settings were 14.5sp while reading
+text was 15sp — set SMALLER than body. A screen cannot show a hierarchy the
+scale does not have. Title is now 18sp.
 
-The nav bar sits 8dp lower, into the gutter rather than mid-air.
+Below it, four sizes crowded 12.5 to 15sp at ratios of 1.03 to 1.12. Half a
+point is less than a reader can see, so four ranks read as one rank done
+carelessly. Now: caption 10.5, label 12.5, body 15, title 18, heading 26 —
+each step 1.2 times the last, which is the step size a reader can actually
+see. The big numbers on the ticket and the Opened screen do not change: 122sp
+is sized to be read across a corridor, not to fit a progression.
 
-The cabinet tab has one control fewer. The strip naming your boxes — 04, 07 —
-is gone. It did nothing tapping a door on the render does not already do:
-the two handlers were the same two lines. It was a second, smaller, abstract
-copy of the cabinet, sitting directly beneath a picture of the cabinet, and
-the picture is the better control — the doors are lit, numbered, and where the
-receiver is already looking. What is left says which box the button opens and
-when it must be collected, which is all the strip was really for.
+Corner radii went from twelve values to four: 10, 16, 22, 28, plus the pill.
 
-The render now sits in a recess. It is a thing you look into, and that is what
-a recess is for. It is also where the tab's depth went when the strip was
-removed, since the strip was the only recessed thing on it.
+Three of the old five were 13, 15 and 17 — two points apart, which nobody
+holding a phone can tell apart. They bought inconsistency and paid nothing.
+Cards are rounder now. The cabinet render sits in a deeper 28dp well.
+
+Spacing went from 42 values to seven: 2, 4, 8, 12, 16, 24.
+
+69 of the 105 gaps in the app were off any grid — padding of 9, 10 and 11 in
+neighbouring components, so every edge missed its neighbour by a pixel or
+two. Never enough to notice. Always enough to stop it looking cut from one
+piece.
+
+The quiet grey text passed an accessibility standard it was failing.
+
+That grey carries the nav bar's unselected labels — CABINET, SETTINGS — and
+the small chips. It measured 2.63:1 on the light ground where the standard
+asks 4.5:1, and 2.98:1 on a dark card. It now measures 4.54:1 and 4.50:1.
+It is a real standards failure fixed, not a preference: that text was too
+faint to read in daylight, which is where this app gets used.
 
 Known, unchanged: the Dark mode switch on Settings is a speckled blob in dark
-mode only — in light it draws its sun correctly. BUG-003.
+mode only. BUG-003.
 
-One rough edge worth naming. During the 480ms wipe, text in the part not yet
-revealed carries the new scheme's colour on the old scheme's ground, so for a
-moment it is pale on pale. That is the cost of the curtain being BEHIND the
-content, which is deliberate: the alternative covers everything and transitions
-nothing.
+New, and please check this one on your phone: on the emulator the cabinet
+render on the sign-in screen fills only the left third of its box. It is
+NOT from this change — this change moved that screen's margin by 1dp, which
+cannot move a render by 200. It is most likely the emulator's software
+renderer failing on a large image. If it looks right on your phone, say so
+and it gets closed. BUG-004.

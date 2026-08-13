@@ -129,7 +129,7 @@ fun AppSkeleton(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(horizontal = 17.dp, vertical = 15.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
         ) {
             when (screen) {
                 Screen.SIGN_IN -> SignInScreen(

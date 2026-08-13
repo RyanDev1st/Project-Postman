@@ -70,17 +70,17 @@ fun SettingsScreen(
         // Who is signed in.
         CardMaterial(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(19.dp),
+            shape = RoundedCornerShape(22.dp),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 13.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(13.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(16.dp))
                         .background(t.accent.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -166,7 +166,7 @@ private fun SettingsRow(
         onClick = onClick,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 13.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {

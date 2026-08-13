@@ -70,7 +70,7 @@ fun SignInScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 17.dp)
+                .padding(horizontal = 16.dp)
                 .weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -81,7 +81,7 @@ fun SignInScreen(
                 },
                 style = MaterialTheme.typography.displaySmall,
                 color = t.ink,
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 16.dp),
             )
             Text(
                 text = "Any VGU locker, from your phone.",
@@ -95,8 +95,8 @@ fun SignInScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 17.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -104,7 +104,7 @@ fun SignInScreen(
                         text = "PHONE NUMBER",
                         style = MaterialTheme.typography.labelMedium,
                         color = t.ink2,
-                        modifier = Modifier.padding(start = 3.dp),
+                        modifier = Modifier.padding(start = 2.dp),
                     )
                     PhoneField(number = "912 345 678")
                 }
@@ -115,7 +115,7 @@ fun SignInScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(9.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SocialButton(
                     label = "Google",
@@ -142,8 +142,8 @@ fun SignInScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 18.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(Modifier.weight(1f))
             Text(
@@ -231,10 +231,10 @@ fun PhoneField(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 15.dp, vertical = 14.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(11.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 text = "+84",
@@ -242,7 +242,7 @@ fun PhoneField(
                     fontFamily = NumberFace,
                     color = t.ink2,
                 ),
-                modifier = Modifier.padding(end = 9.dp),
+                modifier = Modifier.padding(end = 8.dp),
             )
             Box(
                 modifier = Modifier

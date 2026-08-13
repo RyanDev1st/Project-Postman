@@ -26,14 +26,34 @@ import vn.edu.vgu.smartlocker.R
  * ignores variation settings and draws the 400 instance; the shape is still
  * Geist, which is the part that matters.
  *
- * Roles, in the mock-up's own words:
- *   display 40/650   the sign-in headline
- *   number  76/600   the claim ticket's door number
- *   bignum  122/700  the Opened screen, read across a corridor
- *   headline 25/600  a screen's one heading
- *   body    14/400   reading text
- *   label   12.5/550 a card's second line
- *   caption 10/600   a section label, uppercase
+ * **The text sizes sit on one ratio, 1.2, anchored at the body's 15sp.**
+ * They did not before, and that is what made the screens read as unfinished.
+ * The ported roles ran 9.5, 10, 12.5, 14, 14.5, 15 — four of them inside two
+ * and a half points, at ratios of 1.034 to 1.120. Half a point is below the
+ * size difference a reader can see, so those four did not read as four ranks.
+ * They read as one rank rendered inconsistently, and then the scale leapt
+ * 1.667 to reach the heading with nothing in between.
+ *
+ * Worse, **`titleLarge` was 14.5sp while `bodyLarge` was 15sp**: the brand and
+ * the user's name were set smaller than reading text. No screen can recover a
+ * hierarchy the scale does not have.
+ *
+ * A constant ratio is Bringhurst's rule (*The Elements of Typographic Style*)
+ * and Tim Brown's for screens ("More Meaningful Typography", 2011): every step
+ * must be a step the reader can see.
+ *
+ *   caption  10.5/600  a section label, uppercase, and the nav's own labels
+ *   label    12.5/500  a card's second line
+ *   body     15/400    reading text
+ *   title    18/600    the brand in the bar, the user's name
+ *   headline 26/600    a screen's one heading
+ *
+ * The **display sizes are not on the ratio and should not be**. 34, 40, 76 and
+ * 122 are sized for the job — 122sp is set to be read across a corridor, not
+ * to fit a progression — and the ratio governs text, not signage.
+ *
+ * The **leading curve is unchanged**, because it was already right: tight at
+ * display (0.84) opening to loose at body (1.40) is what the books ask for.
  */
 
 // FontVariation is still marked experimental. It is the only way to ask a
@@ -103,18 +123,21 @@ val LockerType = Typography(
     headlineMedium = TextStyle(
         fontFamily = Face,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 25.sp,
-        lineHeight = 25.sp * 1.14f,
+        fontSize = 26.sp,
+        lineHeight = 26.sp * 1.14f,
         letterSpacing = (-0.032).em,
     ),
 
-    // The brand in the app bar, and the user's name.
+    // The brand in the app bar, and the user's name. One step above body, so
+    // it outranks it — at 14.5 against a 15sp body it did not. The bar does
+    // not grow: its height comes from the 30dp beads, and an 18sp line box is
+    // 24dp.
     titleLarge = TextStyle(
         fontFamily = Face,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 14.5.sp,
-        lineHeight = 20.sp,
-        letterSpacing = (-0.012).em,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = (-0.018).em,
     ),
 
     // Reading text, and the one-liners that name controls.
@@ -124,11 +147,14 @@ val LockerType = Typography(
         fontSize = 15.sp,
         lineHeight = 21.sp,
     ),
+    // One rank with bodyLarge, not a rank below it. The two were 14 and 15,
+    // which is not a difference a reader can see. What separates them where
+    // both are used is weight: this slot is the one that gets SemiBold.
     bodyMedium = TextStyle(
         fontFamily = Face,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+        fontSize = 15.sp,
+        lineHeight = 21.sp,
     ),
 
     // A card's second line, and the quiet text under a primary control.
@@ -144,17 +170,22 @@ val LockerType = Typography(
     labelMedium = TextStyle(
         fontFamily = Face,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
+        fontSize = 10.5.sp,
+        lineHeight = 14.5.sp,
         letterSpacing = 0.15.em,
     ),
 
-    // The smallest rank: the stub's own labels, the divider's "or".
+    // The stub's own labels, the divider's "or", and the nav bar's tab names.
+    //
+    // Identical to labelMedium, deliberately. It was 9.5 against that slot's
+    // 10 — half a point, which is no rank at all, so the app had one caption
+    // rank pretending to be two. The slot stays so the call sites that name it
+    // keep working; it is an alias, not a size.
     labelSmall = TextStyle(
         fontFamily = Face,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 9.5.sp,
-        lineHeight = 13.sp,
-        letterSpacing = 0.12.em,
+        fontSize = 10.5.sp,
+        lineHeight = 14.5.sp,
+        letterSpacing = 0.15.em,
     ),
 )

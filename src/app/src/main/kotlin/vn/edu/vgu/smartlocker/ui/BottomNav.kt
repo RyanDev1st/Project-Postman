@@ -101,8 +101,8 @@ fun BottomNav(
         backdrop = backdrop,
     ) {
         Row(
-            modifier = Modifier.padding(5.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = Modifier.padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             icons.forEachIndexed { i, icon ->
                 val label = labels[i]
@@ -155,7 +155,7 @@ fun BottomNav(
                             } else Modifier.clip(RoundedCornerShape(999.dp)),
                         )
                         .clickable { onSelect(i) }
-                        .padding(vertical = 7.dp, horizontal = 3.dp),
+                        .padding(vertical = 8.dp, horizontal = 2.dp),
                     // The tab is `flex: 1` with `align-items: center`, so its
                     // content sits in the middle of the tab. Without this the
                     // Column wraps its own width and lands against the left
