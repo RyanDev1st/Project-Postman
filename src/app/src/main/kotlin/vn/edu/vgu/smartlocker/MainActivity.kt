@@ -71,8 +71,16 @@ class MainActivity : ComponentActivity() {
         } else null
 
         setContent {
-            val systemDark = isSystemInDarkTheme()
-            var dark by remember { mutableStateOf(systemDark) }
+            // Light, whatever the phone is set to.
+            //
+            // The design is drawn light first and the light page is the one
+            // that reads well outdoors — which is where this app is used,
+            // standing at a cabinet by the back gate in daylight. Following
+            // the phone meant half the team met the app in the scheme it was
+            // tuned for second, and a dark first run is also the harsher
+            // first impression: the same lens shows far more over near-black
+            // ground than over pale steel.
+            var dark by remember { mutableStateOf(false) }
             // The wipe owns the toggle: it has to hold the outgoing frame
             // before the theme flips, so it cannot be told after the fact.
             ThemeWipe(dark = dark, onDarkChanged = { dark = it }) { requestToggle ->

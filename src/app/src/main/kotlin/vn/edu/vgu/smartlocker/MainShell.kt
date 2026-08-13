@@ -1,5 +1,11 @@
 package vn.edu.vgu.smartlocker
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +14,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -101,7 +108,30 @@ fun MainShell(
                         .fillMaxSize()
                         .weight(1f),
                 ) {
-                    content()
+                    // Material's fade-through, at its published numbers: the
+                    // outgoing screen fades out over 90ms, the incoming one
+                    // fades in over 210ms after it and grows from 92%.
+                    //
+                    // Tabs are siblings — nothing slides in from anywhere,
+                    // because neither is "after" the other and a slide would
+                    // claim otherwise. What it buys is that the eye is told
+                    // something changed. An instant cut between two dark
+                    // pages of similar weight is the single cheapest-feeling
+                    // thing an app can do, and it is the one moment the user
+                    // triggers deliberately and watches for.
+                    AnimatedContent(
+                        targetState = screen,
+                        transitionSpec = {
+                            (fadeIn(tween(210, delayMillis = 90)) +
+                                scaleIn(tween(210, delayMillis = 90), initialScale = 0.92f))
+                                .togetherWith(fadeOut(tween(90)))
+                        },
+                        label = "tab",
+                    ) { shown ->
+                        // Keyed on the tab so each keeps its own scroll state,
+                        // but only the current one is composed.
+                        if (shown == screen) content() else Spacer(Modifier.fillMaxSize())
+                    }
                 }
             }
 
@@ -124,6 +154,14 @@ fun MainShell(
                 backdrop = backdrop,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                    // Down into the gutter, not out of it. The shell keeps
+                    // 15dp all round; the nav takes 8 of the bottom 15 and
+                    // leaves 7, which is still clear of the gesture bar
+                    // because the safe-drawing inset is taken before this.
+                    // A floating bar wants more air above it than below —
+                    // sat mid-gutter it reads as a thing that failed to
+                    // reach the bottom rather than a thing floating over it.
+                    .offset(y = 8.dp)
                     .padding(top = 12.dp),
             )
     }

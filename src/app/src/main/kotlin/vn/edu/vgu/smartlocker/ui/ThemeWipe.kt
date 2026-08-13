@@ -16,11 +16,17 @@ import kotlinx.coroutines.launch
 import vn.edu.vgu.smartlocker.ui.theme.DarkTokens
 import vn.edu.vgu.smartlocker.ui.theme.LightTokens
 
-/** The curtain's state, read by [LockerBackdrop], which is the only thing
- *  that draws it. */
+/**
+ * The curtain's state, read by [lockerGround] — every copy of the ground
+ * draws it, and they must agree.
+ *
+ * [fromTop] says which edge the outgoing colour is anchored to, so [fraction]
+ * shrinking to zero reveals the new page from the other end.
+ */
 data class ThemeCurtain(
     val color: Color = Color.Transparent,
     val fraction: Float = 0f,
+    val fromTop: Boolean = true,
 )
 
 val LocalThemeCurtain = compositionLocalOf { ThemeCurtain() }
@@ -30,8 +36,14 @@ val LocalThemeCurtain = compositionLocalOf { ThemeCurtain() }
  *
  * The curtain is filled with the **outgoing** ground colour and held at full
  * height, covering the ground. The theme swaps underneath it, hidden. The
- * curtain then shrinks from the top, so its bottom edge travels upward and
- * the new ground is revealed from the floor up.
+ * curtain then shrinks, and the new ground is revealed behind its moving edge.
+ *
+ * **Which way it moves depends on which way you are going.** Going dark, the
+ * curtain is anchored at the top and the new dark page rises from the floor.
+ * Going light, it is anchored at the bottom and the new light page comes down
+ * from above. Dark rises off the ground; light falls from the sky. A wipe that
+ * runs the same way in both directions makes one of the two feel backwards,
+ * and there is no reading of it that makes light climb up out of the floor.
  *
  * Behind the content, and that single fact is the whole design:
  *
@@ -58,6 +70,7 @@ fun ThemeWipe(
     val scope = rememberCoroutineScope()
     val fraction = remember { Animatable(0f) }
     var outgoing by remember { mutableStateOf(Color.Transparent) }
+    var fromTop by remember { mutableStateOf(true) }
 
     val requestToggle: () -> Unit = {
         if (!fraction.isRunning) {
@@ -65,6 +78,10 @@ fun ThemeWipe(
                 // The ground being left. Read before the swap: after it the
                 // tokens already describe the scheme arriving.
                 outgoing = (if (dark) DarkTokens else LightTokens).ground
+                // Going dark: hold the old page at the top so the dark one
+                // rises. Going light: hold it at the bottom so the light one
+                // comes down.
+                fromTop = !dark
                 fraction.snapTo(1f)
                 onDarkChanged(!dark)
                 fraction.animateTo(0f, tween(480, easing = CURTAIN))
@@ -74,7 +91,7 @@ fun ThemeWipe(
     }
 
     CompositionLocalProvider(
-        LocalThemeCurtain provides ThemeCurtain(outgoing, fraction.value),
+        LocalThemeCurtain provides ThemeCurtain(outgoing, fraction.value, fromTop),
     ) {
         content(requestToggle)
     }

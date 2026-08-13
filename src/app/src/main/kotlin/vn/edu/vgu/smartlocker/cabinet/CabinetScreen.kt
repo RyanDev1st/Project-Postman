@@ -2,7 +2,6 @@ package vn.edu.vgu.smartlocker.cabinet
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,11 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.parcels.SmallClaim
@@ -41,9 +35,7 @@ import vn.edu.vgu.smartlocker.NavClearance
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.QuietButton
 import vn.edu.vgu.smartlocker.ui.Recess
-import vn.edu.vgu.smartlocker.ui.theme.DoorLight
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
-import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 
 /** The cabinet's four states, as the bench's mode buttons choose them. */
 enum class CabinetMode { TWO, ONE, EMPTY, FULL }
@@ -107,10 +99,16 @@ fun CabinetScreen(
         }
         Spacer(Modifier.height(8.dp))
 
-        Box(
+        // The render sits in a well. It is a thing you look INTO — a wall of
+        // boxes at the back gate — and a recess is the one material here that
+        // says "behind the surface" rather than "on top of it". It is also
+        // where the screen's depth went when the switch below it was removed:
+        // that switch was the only recessed thing on the tab.
+        Recess(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
+            shape = RoundedCornerShape(20.dp),
         ) {
             CabinetArt(
                 yours = mine,
@@ -131,27 +129,22 @@ fun CabinetScreen(
             }
         }
 
-        // One panel, always. Built from the same list the doors are lit
-        // from, so the panel and a lit door cannot disagree.
-        Column(
-            modifier = Modifier.padding(top = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            when {
-                mode == CabinetMode.EMPTY || mode == CabinetMode.FULL ->
-                    StatusCard(mode)
-
-                mine.size > 1 -> DoorSwitch(
-                    doors = mine,
-                    selected = effective,
-                    // Toggles, the same as a tap on the door. Picking the box
-                    // you are already looking at pulls the camera back out —
-                    // the receiver is standing at the cabinet wanting to see
-                    // one door, then the other, then the whole wall again.
-                    onSelect = { n -> selected = n; framed = if (framed == n) null else n },
-                )
-            }
-            if (mode == CabinetMode.TWO || mode == CabinetMode.ONE) {
+        // One panel, and only one.
+        //
+        // There used to be a segmented switch above this naming your boxes.
+        // It did nothing the render does not already do: its handler and the
+        // door's handler were the same two lines. Two controls for one job,
+        // stacked on top of each other, and the one being duplicated was the
+        // better of the two — the doors are lit, numbered and in the place the
+        // receiver is actually looking. The switch was a second, smaller,
+        // abstract copy of the cabinet directly beneath a picture of it.
+        //
+        // What is left says which box the button will open and when it has to
+        // be collected, which is the only thing the switch was really for.
+        Column(modifier = Modifier.padding(top = 12.dp)) {
+            if (mode == CabinetMode.EMPTY || mode == CabinetMode.FULL) {
+                StatusCard(mode)
+            } else {
                 val d = mine.first { it.n == effective }
                 SmallTicket(
                     claim = SmallClaim(
@@ -190,79 +183,6 @@ fun CabinetScreen(
                         onClick = onTypeCode,
                         modifier = Modifier.padding(top = 4.dp),
                     )
-                }
-            }
-        }
-    }
-}
-
-/** The segmented switch — which of your boxes. */
-@Composable
-private fun DoorSwitch(
-    doors: List<YourDoor>,
-    selected: String,
-    onSelect: (String) -> Unit,
-) {
-    val t = LocalLockerTokens.current
-    val shape = RoundedCornerShape(15.dp)
-    Recess(
-        modifier = Modifier.fillMaxWidth(),
-        shape = shape,
-    ) {
-        Row(
-            modifier = Modifier.padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            doors.forEach { door ->
-                val isSelected = door.n == selected
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(11.dp))
-                        .then(
-                            if (isSelected) {
-                                Modifier
-                                    // Shadow first, as everywhere else.
-                                    .shadow(
-                                        elevation = 2.dp,
-                                        shape = RoundedCornerShape(11.dp),
-                                        ambientColor = t.shadow,
-                                        spotColor = t.shadow,
-                                    )
-                                    .background(t.surface, RoundedCornerShape(11.dp))
-                                    .border(1.dp, t.hair, RoundedCornerShape(11.dp))
-                                    .background(
-                                        Brush.verticalGradient(
-                                            listOf(t.lip.copy(alpha = 0.6f), Color.Transparent),
-                                        ),
-                                        RoundedCornerShape(11.dp),
-                                    )
-                            } else Modifier,
-                        )
-                        .clickable { onSelect(door.n) }
-                        .padding(vertical = 8.dp),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            text = door.n,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = NumberFace,
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            color = if (isSelected) t.ink else t.ink2,
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(if (door.soon) DoorLight else t.ink.copy(alpha = 0.32f)),
-                        )
-                        Spacer(Modifier.weight(1f))
-                    }
                 }
             }
         }

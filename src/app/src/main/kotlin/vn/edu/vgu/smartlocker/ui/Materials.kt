@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
@@ -90,6 +91,9 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 @Composable
 fun Modifier.lockerGround(topInWindow: Float = 0f): Modifier {
     val t = LocalLockerTokens.current
+    val curtain = LocalThemeCurtain.current
+    val windowHeight = LocalWindowInfo.current.containerSize.height.toFloat()
+
     return this
         .background(t.ground)
         .background(
@@ -99,25 +103,41 @@ fun Modifier.lockerGround(topInWindow: Float = 0f): Modifier {
                 endY = 900f - topInWindow,
             ),
         )
+        // The theme curtain belongs to the ground, and to every copy of it.
+        //
+        // It used to be drawn once, by [LockerBackdrop], underneath
+        // everything. That worked while the ground was painted once. It stopped
+        // working when the shell began painting its own copy so the glass had
+        // something to sample: the shell's copy carries the NEW colour and is
+        // drawn on top, so it painted the curtain out everywhere except the
+        // 17dp margin. The page inside snapped instantly while a thin frame
+        // around it wiped — the override over the top bar.
+        //
+        // Drawn here it is part of the ground by construction, so both copies
+        // carry it and neither can cover the other's.
+        //
+        // Measured in the WINDOW, not in this node, for the same reason the
+        // light above is: two copies at different heights would otherwise wipe
+        // at different rates and show a step where they meet.
+        .drawBehind {
+            if (curtain.fraction <= 0f || curtain.color == Color.Transparent) return@drawBehind
+            if (windowHeight <= 0f) return@drawBehind
+            val covered = windowHeight * curtain.fraction
+            val topInWin = if (curtain.fromTop) 0f else windowHeight - covered
+            drawRect(
+                color = curtain.color,
+                topLeft = Offset(0f, topInWin - topInWindow),
+                size = Size(size.width, covered),
+            )
+        }
 }
 
 @Composable
 fun LockerBackdrop(content: @Composable BoxScope.() -> Unit) {
-    val curtain = LocalThemeCurtain.current
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .lockerGround()
-            .drawWithContent {
-                if (curtain.fraction > 0f && curtain.color != Color.Transparent) {
-                    // Origin top: the bottom edge is what moves, upward.
-                    drawRect(
-                        color = curtain.color,
-                        size = size.copy(height = size.height * curtain.fraction),
-                    )
-                }
-                drawContent()
-            },
+            .lockerGround(),
         content = content,
     )
 }
