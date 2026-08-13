@@ -188,7 +188,7 @@ python -m http.server 8731 --bind 127.0.0.1                     # from docs/desi
 - [ ] **🔴 BLOCKED — P1.5-08** — The theme switch
       - Owner: _unassigned_ · Needs: P1.5-02 · Blocks: —
       - Verify: the two PNGs match, sun and moon, in both schemes
-      - Notes: BUG-003 — the switch is a speckled grey blob in dark mode only. Blocked on that bug, which is not yet reproduced on a real phone
+      - Notes: **the pictures already match** — measured 2026-08-13, the first block put through the loop. Pills are 57.5 × 26.5 dp in the port against 57.0 and 57.5 × 26.5 css-px in the reference, so the component agrees to within a pixel; the only difference is the gap between the two, which is this test's own `spacedBy(14.dp)` staging and not the component. Still blocked, and not ticked: BUG-003 says the switch is a speckled grey blob on the emulator in dark mode, and the rule here is that Ryan says so on a real phone. The measurement is what turns BUG-003 from "the component is wrong" into "the emulator's software rasteriser is speckling a blurred shadow"
 
 - [ ] **🟡 DOING — P1.5-09** — The cabinet camera
       - Owner: Claude · Needs: P1.5-02 · Blocks: —
