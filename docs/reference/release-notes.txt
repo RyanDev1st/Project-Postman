@@ -1,58 +1,53 @@
-0.10.0 — the app speaks Vietnamese, the map hands off, one door at a time.
+0.10.1 — the outline around every card was the wrong colour
 
-Check the version first: long-press the app icon, App info. It must read 0.10.0.
+This build is small and it is mostly one fix, but please look at it in dark
+mode.
 
-THE APP IS IN VIETNAMESE NOW, and you can switch it while you watch.
+WHAT CHANGED
 
-Settings, App, Ngon ngu / Language. Pick one and every word changes on the
-next frame with the sheet still under your thumb. No restart, and you do not
-lose the screen you were on.
+The thin outline drawn around every card, every input box, every number chip
+and every piece of glass in the app was a teal, where the design says a pale
+blue. One digit was typed wrong when the colours were first put in, and it has
+been in every build you have seen. In dark mode it is on almost every edge on
+screen. The shadow under a card in light mode was also slightly washed out,
+and is now the design's own.
 
-Both languages are written out in full: 85 strings in English, 82 in
-Vietnamese, and the three that are missing are missing on purpose because
-they are names — VGU Smart Locker, VGU Locker, Google. Every screen was
-converted, not only Settings.
+It was found by a check that compares all 46 of the app's colours against the
+designer's original file by number rather than by eye. Six builds of looking
+at screens never caught it. 45 of the 46 now match exactly; the one that does
+not is a caption grey, made lighter on purpose because the original failed the
+readability standard.
 
-Each language is listed in itself, "English" and "Tieng Viet", never
-"Vietnamese". Somebody hunting for their own language is looking for the word
-they would write, and if they could read the other one they would not need
-the row.
+One gap in the map card that was not on the spacing grid is now on it.
 
-It follows the phone on first run. A phone set to Vietnamese opens the app in
-Vietnamese without anyone choosing. Like Dark mode, the choice lasts as long
-as the app is running and is forgotten when it is closed — neither setting is
-written down yet, and they want one place to be written down together.
+WHAT WE NEED YOUR EYES ON
 
-The map's arrow works, and the walk figures are real.
+Four things can only be judged on a real phone, because they need the graphics
+chip that a computer test does not have:
 
-The arrow on the map card looked like a button and did nothing: the whole
-card, arrow included, just opened the map. Tapping it now hands off to
-whichever maps app the phone has, with the gate as the destination. If there
-is no maps app it says so rather than appearing to be broken.
+1. The bottom bar and the two round buttons in the top bar. They should look
+   like frosted glass with the screen blurred behind them, not like dark
+   discs. On the test computer they come out as dark discs, which is expected
+   and tells us nothing.
+2. The dark/light switch in Settings (BUG-003). It drew perfectly clean on the
+   test computer, so the speckling you saw is probably the emulator and not
+   the app. One look settles it.
+3. The switch's halo circles (BUG-002), which should now be clipped inside the
+   pill and not spread behind it.
+4. The cabinet picture on the sign-in screen (BUG-004), which on the emulator
+   fills only the left third of its box. We think that is the emulator too.
 
-The card used to say "7 min walk / 540 m". Nothing measured that. The real
-route drawn underneath is 543 m and 6 min 32 s, so the caption was three
-metres and half a minute away from the line on the picture. The distance is
-now measured off that line — it comes out at 542.5 m against the router's own
-543, which is also the check that the two agree. Moving a coordinate can no
-longer leave the caption describing the old path.
+The cabinet screen itself is worth a look while you are there: tap a door and
+the camera should push in on it while the other doors fade back.
 
-It is still not Google's map, and that is on purpose — ADR 0014. Google
-wanted a card on file for a map it charges nothing for.
+ONE DECISION FOR YOU
 
-On the cabinet tab, choosing a box puts the others out.
+The design pass put the app on one spacing grid and one set of corner radii.
+Four values in the mock-up do not sit on either — the card's corner is 18 and
+its padding 14, and the bottom bar's padding is 5 with a 3 gap. The app now
+uses 22, 12, 4 and 2. Everything else matches the mock-up exactly.
 
-Tap 04 and the camera pushes in on it, as before, but 07 now fades out as it
-goes — and comes back if you pull out to the wide shot. Two lit doors answers
-"which of these are mine". Once you have chosen, the question is "which box
-does the button open", and a second lit door was still answering the old one.
-The light is tied to the camera itself, so the two are one movement.
-
-Known, unchanged: the Dark mode switch on Settings is a speckled blob in dark
-mode only. BUG-003.
-
-Still worth a look on your phone: on the emulator the cabinet render on the
-sign-in screen fills only the left third of its box. It is not from the
-design pass — that moved the margin by 1dp, which cannot move a render by
-200 — and it is most likely the emulator's software renderer failing on a
-large image. If it looks right on your phone, say so and it closes. BUG-004.
+So "match the mock-up" and "sit on a grid" now disagree, in four places, none
+by more than 4dp. It has been written down and settled in favour of the grid,
+because the mock-up's own values were eyeballed. Say if you would rather have
+the mock-up's numbers back — it is a small change either way.

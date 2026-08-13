@@ -8,7 +8,7 @@ Product: a **parcel drop-off locker**, with two front-ends — the phone app and
 >
 > **Ryan put the app design first, as a "Phase 1.5", ahead of Phase 2.** It has a file, ten task IDs and a `Verify` line each, and the totals count it. This board no longer points at Phase 2.
 >
-> **The tester build is current.** Release `5mrcmp0mlql80`, version 0.10.0, 2026-08-13. The old warning here said App Distribution was still serving the Phase 1 skeleton and that a tester was not looking at the current design — that stopped being true at 0.8.0 and this note was left standing. Six design builds have gone out since.
+> **The tester build is current.** Release `44e35k7uoa4ig`, version 0.10.1, 2026-08-13 — the wrong outline colour, and a list of the four things only a real phone can settle. The old warning here said App Distribution was still serving the Phase 1 skeleton and that a tester was not looking at the current design — that stopped being true at 0.8.0 and this note was left standing. Six design builds have gone out since.
 >
 > **The loop works. The proving has not been done.** P1.5-01 is closed: one command draws five of the app's components to PNG on this machine, and one draws the same five from the mock-up's own stylesheets in Chrome, with no phone involved. An earlier version of this note said the JVM half had never rendered a component — that was read off a stale line in the phase file rather than checked, and it was wrong.
 >
