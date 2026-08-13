@@ -62,6 +62,7 @@ One file per report: `findings/YYYY-MM-DD-<topic>.md`. Never edited after the da
 | --- | --- |
 | [findings/2026-08-07-overnight-sweep.md](findings/2026-08-07-overnight-sweep.md) | Every open task chains back to a server address we do not have. P0-04 is the critical path and was wrongly deferred |
 | [findings/2026-08-11-otp-delivery-cost.md](findings/2026-08-11-otp-delivery-cost.md) | No route delivers a one-time code for free. SpeedSMS stays, but for a different reason than the spec gives: it is the only one needing no app, account or data |
+| [findings/2026-08-13-design-language.md](findings/2026-08-13-design-language.md) | The app reads cheap because nothing in it agrees with anything else: 42 spacing values, 12 radii, a title set smaller than body text. And `ink3` fails WCAG AA in both schemes |
 
 ## Specs — feature design docs before they are built
 
