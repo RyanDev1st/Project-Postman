@@ -1,6 +1,8 @@
 package vn.edu.vgu.smartlocker.ui
 
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -76,7 +78,26 @@ fun AppLanguageProvider(
         val config = Configuration(configuration).apply {
             setLocale(Locale.forLanguageTag(language.tag))
         }
-        context.createConfigurationContext(config)
+
+        // A WRAPPER around the Activity, not the context that
+        // `createConfigurationContext` returns.
+        //
+        // That context is a detached one: it carries the right resources but
+        // it is not the Activity and does not lead back to it. Anything that
+        // looks for the Activity by walking up `baseContext` — which is how
+        // `rememberLauncherForActivityResult`, and every other
+        // `LocalXOwner`, finds its owner — then walks off the end and throws
+        // `No ActivityResultRegistryOwner was provided`. It crashed the app
+        // the moment Home drew its map, so signing in threw you out to the
+        // launcher, which read as "the app just exits".
+        //
+        // Wrapping keeps the chain intact: the wrapper answers with the
+        // localised resources, and `baseContext` is still the Activity, so
+        // the walk finds it on the first step.
+        val strings = context.createConfigurationContext(config).resources
+        object : ContextWrapper(context) {
+            override fun getResources(): Resources = strings
+        }
     }
 
     CompositionLocalProvider(
