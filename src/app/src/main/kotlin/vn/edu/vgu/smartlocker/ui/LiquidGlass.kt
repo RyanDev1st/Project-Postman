@@ -15,21 +15,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
@@ -166,7 +168,7 @@ private fun Glass(
             )
             .glassShadow(dark, lift, shape)
             .clip(shape)
-            .then(if (backdrop != null) Modifier.backdropBlur(backdrop, shape) else Modifier)
+            .then(if (backdrop != null) Modifier.backdropBlur(backdrop) else Modifier)
             // Nothing between the blur and the white film when the blur is
             // real. The material is `background` plus `backdrop-filter` and
             // that is all it is; the CSS has no dark layer anywhere in it.
@@ -342,36 +344,46 @@ private fun DrawScope.rim(dark: Boolean, shape: Shape) {
     val ring = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@rim)) }
     val hair = if (dark) 0.50f else 0.85f
 
-    // The soft return, first and underneath: a white glow thrown down from
-    // the inside of the top edge. It is what gives the hairline something to
-    // sit on, and without it the ring reads as a drawn outline.
-    clipPath(ring) {
-        val depth = (1f + 3f).dp.toPx()
-        drawRect(
-            brush = Brush.verticalGradient(
-                0f to Color.White.copy(alpha = if (dark) 0.14f else 0.42f),
-                1f to Color.Transparent,
-                startY = 0f,
-                endY = depth,
-            ),
-            size = Size(size.width, depth),
-        )
-    }
+    // Nothing here clips, and that is the point.
+    //
+    // All three of these used to be drawn inside `clipPath(ring)`. A path clip
+    // on a hardware canvas has hard edges — no antialiasing — so every pane
+    // came out with a stair-stepped rim. Along the nav bar's long sides the
+    // steps are too small to see. Around a 30dp round bead in the app bar the
+    // whole circle is visibly notched, and that is the fault over the top bar.
+    //
+    // The clips were never needed. A pane carries `Modifier.clip(shape)`
+    // further up its chain, and that one goes on a graphics layer as an
+    // outline, which the platform antialiases. Anything drawn here that falls
+    // outside the shape is taken off by it, softly.
 
+    // The soft return, underneath: a white glow thrown down from the inside of
+    // the top edge. Filling the ring with a gradient that has already run out
+    // by 4dp does what a clipped 4dp rectangle did, with a soft edge.
+    val depth = 4.dp.toPx()
+    drawPath(
+        ring,
+        brush = Brush.verticalGradient(
+            0f to Color.White.copy(alpha = if (dark) 0.14f else 0.42f),
+            1f to Color.Transparent,
+            startY = 0f,
+            endY = depth,
+        ),
+    )
+
+    // The two gradient rings, stroked at twice their width. The outer half
+    // falls outside the shape and the pane's own clip removes it, leaving the
+    // 1.5dp inside that `padding: 1.5px` plus an excluded mask leaves.
+    val band = Stroke(width = 3.dp.toPx())
+    drawPath(ring, brush = diagonal(0.12f, 0.40f), style = band, alpha = 0.2f, blendMode = BlendMode.Screen)
+    drawPath(ring, brush = diagonal(0.32f, 0.60f), style = band, blendMode = BlendMode.Overlay)
+
+    // Last, so it stays crisp — the blends above would otherwise wash it.
     drawPath(
         ring,
         color = Color.White.copy(alpha = hair),
         style = Stroke(width = 0.5.dp.toPx()),
     )
-
-    // The two gradient rings. Stroked at twice their width and clipped to the
-    // outline, so what is left is 1.5dp lying inside the edge — which is what
-    // `padding: 1.5px` plus an excluded mask leaves.
-    val band = Stroke(width = 3.dp.toPx())
-    clipPath(ring) {
-        drawPath(ring, brush = diagonal(0.12f, 0.40f), style = band, alpha = 0.2f, blendMode = BlendMode.Screen)
-        drawPath(ring, brush = diagonal(0.32f, 0.60f), style = band, blendMode = BlendMode.Overlay)
-    }
 }
 
 /**
@@ -412,17 +424,42 @@ private fun DrawScope.diagonal(mid: Float, peak: Float): Brush {
  */
 private fun Modifier.glassShadow(dark: Boolean, lift: Lift, shape: Shape): Modifier {
     val tint = if (dark) Color.Black else Color(0xFF091620)
-    val (elevation, alpha) = when {
-        lift == Lift.POPPED && dark -> 20.dp to 0.34f
-        lift == Lift.POPPED -> 20.dp to 0.16f
-        dark -> 12.dp to 0.25f
-        else -> 12.dp to 0.12f
+    // `0 12px 40px rgba(0,0,0,.25)`, and `0 16px 70px rgba(0,0,0,.75)` for the
+    // popped one — index.tsx 210, where the second is what the library uses
+    // when a pane is over something bright.
+    val (drop, spread, alpha) = when {
+        lift == Lift.POPPED && dark -> Triple(16.dp, 70.dp, 0.75f)
+        lift == Lift.POPPED -> Triple(16.dp, 70.dp, 0.30f)
+        dark -> Triple(12.dp, 40.dp, 0.25f)
+        else -> Triple(12.dp, 40.dp, 0.12f)
     }
-    return shadow(
-        elevation = elevation,
-        shape = shape,
-        clip = false,
-        ambientColor = tint.copy(alpha = alpha),
-        spotColor = tint.copy(alpha = alpha),
-    )
+    return drawBehind {
+        softShadow(shape, tint.copy(alpha = alpha), drop.toPx(), spread.toPx())
+    }
+}
+
+/**
+ * A CSS drop shadow, which `Modifier.shadow` cannot make.
+ *
+ * `Modifier.shadow` takes an elevation and asks the platform for the shadow a
+ * solid object at that height would cast. Forty pixels of blur under a twelve
+ * pixel drop is not an elevation — it is a wide, shallow pool, far softer and
+ * far further out than elevation 12 gives, and the difference is most of
+ * whether a pane reads as sitting ON the page or floating over it.
+ *
+ * Same trick as [Materials.cardShadow]: a transparent fill whose only visible
+ * output is its shadow layer. Skia's radius is about half the CSS blur.
+ */
+private fun DrawScope.softShadow(shape: Shape, color: Color, dy: Float, blur: Float) {
+    val path = Path().apply {
+        addOutline(shape.createOutline(size, layoutDirection, this@softShadow))
+    }
+    drawIntoCanvas { canvas ->
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            this.color = android.graphics.Color.TRANSPARENT
+            setShadowLayer(blur / 2f, 0f, dy, color.toArgb())
+        }
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
+    }
 }

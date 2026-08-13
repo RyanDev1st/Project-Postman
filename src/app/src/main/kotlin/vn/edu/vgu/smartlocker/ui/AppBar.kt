@@ -71,9 +71,10 @@ fun AppBarBead(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    backdrop: BackdropState? = null,
 ) {
     val t = LocalLockerTokens.current
-    GlassBead(modifier = modifier.size(30.dp), onClick = onClick) {
+    GlassBead(modifier = modifier.size(30.dp), onClick = onClick, backdrop = backdrop) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,

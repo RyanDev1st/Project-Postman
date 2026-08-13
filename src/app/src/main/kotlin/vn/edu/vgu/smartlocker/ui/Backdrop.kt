@@ -13,12 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RenderEffect
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -108,8 +104,20 @@ fun Modifier.backdropSource(state: BackdropState): Modifier =
  * Composable, because each pane has to remember where it sits — a shared
  * offset would have every pane sampling the same patch of screen.
  */
+/**
+ * Takes no shape, on purpose. The pane is clipped by `Modifier.clip(shape)`
+ * further up its own chain, and that clip goes on a graphics layer as an
+ * outline — which the platform antialiases for a circle or a rounded
+ * rectangle.
+ *
+ * This used to clip a second time, here, with `clipPath`. A path clip on a
+ * hardware canvas has hard edges, so every pane came out stair-stepped. On the
+ * nav bar's long rounded rectangle the steps were small enough to miss. On a
+ * 30dp round bead in the app bar the whole rim was visibly notched, which is
+ * the fault over the top bar.
+ */
 @Composable
-fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
+fun Modifier.backdropBlur(state: BackdropState): Modifier {
     if (!state.supported) return this
     var paneOrigin by remember { mutableStateOf(Offset.Zero) }
 
@@ -128,10 +136,6 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
     return this
         .onGloballyPositioned { paneOrigin = it.positionInRoot() }
         .drawWithContent {
-            val path = Path().apply {
-                addOutline(shape.createOutline(size, layoutDirection, this@drawWithContent))
-            }
-
             // Both effects go on THIS layer, because this is the one that is
             // drawn to the screen.
             //
@@ -200,11 +204,9 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
             paneLayer.record(IntSize(outer.width.toInt(), outer.height.toInt())) {
                 translate(at.x, at.y) { drawLayer(state.layer) }
             }
-            // Drawn back with the margin hanging outside, then clipped to the
-            // pane, so the extra never reaches the screen.
-            clipPath(path) {
-                translate(-padPx, -padPx) { drawLayer(paneLayer) }
-            }
+            // Drawn back with the margin hanging outside the pane. The clip
+            // further up the chain takes the extra off, with a soft edge.
+            translate(-padPx, -padPx) { drawLayer(paneLayer) }
             drawContent()
         }
 }

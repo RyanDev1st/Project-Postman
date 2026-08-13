@@ -22,26 +22,42 @@ import vn.edu.vgu.smartlocker.R
  * The lens — what makes this liquid glass rather than frosted glass.
  *
  * **This is `liquid-glass-react`'s own displacement map, not a reimplementation
- * of it.** `res/drawable/liquid_displacement.jpg` is the image that library
- * ships inline as base64 in `utils.ts`, decoded to a file: 256 by 256, and —
- * measured, not assumed — a flat linear ramp in both axes. Red falls 250 to 2
- * from side to side and blue falls 254 to 0 from top to bottom, evenly the
- * whole way. There is no ring in it and no bevel; the rim look comes from how
- * it is mapped, and from the three colour passes. See [SOURCE].
+ * of it.** `res/drawable/liquid_displacement.png` is one of the three images
+ * that library ships inline as base64 in `utils.ts`, decoded to a file.
  *
- * That distinction matters, because the library has two ways of doing this and
- * this port had copied the wrong one. `mode: "shader"` computes a rounded-rect
- * signed distance field at runtime, and the library's own README calls it "the
- * most accurate but not the most stable". The DEFAULT is `mode: "standard"`,
- * which does no maths at all — it hands this baked image to
- * `feDisplacementMap`. The demo everybody looks at is the default. So a
- * faithful SDF port was a faithful port of the mode nobody uses, and on a 59dp
- * bar it came out to almost nothing: measured on an emulator, multiplying its
- * strength by five changed not one pixel.
+ * It is the **prominent** one, and choosing it is what stopped the material
+ * looking cheap. All three were decoded and measured. The default,
+ * `displacementMap`, is a flat linear ramp corner to corner — red falls 250 to
+ * 2 straight across, blue 254 to 0 straight down, evenly the whole way. What
+ * that describes is a uniform shrink of the backdrop and nothing else: no
+ * edge, no thickness. It is correct, it is what the library's own demo runs,
+ * and over a dark flat page it reads as a slightly smaller copy of not very
+ * much.
+ *
+ * `prominentDisplacementMap` is shaped instead of linear. Across the middle:
+ *
+ *     0.00 .. 0.20   pinned at the limit
+ *     0.20 .. 0.40   ramps hard
+ *     0.40 .. 0.60   FLAT — no displacement at all
+ *     0.60 .. 0.80   ramps hard the other way
+ *     0.80 .. 1.00   pinned at the limit
+ *
+ * A flat middle with all the work done in two bands near the rim is a bevel.
+ * The backdrop passes through the centre of the pane undisturbed and is
+ * squeezed hard in the last few dp, which is what a thick piece of glass does
+ * to what is behind it. That is most of the difference between glass and a
+ * tinted panel, and the linear map cannot make it at any strength.
  *
  * How the image is read is `feDisplacementMap`'s contract:
- * `xChannelSelector="R"`, `yChannelSelector="B"`, and 128 means do not move.
- * So `(R - 0.5)` and `(B - 0.5)` are the direction, and `scale` is how far.
+ * `xChannelSelector="R"`, and 128 means do not move.
+ *
+ * **Y comes from green here, not blue.** The library hardcodes
+ * `yChannelSelector="B"` for every mode (index.tsx 72, 84 and 96), and this
+ * file has no blue in it: measured 0 across the whole image, and plain enough
+ * to see, since it is a red and green picture. Read the library's way the
+ * vertical term is a constant -0.5, which is not a displacement map at all —
+ * it is a fixed 35px shove upwards. Green carries the clean top-to-bottom ramp
+ * that blue is missing, so that is the channel this reads. See [SOURCE].
  *
  * Three samples, one per colour channel, at three slightly different
  * distances. That is the chromatic aberration, and it is most of the
@@ -224,7 +240,8 @@ half4 main(float2 frag) {
     half4 m = map.eval(uv * mapSize);
 
     // 128 is "do not move". Anything either side of it is a direction.
-    float2 dir = float2(m.r - 0.5, m.b - 0.5);
+    // Green, not blue — this file has no blue in it. See the notes above.
+    float2 dir = float2(m.r - 0.5, m.g - 0.5);
 
     // One sample per colour, at three distances - the same order and the same
     // fractions as the library's three feDisplacementMap passes.

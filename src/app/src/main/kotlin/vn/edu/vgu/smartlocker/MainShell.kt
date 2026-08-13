@@ -5,18 +5,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
+import vn.edu.vgu.smartlocker.ui.BackdropState
 import vn.edu.vgu.smartlocker.ui.BottomNav
 import vn.edu.vgu.smartlocker.ui.ScanButton
 import vn.edu.vgu.smartlocker.ui.backdropSource
@@ -40,9 +49,24 @@ fun MainShell(
     content: @Composable () -> Unit,
 ) {
     val t = LocalLockerTokens.current
-    // What the nav's glass bends. The app bar and the content are inside it;
-    // the nav is outside, or it would be sampling a layer it is part of.
+    // What the glass bends: the ground and the content. Both bars are outside
+    // it, because a bar inside the recording would be sampling a layer it is
+    // part of.
+    //
+    // The app bar used to be inside, so its beads were given no backdrop at
+    // all and fell through to the plain fallback — a flat 30% disc with a ring
+    // round it, sitting on the bar in a material nothing else on the screen
+    // uses. That is the fault over the top bar. It is also the best place on
+    // any screen for glass to be: the accent light in [lockerGround] runs out
+    // by 900px, so the top of the screen is the one region with something
+    // behind the glass worth bending.
     val backdrop = rememberBackdrop()
+
+    // The bar is drawn over the content now rather than above it in the flow,
+    // so the content has to be told how much room to leave. Measured rather
+    // than assumed — the bar is a Row around a title and 30dp beads, and its
+    // height moves with the text scale.
+    var barHeight by remember { mutableIntStateOf(0) }
 
     // Insets and the gutter belong to MainActivity, which wraps every screen.
     // Repeating them here inset the tab screens twice.
@@ -61,7 +85,7 @@ fun MainShell(
                     .backdropSource(backdrop)
                     .lockerGround(),
             ) {
-                TabAppBar(screen = screen, onToggleDark = onToggleDark)
+                Spacer(Modifier.height(with(LocalDensity.current) { barHeight.toDp() }))
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -70,6 +94,15 @@ fun MainShell(
                     content()
                 }
             }
+
+            TabAppBar(
+                screen = screen,
+                onToggleDark = onToggleDark,
+                backdrop = backdrop,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .onSizeChanged { barHeight = it.height },
+            )
 
             // The nav floats over content, with the content visible through
             // the glass — the cabinet render runs down under it.
@@ -129,33 +162,38 @@ private fun tabOf(i: Int): Screen = when (i) {
 private fun TabAppBar(
     screen: Screen,
     onToggleDark: () -> Unit,
+    backdrop: BackdropState,
+    modifier: Modifier = Modifier,
 ) {
     when (screen) {
         Screen.HOME -> AppBar(
             brand = "Chào Minh",
+            modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Menu, contentDescription = "Menu", onClick = {})
+                AppBarBead(icon = AppIcons.Menu, contentDescription = "Menu", onClick = {}, backdrop = backdrop)
             },
             actions = {
                 ScanButton(icon = AppIcons.Scan, contentDescription = "Scan a cabinet", onClick = {})
-                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {})
+                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {}, backdrop = backdrop)
             },
         )
 
         Screen.CABINET -> AppBar(
             brand = "Back gate",
+            modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {})
+                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {}, backdrop = backdrop)
             },
             actions = {
-                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {})
+                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {}, backdrop = backdrop)
             },
         )
 
         Screen.SETTINGS -> AppBar(
             brand = "Settings",
+            modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {})
+                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {}, backdrop = backdrop)
             },
         )
 
