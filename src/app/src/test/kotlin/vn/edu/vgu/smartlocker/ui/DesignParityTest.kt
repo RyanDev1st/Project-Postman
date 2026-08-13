@@ -67,9 +67,35 @@ class DesignParityTest {
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
 
-    /** `.card` — glass.css 671. 18dp is the radius `.ticket.card` uses. */
+    /**
+     * `.card` — glass.css 671. 18dp is the radius `.ticket.card` uses.
+     *
+     * The radius and the padding here are the **mock-up's**, not the app's.
+     * That is on purpose, and it is not a bug to be tidied away: since the
+     * token pass the app draws this card at radius 22 and padding 12, because
+     * those are the values its four-radius set and its 4dp grid name. Passing
+     * the mock-up's numbers in holds the geometry still so the picture pair
+     * measures the one thing a component owns — the material: its fill, its
+     * border, its shadow. The geometry is a token decision now, it is measured
+     * in the phase file's conflict table, and it is not this test's business.
+     */
     @Test
-    fun card() = shoot("card") {
+    fun card() = shoot("card") { CardBlock() }
+
+    /** The same material against the light scheme's ground. */
+    @Test
+    fun cardLight() = shoot("card-light", dark = false) { CardBlock() }
+
+    /** `.ledger .no` — 34dp square, radius 10 — and a field beside it. */
+    @Test
+    fun recess() = shoot("recess") { RecessBlock() }
+
+    /** A recess is cut into its ground, so the light scheme is a real check. */
+    @Test
+    fun recessLight() = shoot("recess-light", dark = false) { RecessBlock() }
+
+    @Composable
+    private fun CardBlock() {
         CardMaterial(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
@@ -91,9 +117,8 @@ class DesignParityTest {
         }
     }
 
-    /** `.ledger .no` — 34dp square, radius 10 — and a field beside it. */
-    @Test
-    fun recess() = shoot("recess") {
+    @Composable
+    private fun RecessBlock() {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),

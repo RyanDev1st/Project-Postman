@@ -12,9 +12,11 @@ Product: a **parcel drop-off locker**, with two front-ends — the phone app and
 >
 > **The loop works. The proving has not been done.** P1.5-01 is closed: one command draws five of the app's components to PNG on this machine, and one draws the same five from the mock-up's own stylesheets in Chrome, with no phone involved. An earlier version of this note said the JVM half had never rendered a component — that was read off a stale line in the phase file rather than checked, and it was wrong.
 >
-> What is still true is that **eight of the ten blocks are `🟡 DOING`**: the code is in, it has shipped, and it looks right on a device — but no block has been through the picture comparison. Shipping is not the check. The tool now exists to do it in about a minute per block, so there is no longer a reason to judge them the way the first three failed ports were judged: by eye, on a phone.
+> **The comparison has started, and it is finding things.** P1.5-02 and P1.5-03 are closed. Checking all 46 colour tokens against the designer's own file by number rather than by eye found two typed in wrong — a dark-mode outline drawn teal instead of pale blue on every card and box in the app, and a washed-out light-mode card shadow. Both fixed, logged as BUG-005. **Six of the ten blocks are still `🟡 DOING`**: the code is in, it has shipped, and it looks right on a device — but those six have not been through the picture comparison. Shipping is not the check.
 >
 > One task is `🔴 BLOCKED` — P1.5-08, the theme switch, on BUG-003.
+>
+> ⚠️ **This phase and the design language now pull against each other, and Ryan has not been asked yet.** Matching the mock-up and sitting on one grid cannot both be satisfied: the mock-up's card radius is 18 and its padding 14, neither of which the new four-radius set or the 4dp grid names. Four values differ, all four moved on purpose, all four are listed in the phase file. It is resolved there in favour of the scales, on the grounds that the mock-up was eyeballed — **that call needs Ryan's word, and reversing it is a small change.**
 >
 > Server work has run in parallel — endpoints 19, 20 and 21 are built and tested — because it blocks nothing on the app side and needs nothing from a phone.
 
@@ -100,7 +102,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
-- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `1/10` · **CURRENT**
+- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `3/10` · **CURRENT**
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/9`
       A receiver registers with a phone number and stays logged in.
@@ -117,7 +119,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 15 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 17 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

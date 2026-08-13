@@ -72,6 +72,49 @@ so the backdrop blur and the rim refraction will not appear in a JVM render.
 Those two stay device-checked. Everything else — layout, padding, colour,
 typography, the shape of a knob, where a label sits — is caught here.
 
+## What the first measurement found — and the conflict it names
+
+Measured 2026-08-13, the day the loop closed, with `#probe=` against the real
+stylesheets rather than by eye.
+
+**Colour and fixed component sizes are already at parity.** Exactly:
+
+| Element | Property | Mock-up | App | |
+| --- | --- | --- | --- | --- |
+| `.card` | background | `rgb(22,29,39)` | `surface` `#161D27` | same |
+| `.recess` | background | `rgba(2,5,10,.55)` | `field` `0x8C02050A` | same |
+| `.recess` chip | size, radius | 34×34, 10px | 34dp, 10dp | same |
+| `.lg-bead` | size | 30×30 | 30dp | same |
+| `.lg` nav | radius | 999px | 999dp | same |
+
+**Four values have diverged, and all four were moved on purpose** by the
+design-language pass on the same day:
+
+| Element | Property | Mock-up | App | Moved by |
+| --- | --- | --- | --- | --- |
+| `.card` | radius | 18px | 22dp | the radius set, 12 values to 4 |
+| `.card` | padding | 14px | 12dp | the spacing grid |
+| `.lg` nav | padding | 5px | 4dp | the spacing grid |
+| `.lg` nav | gap | 3px | 2dp | the spacing grid |
+
+**This phase and the design language now disagree, and they cannot both win.**
+This phase says match the mock-up. The token pass says everything sits on one
+grid and one scale. The mock-up is not on a grid — its own values are 3, 5,
+13, 14, 18, 19 and 22 — which is precisely what
+[the design-language finding](../findings/2026-08-13-design-language.md)
+measured and what Ryan approved rebuilding.
+
+**So "the two pictures match" cannot mean pixel-identical padding any more.**
+Taken literally it would undo the token pass, which is the change that stopped
+the app reading cheap. Read this phase's `Verify` lines as: the same things are
+there, in the same order, at the same colour, with fixed components the same
+size — and where a spacing or radius value disagrees with the mock-up because
+a scale moved it, **the scale wins and the difference is written down above.**
+
+The mock-up is a drawing, not a specification. It was eyeballed, and its seven
+near-identical spacing values are the evidence. Nothing else in the four rows
+above exceeds 4dp.
+
 ## The blocks, in order
 
 Each block is done when the two PNGs match and Ryan has said so.
@@ -126,7 +169,7 @@ take their colours from `LockerTokens` rather than from constants.
 
 ## Tasks
 
-**Progress: 1 / 10.**
+**Progress: 3 / 10.**
 
 One task per block in the table above — the blocks were already agreed, these
 are the same ten with IDs so the board can count them. IDs carry the phase's
@@ -155,15 +198,17 @@ python -m http.server 8731 --bind 127.0.0.1                     # from docs/desi
       - Notes: port half is `src/app/src/test/.../DesignParityTest.kt`, reference half is `docs/designs/mockup/reference-harness.html`. Both write PNGs that git ignores. Two traps are already paid for and written down in the test: `captureToImage()` never returns under Robolectric because there is no window to read back, so the view is drawn into a bitmap instead; and the frame clock has to be advanced by hand or nothing ever reports idle
       - Done: 2026-08-13 — Ran one command and got five pictures of the app's own parts, drawn on this computer with no phone plugged in anywhere. Ran a second command and got the same five parts drawn from the designer's original files in a web browser. Both sets came out and can be put side by side. That is the whole point of this phase: a part can now be checked here in about a minute, instead of building the app, sending it to Ryan's phone and waiting to be told it looks wrong.
 
-- [ ] **🟡 DOING — P1.5-02** — Tokens: colour, type, spacing
+- [x] **P1.5-02** — Tokens: colour, type, spacing
       - Owner: Claude · Needs: P1.5-01 · Blocks: P1.5-03, P1.5-04, P1.5-06, P1.5-07, P1.5-08, P1.5-09, P1.5-10
       - Verify: the two PNGs of a token sheet match, and no component sets a size, radius or colour the scales do not name
-      - Notes: measured and rebuilt 2026-08-13 — one 1.2 type ratio, four radii, seven spacing values, `ink3` brought to WCAG AA. See `docs/findings/2026-08-13-design-language.md`. The audit is evidence; the PNG pair is not done
+      - Notes: measured and rebuilt 2026-08-13 — one 1.2 type ratio, four radii, seven spacing values, `ink3` brought to WCAG AA. See `docs/findings/2026-08-13-design-language.md`. **Checked by number, not by picture, and on purpose**: every one of the 46 colour tokens was read out of `Color.kt` and compared against the matching variable in the mock-up's own `screens.css`. Numbers settle a colour and a screenshot does not — two greys a pixel apart look identical and are not. The picture pair still ran, as `card`, `card-light`, `recess` and `recess-light`
+      - Done: 2026-08-13 — Took every colour the app owns, all 46 of them, and checked each one against the designer's original file. 45 came out identical. The one that did not is a caption grey we changed deliberately, because the original was too faint to read against its background and failed the accessibility standard. The check also found two colours that had been typed in wrong: in dark mode the thin outline around every card and box was a teal instead of a pale blue, and in light mode the shadow under a card was slightly washed out. Both are fixed and logged as BUG-005. Then went through all the spacing in the app and found one gap that was not on the grid, in the map card, and put it on it.
 
-- [ ] **P1.5-03** — `card` and `recess`
-      - Owner: _unassigned_ · Needs: P1.5-02 · Blocks: —
+- [x] **P1.5-03** — `card` and `recess`
+      - Owner: Claude · Needs: P1.5-02 · Blocks: —
       - Verify: the two PNGs match for both materials, in both schemes
-      - Notes: recess was rebuilt 2026-08-12 and is still unverified by eye
+      - Notes: measured 2026-08-13, in both schemes, against the reference's computed values rather than by eye. **Recess is exact** — 34 × 34 at radius 10, no padding. **Every colour is exact**: card fill `rgb(22,29,39)` / `rgb(255,255,255)`, recess fill `rgba(2,5,10,.55)` / `rgb(198,208,218)`, and both inks. **Every shadow is exact**: the card's `inset 0 1px 0` lip and its `0 10px 26px -18px` drop, the recess's `inset 0 1.5px 3px` shade and `inset 0 -1px 0` lit edge, in both schemes. The card's radius and padding are the two rows in the conflict table above — deliberate, and the test holds them at the mock-up's values so the picture pair measures the material rather than the geometry
+      - Done: 2026-08-13 — Drew both materials on this computer in dark and in light, and put each against the same thing drawn from the designer's original files in a browser. The card is a white or near-black plate with a lit top edge and a soft shadow tucked under its foot; the recess is a dish cut into the background with shade falling in from every edge and a bright line where the surface comes back up. Both read right in both schemes, and every colour and every shadow matches the original to the number. This is also the check that caught the two wrong colours in BUG-005.
 
 - [ ] **🟡 DOING — P1.5-04** — `lg` glass: body, bloom, lip, rim
       - Owner: Claude · Needs: P1.5-02 · Blocks: P1.5-05, P1.5-06, P1.5-07

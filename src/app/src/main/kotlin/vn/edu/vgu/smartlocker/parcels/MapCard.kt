@@ -216,7 +216,7 @@ private fun MapSheet(
                         tint = t.ink,
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 GlassPane(
                     modifier = Modifier,
                     shape = RoundedCornerShape(999.dp),

@@ -90,6 +90,14 @@ document.getElementById("switches").innerHTML =
 // component can be measured at pixel scale instead of guessed at from a
 // 390px-wide contact sheet. The sections are the h4s, in order.
 const q = new URLSearchParams(location.hash.slice(1));
+
+// Scheme: `#theme=light`. The page opens dark because that is the design's
+// home, but a recess is a hole cut into its ground and a card is a plate
+// resting on it, so both only prove out when the ground changes too.
+if (q.get("theme") === "light") {
+  document.documentElement.setAttribute("data-theme", "light");
+}
+
 if (q.has("block")) {
   const heads = [...document.querySelectorAll("h4")];
   const keep = heads[+q.get("block")];
