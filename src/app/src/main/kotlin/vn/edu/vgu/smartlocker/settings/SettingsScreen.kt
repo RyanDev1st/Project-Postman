@@ -30,10 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.parcels.SectionLabel
 import vn.edu.vgu.smartlocker.ui.AppIcons
+import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.LockerToggle
 import vn.edu.vgu.smartlocker.ui.Recess
@@ -54,13 +57,23 @@ fun SettingsScreen(
     phone: String = "0912 345 678",
     dark: Boolean = false,
     onToggleDark: () -> Unit = {},
+    language: AppLanguage = AppLanguage.ENGLISH,
+    onLanguage: (AppLanguage) -> Unit = {},
     onPin: () -> Unit = {},
     onPassword: () -> Unit = {},
-    onLanguage: () -> Unit = {},
 ) {
     val t = LocalLockerTokens.current
     var parcelNotices by remember { mutableStateOf(true) }
     var smsBackup by remember { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
+
+    if (picking) {
+        LanguagePicker(
+            current = language,
+            onPick = { onLanguage(it) },
+            onClose = { picking = false },
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -107,30 +120,46 @@ fun SettingsScreen(
             }
         }
 
-        SectionLabel("Account")
+        SectionLabel(stringResource(R.string.set_account))
         Stack {
-            SettingsRow(icon = AppIcons.Lock, title = "PIN code", value = "Set", onClick = onPin)
-            SettingsRow(icon = AppIcons.Shield, title = "Change password", onClick = onPassword)
+            SettingsRow(
+                icon = AppIcons.Lock,
+                title = stringResource(R.string.set_pin),
+                value = stringResource(R.string.set_pin_value),
+                onClick = onPin,
+            )
+            SettingsRow(
+                icon = AppIcons.Shield,
+                title = stringResource(R.string.set_password),
+                onClick = onPassword,
+            )
         }
 
-        SectionLabel("Notices")
+        SectionLabel(stringResource(R.string.set_notices))
         Stack {
-            SettingsRow(icon = AppIcons.Bell, title = "Parcel arrived") {
+            SettingsRow(icon = AppIcons.Bell, title = stringResource(R.string.set_parcel_arrived)) {
                 LockerToggle(checked = parcelNotices, onCheckedChange = { parcelNotices = it })
             }
-            SettingsRow(icon = AppIcons.Mail, title = "SMS backup") {
+            SettingsRow(icon = AppIcons.Mail, title = stringResource(R.string.set_sms_backup)) {
                 LockerToggle(checked = smsBackup, onCheckedChange = { smsBackup = it })
             }
         }
 
-        SectionLabel("App")
+        SectionLabel(stringResource(R.string.set_app))
         Stack {
-            SettingsRow(icon = AppIcons.Globe, title = "Language", value = "Tiếng Việt", onClick = onLanguage)
+            SettingsRow(
+                icon = AppIcons.Globe,
+                title = stringResource(R.string.set_language),
+                // The row shows the language you are IN, which is also the
+                // one written in itself in the picker below it.
+                value = stringResource(language.labelRes),
+                onClick = { picking = true },
+            )
             // Not a LockerToggle. Dark mode gets the day/night switch from
             // the mock-up — the sun, the moon crossing it, the clouds and
             // the stars. The other two rows are plain on/off and keep the
             // plain control.
-            SettingsRow(icon = AppIcons.Moon, title = "Dark mode") {
+            SettingsRow(icon = AppIcons.Moon, title = stringResource(R.string.set_dark_mode)) {
                 ThemeSwitch(checked = dark, onCheckedChange = { onToggleDark() })
             }
         }

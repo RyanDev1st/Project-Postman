@@ -21,7 +21,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
@@ -72,7 +74,7 @@ fun CodeScreen(
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     onClick = onBack,
                 )
             },
@@ -86,7 +88,7 @@ fun CodeScreen(
         ) {
             AuthDisplay(first = "Enter", accent = "the code")
             Text(
-                text = "Sent to +84 ··· 678",
+                text = stringResource(R.string.code_sent_to, "+84 ··· 678"),
                 style = MaterialTheme.typography.labelLarge.copy(fontFamily = NumberFace),
                 color = t.ink2,
                 modifier = Modifier.padding(top = 12.dp),
@@ -101,18 +103,18 @@ fun CodeScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "6-DIGIT CODE",
+                    text = stringResource(R.string.code_label),
                     style = MaterialTheme.typography.labelMedium,
                     color = t.ink2,
                     modifier = Modifier.padding(start = 2.dp),
                 )
                 OtpCells(code = code, caretIndex = code.length.coerceAtMost(5))
             }
-            GoButton(text = "Continue", onClick = onDone)
+            GoButton(text = stringResource(R.string.code_continue), onClick = onDone)
         }
 
         QuietButton(
-            text = "Resend in $resendAt",
+            text = stringResource(R.string.code_resend_in, resendAt),
             onClick = {},
             enabled = false,
         )
@@ -152,23 +154,23 @@ fun AddPhoneScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "PHONE NUMBER",
+                    text = stringResource(R.string.phone_number),
                     style = MaterialTheme.typography.labelMedium,
                     color = t.ink2,
                     modifier = Modifier.padding(start = 2.dp),
                 )
                 PhoneField(number = "")
             }
-            GoButton(text = "Save number", onClick = onSaved)
+            GoButton(text = stringResource(R.string.code_save_number), onClick = onSaved)
         }
 
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            QuietButton(text = "Skip for now", onClick = onSkip)
+            QuietButton(text = stringResource(R.string.code_skip), onClick = onSkip)
             Text(
-                text = "Parcels need a number.",
+                text = stringResource(R.string.code_need_number),
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink3,
                 modifier = Modifier.padding(horizontal = 2.dp),

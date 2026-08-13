@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
@@ -57,7 +59,7 @@ fun ScanScreen(
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     onClick = onBack,
                 )
             },
@@ -72,7 +74,7 @@ fun ScanScreen(
         ) {
             Aperture(modifier = Modifier.fillMaxWidth())
             Text(
-                text = "Scan the cabinet",
+                text = stringResource(R.string.scan_title),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 color = t.ink,
                 modifier = Modifier.padding(top = 16.dp),
@@ -80,7 +82,7 @@ fun ScanScreen(
         }
 
         QuietButton(
-            text = "Use a code",
+            text = stringResource(R.string.cab_use_code),
             onClick = onTypeCode,
         )
     }

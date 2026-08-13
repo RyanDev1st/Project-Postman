@@ -20,7 +20,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import vn.edu.vgu.smartlocker.ui.AppBar
@@ -57,7 +59,7 @@ fun OpenedScreen(
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     onClick = onBack,
                 )
             },
@@ -79,7 +81,7 @@ fun OpenedScreen(
                 ),
             )
             Text(
-                text = "IS OPEN",
+                text = stringResource(R.string.opened_is_open),
                 style = MaterialTheme.typography.labelMedium.copy(
                     letterSpacing = 0.2.em,
                     fontSize = 11.sp,
@@ -88,7 +90,7 @@ fun OpenedScreen(
                 modifier = Modifier.padding(top = 8.dp),
             )
             Text(
-                text = "Close the door when done.",
+                text = stringResource(R.string.opened_close_when_done),
                 style = MaterialTheme.typography.bodyLarge,
                 color = OnDoorLight,
                 modifier = Modifier.padding(top = 16.dp),
@@ -107,7 +109,7 @@ fun OpenedScreen(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "Done",
+                text = stringResource(R.string.opened_done),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = DoorLight,

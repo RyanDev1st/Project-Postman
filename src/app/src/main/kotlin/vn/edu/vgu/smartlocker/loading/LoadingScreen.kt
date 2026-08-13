@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import kotlin.math.PI
@@ -41,7 +43,7 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
  * parcels*, which is a search, not a thought.
  */
 @Composable
-fun LoadingScreen(label: String = "CHECKING YOUR PARCELS") {
+fun LoadingScreen(label: String = stringResource(R.string.loading_checking)) {
     val t = LocalLockerTokens.current
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -54,7 +56,7 @@ fun LoadingScreen(label: String = "CHECKING YOUR PARCELS") {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "VGU Locker",
+                text = stringResource(R.string.loading_brand),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
                     letterSpacing = (-0.01).sp,

@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
@@ -150,7 +151,11 @@ fun MainShell(
                 selected = tabIndex(screen),
                 onSelect = { onSelectTab(tabOf(it)) },
                 icons = listOf(AppIcons.Home, AppIcons.Cabinet, AppIcons.Settings),
-                labels = listOf("HOME", "CABINET", "SETTINGS"),
+                labels = listOf(
+                    stringResource(R.string.tab_home),
+                    stringResource(R.string.tab_cabinet),
+                    stringResource(R.string.tab_settings),
+                ),
                 backdrop = backdrop,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -214,15 +219,31 @@ private fun TabAppBar(
     modifier: Modifier = Modifier,
 ) {
     when (screen) {
+        // "Minh" is sample data — the name the server will send. The greeting
+        // around it is the app's own word and moves with the language.
         Screen.HOME -> AppBar(
-            brand = "Chào Minh",
+            brand = stringResource(R.string.greeting, "Minh"),
             modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Menu, contentDescription = "Menu", onClick = {}, backdrop = backdrop)
+                AppBarBead(
+                    icon = AppIcons.Menu,
+                    contentDescription = stringResource(R.string.cd_menu),
+                    onClick = {},
+                    backdrop = backdrop,
+                )
             },
             actions = {
-                ScanButton(icon = AppIcons.Scan, contentDescription = "Scan a cabinet", onClick = {})
-                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {}, backdrop = backdrop)
+                ScanButton(
+                    icon = AppIcons.Scan,
+                    contentDescription = stringResource(R.string.cd_scan_cabinet),
+                    onClick = {},
+                )
+                AppBarBead(
+                    icon = AppIcons.Bell,
+                    contentDescription = stringResource(R.string.cd_notifications),
+                    onClick = {},
+                    backdrop = backdrop,
+                )
             },
         )
 
@@ -230,18 +251,33 @@ private fun TabAppBar(
             brand = "Back gate",
             modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {}, backdrop = backdrop)
+                AppBarBead(
+                    icon = AppIcons.Back,
+                    contentDescription = stringResource(R.string.cd_back),
+                    onClick = {},
+                    backdrop = backdrop,
+                )
             },
             actions = {
-                AppBarBead(icon = AppIcons.Bell, contentDescription = "Notifications", onClick = {}, backdrop = backdrop)
+                AppBarBead(
+                    icon = AppIcons.Bell,
+                    contentDescription = stringResource(R.string.cd_notifications),
+                    onClick = {},
+                    backdrop = backdrop,
+                )
             },
         )
 
         Screen.SETTINGS -> AppBar(
-            brand = "Settings",
+            brand = stringResource(R.string.title_settings),
             modifier = modifier,
             leading = {
-                AppBarBead(icon = AppIcons.Back, contentDescription = "Back", onClick = {}, backdrop = backdrop)
+                AppBarBead(
+                    icon = AppIcons.Back,
+                    contentDescription = stringResource(R.string.cd_back),
+                    onClick = {},
+                    backdrop = backdrop,
+                )
             },
         )
 

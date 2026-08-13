@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.parcels.SmallClaim
 import vn.edu.vgu.smartlocker.parcels.SmallTicket
 import vn.edu.vgu.smartlocker.ui.AltButton
@@ -77,10 +79,17 @@ fun CabinetScreen(
 
     // Heading carries the constants; per-door facts live in the panel.
     val (title, sub) = when (mode) {
-        CabinetMode.FULL -> "Cabinet full" to "Nothing waiting, and no free box"
-        CabinetMode.EMPTY -> "${freeDoors.size} boxes free" to "Nothing waiting for you"
-        CabinetMode.TWO -> "Two boxes are yours" to "${freeDoors.size} of 20 doors free"
-        CabinetMode.ONE -> "One box is yours" to "${freeDoors.size} of 20 doors free"
+        CabinetMode.FULL ->
+            stringResource(R.string.cab_full_title) to stringResource(R.string.cab_full_sub)
+        CabinetMode.EMPTY ->
+            stringResource(R.string.cab_free_title, freeDoors.size) to
+                stringResource(R.string.cab_free_sub)
+        CabinetMode.TWO ->
+            stringResource(R.string.cab_two_title) to
+                stringResource(R.string.cab_doors_free, freeDoors.size)
+        CabinetMode.ONE ->
+            stringResource(R.string.cab_one_title) to
+                stringResource(R.string.cab_doors_free, freeDoors.size)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -150,7 +159,7 @@ fun CabinetScreen(
                     claim = SmallClaim(
                         cabinet = "Back gate",
                         box = d.n,
-                        detail = "Dropped ${d.at}",
+                        detail = stringResource(R.string.cab_dropped, d.at),
                         left = d.left,
                         pct = d.pct,
                         soon = d.soon,
@@ -170,16 +179,16 @@ fun CabinetScreen(
             when (mode) {
                 CabinetMode.EMPTY -> {}
                 CabinetMode.FULL -> AltButton(
-                    text = "Show the Library cabinet",
+                    text = stringResource(R.string.cab_show_library),
                     onClick = {},
                 )
                 else -> {
                     GoButton(
-                        text = "Scan to open $effective",
+                        text = stringResource(R.string.cab_scan_to_open, effective),
                         onClick = { onScan(effective) },
                     )
                     QuietButton(
-                        text = "Use a code",
+                        text = stringResource(R.string.cab_use_code),
                         onClick = onTypeCode,
                         modifier = Modifier.padding(top = 4.dp),
                     )
@@ -221,13 +230,16 @@ private fun StatusCard(mode: CabinetMode) {
             }
             Column {
                 Text(
-                    text = if (free) "Room for a drop" else "All 20 boxes in use",
+                    text = stringResource(
+                        if (free) R.string.cab_room_title else R.string.cab_inuse_title,
+                    ),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = t.ink,
                 )
                 Text(
-                    text = if (free) "Give a courier your number and one is yours"
-                    else "A courier cannot leave one here",
+                    text = stringResource(
+                        if (free) R.string.cab_room_sub else R.string.cab_inuse_sub,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     color = t.ink2,
                 )
@@ -256,7 +268,7 @@ private fun NoFreeBadge(modifier: Modifier = Modifier) {
             tint = t.refuse,
         )
         Text(
-            text = "No free box",
+            text = stringResource(R.string.cab_no_free_box),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             color = t.ink,
         )

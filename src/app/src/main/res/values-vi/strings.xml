@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tiếng Việt. The base is values/strings.xml and every name here matches
+    one there.
+
+    Written for a VGU student standing at a cabinet, not for a manual. Plain
+    words: "hộp" for a box, "lấy hàng" for collecting, "quét" for scanning.
+
+    Two things are deliberately not translated: the language names in the
+    picker, and the sample data. Neither has a Vietnamese version.
+-->
+<resources>
+    <string name="tagline">Tủ gửi hàng thông minh</string>
+
+    <!-- Loading -->
+    <string name="loading_checking">ĐANG KIỂM TRA ĐƠN HÀNG</string>
+
+    <!--
+        The headline that gave the app its name. It was written in Vietnamese
+        first and the English base is the translation, not the other way
+        round. Keep the two line breaks.
+    -->
+    <string name="signin_headline_lead">Nhận hàng\nkhông cần</string>
+    <string name="signin_headline_accent">chìa khoá</string>
+    <string name="signin_sub">Mọi tủ VGU, ngay trên điện thoại.</string>
+    <string name="phone_number">SỐ ĐIỆN THOẠI</string>
+    <string name="send_code">Gửi mã</string>
+    <string name="divider_or">HOẶC</string>
+    <string name="sign_in_vgu">Tài khoản VGU</string>
+    <string name="privacy">BẢO MẬT</string>
+    <string name="terms">ĐIỀU KHOẢN</string>
+
+    <!-- Mã một lần -->
+    <string name="code_sent_to">Đã gửi tới %1$s</string>
+    <string name="code_label">MÃ 6 SỐ</string>
+    <string name="code_continue">Tiếp tục</string>
+    <string name="code_resend_in">Gửi lại sau %1$s</string>
+    <string name="code_save_number">Lưu số</string>
+    <string name="code_skip">Bỏ qua</string>
+    <string name="code_need_number">Cần số điện thoại để nhận hàng.</string>
+
+    <!-- Thanh điều hướng -->
+    <string name="tab_home">TRANG CHỦ</string>
+    <string name="tab_cabinet">TỦ</string>
+    <string name="tab_settings">CÀI ĐẶT</string>
+    <string name="greeting">Chào %1$s</string>
+    <string name="title_settings">Cài đặt</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_scan_cabinet">Quét tủ</string>
+    <string name="cd_notifications">Thông báo</string>
+    <string name="cd_back">Quay lại</string>
+
+    <!-- Trang chủ -->
+    <string name="home_nearest">Gần bạn nhất</string>
+    <string name="home_open_door">Mở hộp %1$s</string>
+    <string name="home_also_waiting">Đang chờ khác</string>
+    <string name="home_where_to_walk">Đường đi</string>
+    <string name="home_collected">Đã lấy</string>
+
+    <!-- Phiếu nhận hàng -->
+    <string name="ticket_door">Hộp</string>
+    <string name="ticket_dropped">Gửi lúc</string>
+    <string name="ticket_collect_by">Lấy trước</string>
+    <string name="ticket_boxes_free">Hộp trống</string>
+
+    <!-- Bản đồ -->
+    <string name="map_walk_there">Chỉ đường</string>
+    <string name="map_close">Đóng bản đồ</string>
+    <string name="map_walk">đi bộ %1$d phút · %2$d m</string>
+    <string name="map_no_app">Không có ứng dụng bản đồ để mở</string>
+
+    <!-- Tủ -->
+    <string name="cab_full_title">Tủ đã đầy</string>
+    <string name="cab_full_sub">Không có hàng chờ, cũng không còn hộp trống</string>
+    <string name="cab_free_title">%1$d hộp trống</string>
+    <string name="cab_free_sub">Không có hàng nào chờ bạn</string>
+    <string name="cab_two_title">Bạn có hai hộp</string>
+    <string name="cab_one_title">Bạn có một hộp</string>
+    <string name="cab_doors_free">%1$d trên 20 hộp còn trống</string>
+    <string name="cab_show_library">Xem tủ Thư viện</string>
+    <string name="cab_scan_to_open">Quét để mở %1$s</string>
+    <string name="cab_use_code">Dùng mã</string>
+    <string name="cab_room_title">Còn chỗ để gửi</string>
+    <string name="cab_room_sub">Đưa số điện thoại cho người giao là có một hộp</string>
+    <string name="cab_inuse_title">Cả 20 hộp đang dùng</string>
+    <string name="cab_inuse_sub">Người giao không thể gửi hàng ở đây</string>
+    <string name="cab_no_free_box">Hết hộp trống</string>
+    <string name="cab_dropped">Gửi lúc %1$s</string>
+    <string name="cd_cabinet_render">Tủ gửi hàng VGU, nhìn từ mặt trước</string>
+
+    <!-- Quét -->
+    <string name="scan_title">Quét màn hình tủ</string>
+
+    <!-- Đã mở -->
+    <string name="opened_is_open">ĐÃ MỞ</string>
+    <string name="opened_close_when_done">Đóng cửa hộp sau khi lấy xong.</string>
+    <string name="opened_done">Xong</string>
+
+    <!-- Nhập mã -->
+    <string name="type_title">Nhập mã</string>
+    <string name="type_sub">Có trong thông báo nhận hàng</string>
+    <string name="type_wrong">Sai mã. Thử lại.</string>
+    <string name="type_open_box">Mở hộp</string>
+    <string name="type_scan_instead">Quét thay vì nhập</string>
+
+    <!-- Cài đặt -->
+    <string name="set_account">Tài khoản</string>
+    <string name="set_pin">Mã PIN</string>
+    <string name="set_pin_value">Đã đặt</string>
+    <string name="set_password">Đổi mật khẩu</string>
+    <string name="set_notices">Thông báo</string>
+    <string name="set_parcel_arrived">Hàng đã tới</string>
+    <string name="set_sms_backup">Nhận thêm bằng SMS</string>
+    <string name="set_app">Ứng dụng</string>
+    <string name="set_language">Ngôn ngữ</string>
+    <string name="set_dark_mode">Nền tối</string>
+
+    <!--
+        Từ chối — đúng câu chữ trong api-contract.md.
+    -->
+    <string name="refused_session_expired">Mã đã hết hạn. Quét lại.</string>
+    <string name="refused_no_parcel_here">Không có hàng ở đây.</string>
+    <string name="refused_box_faulty">Hộp này đang hỏng. Nhân viên đã biết.</string>
+    <string name="refused_wrong_code">Sai mã. Thử lại.</string>
+    <string name="refused_unknown">Có lỗi xảy ra. Thử lại.</string>
+
+    <string name="unclear_result">Chưa rõ thao tác có thành công không. Kiểm tra tủ trước.</string>
+</resources>

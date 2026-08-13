@@ -27,7 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import androidx.compose.ui.unit.sp
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.Pill
@@ -94,7 +96,9 @@ fun ClaimTicket(
             ) {
                 Column {
                     Text(
-                        text = if (isFree) "Boxes free" else "Door",
+                        text = stringResource(
+                            if (isFree) R.string.ticket_boxes_free else R.string.ticket_door,
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = t.ink3,
                     )
@@ -134,8 +138,8 @@ fun ClaimTicket(
                         color = t.ink2,
                     )
                 } else {
-                    StubCell("Dropped", claim.dropped)
-                    StubCell("Collect by", claim.collectBy)
+                    StubCell(stringResource(R.string.ticket_dropped), claim.dropped)
+                    StubCell(stringResource(R.string.ticket_collect_by), claim.collectBy)
                 }
             }
 

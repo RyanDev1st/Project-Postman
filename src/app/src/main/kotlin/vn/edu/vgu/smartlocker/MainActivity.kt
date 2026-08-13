@@ -29,6 +29,8 @@ import vn.edu.vgu.smartlocker.pickup.OpenedScreen
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
 import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
 import vn.edu.vgu.smartlocker.settings.SettingsScreen
+import vn.edu.vgu.smartlocker.ui.AppLanguage
+import vn.edu.vgu.smartlocker.ui.AppLanguageProvider
 import vn.edu.vgu.smartlocker.ui.LockerBackdrop
 import vn.edu.vgu.smartlocker.ui.ThemeWipe
 import vn.edu.vgu.smartlocker.ui.theme.SmartLockerTheme
@@ -81,11 +83,31 @@ class MainActivity : ComponentActivity() {
             // first impression: the same lens shows far more over near-black
             // ground than over pale steel.
             var dark by remember { mutableStateOf(false) }
-            // The wipe owns the toggle: it has to hold the outgoing frame
-            // before the theme flips, so it cannot be told after the fact.
-            ThemeWipe(dark = dark, onDarkChanged = { dark = it }) { requestToggle ->
-                SmartLockerTheme(dark = dark) {
-                    AppSkeleton(dark = dark, onToggleDark = requestToggle, start = start)
+
+            // The phone's language, if the app speaks it. Unlike the scheme
+            // above, following the system is right here: a person whose phone
+            // is in Vietnamese has already said which language they read.
+            //
+            // Held in memory, like `dark`, so it lasts as long as the process
+            // and no longer. Neither setting is written down yet — that wants
+            // one store for both, and the app has none.
+            var language by remember { mutableStateOf(AppLanguage.ofSystem()) }
+
+            // Outside the theme, because it decides what the words ARE and
+            // the theme only decides what they look like.
+            AppLanguageProvider(language) {
+                // The wipe owns the toggle: it has to hold the outgoing frame
+                // before the theme flips, so it cannot be told after the fact.
+                ThemeWipe(dark = dark, onDarkChanged = { dark = it }) { requestToggle ->
+                    SmartLockerTheme(dark = dark) {
+                        AppSkeleton(
+                            dark = dark,
+                            onToggleDark = requestToggle,
+                            language = language,
+                            onLanguage = { language = it },
+                            start = start,
+                        )
+                    }
                 }
             }
         }
@@ -96,6 +118,8 @@ class MainActivity : ComponentActivity() {
 fun AppSkeleton(
     dark: Boolean,
     onToggleDark: () -> Unit,
+    language: AppLanguage = AppLanguage.ENGLISH,
+    onLanguage: (AppLanguage) -> Unit = {},
     /** Debug-only starting screen — see [MainActivity.onCreate]. */
     start: Screen? = null,
 ) {
@@ -182,6 +206,8 @@ fun AppSkeleton(
                         SettingsScreen(
                             dark = dark,
                             onToggleDark = onToggleDark,
+                            language = language,
+                            onLanguage = onLanguage,
                         )
                     },
                 )

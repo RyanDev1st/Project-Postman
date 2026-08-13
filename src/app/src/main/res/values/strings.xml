@@ -1,81 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Every word the receiver reads.
+    Every word the receiver reads. English is the base; Vietnamese is
+    values-vi/strings.xml.
 
     They live here, not in the code, so the wording can be argued over
     without touching Kotlin - and so a Vietnamese translation is a second
     file, not a rewrite.
 
+    Sample data is NOT in here. "Back gate", "08:14 today", "Minh Nguyen"
+    and the parcel times are stand-ins for what the server will send. A
+    translation file is for the app's own words, and a box number does not
+    have a Vietnamese version.
+
     Refusal wording is fixed by api-contract.md. Never invent it per screen.
 -->
 <resources>
-    <string name="app_name">VGU Smart Locker</string>
-    <string name="tagline">Tủ gửi hàng thông minh</string>
+    <!--
+        Names, not words. The product is called what it is called in either
+        language, so these are marked untranslatable rather than left out of
+        values-vi and looking like somebody forgot them.
+    -->
+    <string name="app_name" translatable="false">VGU Smart Locker</string>
+    <string name="tagline">Smart parcel locker</string>
+
+    <!-- Loading -->
+    <string name="loading_brand" translatable="false">VGU Locker</string>
+    <string name="loading_checking">CHECKING YOUR PARCELS</string>
 
     <!-- 1. Phone number -->
-    <string name="your_phone_number">Phone number</string>
-    <string name="send_me_a_code">Send code</string>
-    <string name="why_a_code">We\'ll text you a code.</string>
+    <!--
+        The headline is two strings because its last line is a different
+        colour. Keep the line breaks: it is set at 40sp and is drawn as
+        three short lines on purpose.
+    -->
+    <string name="signin_headline_lead">Pick up\nwithout</string>
+    <string name="signin_headline_accent">a key</string>
+    <string name="signin_sub">Any VGU locker, from your phone.</string>
+    <string name="phone_number">PHONE NUMBER</string>
+    <string name="send_code">Send code</string>
+    <string name="divider_or">OR</string>
+    <string name="sign_in_google" translatable="false">Google</string>
+    <string name="sign_in_vgu">VGU account</string>
+    <string name="privacy">PRIVACY</string>
+    <string name="terms">TERMS</string>
 
     <!-- 2. One-time code -->
-    <string name="enter_the_code">Enter code</string>
-    <string name="we_sent_it_to">We sent it to %1$s</string>
-    <string name="check_the_code">Continue</string>
-    <string name="send_again_in">Resend in %1$s</string>
+    <string name="code_sent_to">Sent to %1$s</string>
+    <string name="code_label">6-DIGIT CODE</string>
+    <string name="code_continue">Continue</string>
+    <string name="code_resend_in">Resend in %1$s</string>
+    <string name="code_save_number">Save number</string>
+    <string name="code_skip">Skip for now</string>
+    <string name="code_need_number">Parcels need a number.</string>
+
+    <!-- Tabs, and the app bar -->
+    <string name="tab_home">HOME</string>
+    <string name="tab_cabinet">CABINET</string>
+    <string name="tab_settings">SETTINGS</string>
+    <string name="greeting">Hi %1$s</string>
+    <string name="title_settings">Settings</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_scan_cabinet">Scan a cabinet</string>
+    <string name="cd_notifications">Notifications</string>
+    <string name="cd_back">Back</string>
 
     <!-- 3. Home -->
-    <string name="hello">Chào %1$s</string>
-    <string name="n_ready">%1$d parcels ready</string>
-    <string name="one_ready">1 parcel ready</string>
-    <string name="nothing_waiting">Nothing waiting</string>
-    <string name="we_will_tell_you">We\'ll tell you when one arrives.</string>
-    <string name="collected">Collected</string>
-    <string name="see_all">All</string>
-    <string name="open_it">Open</string>
-    <string name="box_n">Box %1$s</string>
-    <string name="box_label">BOX</string>
-    <string name="ready_at">Ready · %1$s</string>
-    <string name="scan_to_open">Scan to open</string>
-    <string name="cant_scan">Use a code</string>
+    <string name="home_nearest">Nearest to you</string>
+    <string name="home_open_door">Open door %1$s</string>
+    <string name="home_also_waiting">Also waiting</string>
+    <string name="home_where_to_walk">Where to walk</string>
+    <string name="home_collected">Collected</string>
 
-    <!-- tabs -->
-    <string name="home">Home</string>
-    <string name="cabinet">Cabinet</string>
-    <string name="settings">Settings</string>
+    <!-- The claim ticket -->
+    <string name="ticket_door">Door</string>
+    <string name="ticket_dropped">Dropped</string>
+    <string name="ticket_collect_by">Collect by</string>
+    <string name="ticket_boxes_free">Boxes free</string>
+
+    <!-- The map card -->
+    <string name="map_walk_there">Walk there</string>
+    <string name="map_close">Close the map</string>
+    <string name="map_walk">%1$d min walk · %2$d m</string>
+    <string name="map_no_app">No maps app to open this in</string>
 
     <!-- 8. Cabinet -->
-    <plurals name="free_boxes">
-        <item quantity="one">%1$d box free</item>
-        <item quantity="other">%1$d boxes free</item>
-    </plurals>
-    <string name="room_for_a_drop">Room for a drop</string>
-    <string name="cabinet_is_full">Cabinet full</string>
-    <string name="try_another_cabinet">Try another cabinet</string>
-
-    <!-- 9. Settings -->
-    <string name="account">Account</string>
-    <string name="pin_code">PIN code</string>
-    <string name="change_password">Change password</string>
-    <string name="notices">Notices</string>
-    <string name="notice_parcel_arrived">Parcel arrived</string>
-    <string name="notice_sms_backup">SMS backup</string>
-    <string name="language">Language</string>
-    <string name="theme">Theme</string>
-    <string name="theme_system">System</string>
+    <string name="cab_full_title">Cabinet full</string>
+    <string name="cab_full_sub">Nothing waiting, and no free box</string>
+    <string name="cab_free_title">%1$d boxes free</string>
+    <string name="cab_free_sub">Nothing waiting for you</string>
+    <string name="cab_two_title">Two boxes are yours</string>
+    <string name="cab_one_title">One box is yours</string>
+    <string name="cab_doors_free">%1$d of 20 doors free</string>
+    <string name="cab_show_library">Show the Library cabinet</string>
+    <string name="cab_scan_to_open">Scan to open %1$s</string>
+    <string name="cab_use_code">Use a code</string>
+    <string name="cab_room_title">Room for a drop</string>
+    <string name="cab_room_sub">Give a courier your number and one is yours</string>
+    <string name="cab_inuse_title">All 20 boxes in use</string>
+    <string name="cab_inuse_sub">A courier cannot leave one here</string>
+    <string name="cab_no_free_box">No free box</string>
+    <string name="cab_dropped">Dropped %1$s</string>
+    <string name="cd_cabinet_render">The VGU parcel locker cabinet, front elevation</string>
 
     <!-- 4. Scan -->
-    <string name="point_at_the_screen">Scan the cabinet</string>
-    <string name="camera_goes_here">Tap to pretend it worked</string>
+    <string name="scan_title">Scan the cabinet</string>
 
     <!-- 5. Opened -->
-    <string name="is_open">IS OPEN</string>
-    <string name="take_and_close">Close the door when done.</string>
-    <string name="done">Done</string>
+    <string name="opened_is_open">IS OPEN</string>
+    <string name="opened_close_when_done">Close the door when done.</string>
+    <string name="opened_done">Done</string>
 
     <!-- 6. Type the code -->
-    <string name="type_the_code">Enter code</string>
-    <string name="code_is_in_the_notice">From your parcel notice</string>
-    <string name="open_my_box">Open box</string>
+    <string name="type_title">Enter code</string>
+    <string name="type_sub">From your parcel notice</string>
+    <string name="type_wrong">Wrong code. Try again.</string>
+    <string name="type_open_box">Open box</string>
+    <string name="type_scan_instead">Scan instead</string>
+
+    <!-- 9. Settings -->
+    <string name="set_account">Account</string>
+    <string name="set_pin">PIN code</string>
+    <string name="set_pin_value">Set</string>
+    <string name="set_password">Change password</string>
+    <string name="set_notices">Notices</string>
+    <string name="set_parcel_arrived">Parcel arrived</string>
+    <string name="set_sms_backup">SMS backup</string>
+    <string name="set_app">App</string>
+    <string name="set_language">Language</string>
+    <string name="set_dark_mode">Dark mode</string>
+
+    <!--
+        The language names are deliberately NOT translated. A person looking
+        for their own language needs to find it written the way they write
+        it, not the way the language they cannot read spells it.
+    -->
+    <string name="lang_en" translatable="false">English</string>
+    <string name="lang_vi" translatable="false">Tiếng Việt</string>
 
     <!--
         Refusals — the exact words in api-contract.md.

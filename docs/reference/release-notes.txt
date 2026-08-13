@@ -1,58 +1,58 @@
-0.9.1 — the design language: one type scale, four radii, one spacing grid.
+0.10.0 — the app speaks Vietnamese, the map hands off, one door at a time.
 
-Check the version first: long-press the app icon, App info. It must read 0.9.1.
+Check the version first: long-press the app icon, App info. It must read 0.10.0.
 
-Nothing new was added. Everything was made to agree with everything else.
+THE APP IS IN VIETNAMESE NOW, and you can switch it while you watch.
 
-The glass is a measured port now and it behaves like the source, so what was
-left reading cheap was everything around it. It was measured, all 39 code
-files. The fault was not any one value. It was that nothing in the app agreed
-with anything else in it: 42 spacing values, 12 corner radii, and three text
-sizes half a point apart. No single one of those is visible. The absence of
-a system is.
+Settings, App, Ngon ngu / Language. Pick one and every word changes on the
+next frame with the sheet still under your thumb. No restart, and you do not
+lose the screen you were on.
 
-The full measurement is docs/findings/2026-08-13-design-language.md.
+Both languages are written out in full: 85 strings in English, 82 in
+Vietnamese, and the three that are missing are missing on purpose because
+they are names — VGU Smart Locker, VGU Locker, Google. Every screen was
+converted, not only Settings.
 
-Text now sits on one ratio, and the title outranks body text.
+Each language is listed in itself, "English" and "Tieng Viet", never
+"Vietnamese". Somebody hunting for their own language is looking for the word
+they would write, and if they could read the other one they would not need
+the row.
 
-The brand in the top bar and your name on Settings were 14.5sp while reading
-text was 15sp — set SMALLER than body. A screen cannot show a hierarchy the
-scale does not have. Title is now 18sp.
+It follows the phone on first run. A phone set to Vietnamese opens the app in
+Vietnamese without anyone choosing. Like Dark mode, the choice lasts as long
+as the app is running and is forgotten when it is closed — neither setting is
+written down yet, and they want one place to be written down together.
 
-Below it, four sizes crowded 12.5 to 15sp at ratios of 1.03 to 1.12. Half a
-point is less than a reader can see, so four ranks read as one rank done
-carelessly. Now: caption 10.5, label 12.5, body 15, title 18, heading 26 —
-each step 1.2 times the last, which is the step size a reader can actually
-see. The big numbers on the ticket and the Opened screen do not change: 122sp
-is sized to be read across a corridor, not to fit a progression.
+The map's arrow works, and the walk figures are real.
 
-Corner radii went from twelve values to four: 10, 16, 22, 28, plus the pill.
+The arrow on the map card looked like a button and did nothing: the whole
+card, arrow included, just opened the map. Tapping it now hands off to
+whichever maps app the phone has, with the gate as the destination. If there
+is no maps app it says so rather than appearing to be broken.
 
-Three of the old five were 13, 15 and 17 — two points apart, which nobody
-holding a phone can tell apart. They bought inconsistency and paid nothing.
-Cards are rounder now. The cabinet render sits in a deeper 28dp well.
+The card used to say "7 min walk / 540 m". Nothing measured that. The real
+route drawn underneath is 543 m and 6 min 32 s, so the caption was three
+metres and half a minute away from the line on the picture. The distance is
+now measured off that line — it comes out at 542.5 m against the router's own
+543, which is also the check that the two agree. Moving a coordinate can no
+longer leave the caption describing the old path.
 
-Spacing went from 42 values to seven: 2, 4, 8, 12, 16, 24.
+It is still not Google's map, and that is on purpose — ADR 0014. Google
+wanted a card on file for a map it charges nothing for.
 
-69 of the 105 gaps in the app were off any grid — padding of 9, 10 and 11 in
-neighbouring components, so every edge missed its neighbour by a pixel or
-two. Never enough to notice. Always enough to stop it looking cut from one
-piece.
+On the cabinet tab, choosing a box puts the others out.
 
-The quiet grey text passed an accessibility standard it was failing.
-
-That grey carries the nav bar's unselected labels — CABINET, SETTINGS — and
-the small chips. It measured 2.63:1 on the light ground where the standard
-asks 4.5:1, and 2.98:1 on a dark card. It now measures 4.54:1 and 4.50:1.
-It is a real standards failure fixed, not a preference: that text was too
-faint to read in daylight, which is where this app gets used.
+Tap 04 and the camera pushes in on it, as before, but 07 now fades out as it
+goes — and comes back if you pull out to the wide shot. Two lit doors answers
+"which of these are mine". Once you have chosen, the question is "which box
+does the button open", and a second lit door was still answering the old one.
+The light is tied to the camera itself, so the two are one movement.
 
 Known, unchanged: the Dark mode switch on Settings is a speckled blob in dark
 mode only. BUG-003.
 
-New, and please check this one on your phone: on the emulator the cabinet
-render on the sign-in screen fills only the left third of its box. It is
-NOT from this change — this change moved that screen's margin by 1dp, which
-cannot move a render by 200. It is most likely the emulator's software
-renderer failing on a large image. If it looks right on your phone, say so
-and it gets closed. BUG-004.
+Still worth a look on your phone: on the emulator the cabinet render on the
+sign-in screen fills only the left third of its box. It is not from the
+design pass — that moved the margin by 1dp, which cannot move a render by
+200 — and it is most likely the emulator's software renderer failing on a
+large image. If it looks right on your phone, say so and it closes. BUG-004.

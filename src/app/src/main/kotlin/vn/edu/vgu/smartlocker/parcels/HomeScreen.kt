@@ -24,7 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Pill
 import vn.edu.vgu.smartlocker.ui.PillKind
@@ -100,7 +102,7 @@ fun HomeScreen(
                     box = "%02d".format(freeCount),
                     dropped = "",
                     collectBy = "",
-                    left = "Nearest to you",
+                    left = stringResource(R.string.home_nearest),
                     pct = 0f,
                     soon = false,
                 ),
@@ -110,14 +112,14 @@ fun HomeScreen(
         } else {
             ClaimTicket(claim = parcels.first())
             GoButton(
-                text = "Open door ${parcels.first().box}",
+                text = stringResource(R.string.home_open_door, parcels.first().box),
                 onClick = { onOpen(parcels.first().box) },
                 modifier = Modifier.padding(top = 12.dp),
             )
         }
 
         if (second.isNotEmpty()) {
-            SectionLabel("Also waiting")
+            SectionLabel(stringResource(R.string.home_also_waiting))
             second.forEach { s ->
                 SmallTicket(
                     claim = s,
@@ -127,10 +129,10 @@ fun HomeScreen(
             }
         }
 
-        SectionLabel("Where to walk")
+        SectionLabel(stringResource(R.string.home_where_to_walk))
         MapCard(onClick = onMap)
 
-        SectionLabel("Collected")
+        SectionLabel(stringResource(R.string.home_collected))
         Ledger(entries = ledger)
 
         // Room to scroll the last row out from under the floating nav.

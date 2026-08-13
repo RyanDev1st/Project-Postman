@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -76,15 +77,18 @@ fun SignInScreen(
         ) {
             Text(
                 text = buildAnnotatedString {
-                    append("Nhận hàng\nkhông cần\n")
-                    withStyle(SpanStyle(color = t.accent)) { append("chìa khoá") }
+                    append(stringResource(R.string.signin_headline_lead))
+                    append("\n")
+                    withStyle(SpanStyle(color = t.accent)) {
+                        append(stringResource(R.string.signin_headline_accent))
+                    }
                 },
                 style = MaterialTheme.typography.displaySmall,
                 color = t.ink,
                 modifier = Modifier.padding(top = 16.dp),
             )
             Text(
-                text = "Any VGU locker, from your phone.",
+                text = stringResource(R.string.signin_sub),
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink2,
             )
@@ -101,14 +105,14 @@ fun SignInScreen(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "PHONE NUMBER",
+                        text = stringResource(R.string.phone_number),
                         style = MaterialTheme.typography.labelMedium,
                         color = t.ink2,
                         modifier = Modifier.padding(start = 2.dp),
                     )
                     PhoneField(number = "912 345 678")
                 }
-                GoButton(text = "Send code", onClick = onSendCode)
+                GoButton(text = stringResource(R.string.send_code), onClick = onSendCode)
             }
 
             Divider()
@@ -118,12 +122,12 @@ fun SignInScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SocialButton(
-                    label = "Google",
+                    label = stringResource(R.string.sign_in_google),
                     onClick = onGoogle,
                     modifier = Modifier.weight(1f),
                 ) { GoogleMark() }
                 SocialButton(
-                    label = "VGU account",
+                    label = stringResource(R.string.sign_in_vgu),
                     onClick = onVgu,
                     modifier = Modifier.weight(1f),
                 ) {
@@ -147,12 +151,12 @@ fun SignInScreen(
         ) {
             Spacer(Modifier.weight(1f))
             Text(
-                text = "PRIVACY",
+                text = stringResource(R.string.privacy),
                 style = MaterialTheme.typography.labelSmall,
                 color = t.ink3,
             )
             Text(
-                text = "TERMS",
+                text = stringResource(R.string.terms),
                 style = MaterialTheme.typography.labelSmall,
                 color = t.ink3,
             )
@@ -271,7 +275,7 @@ private fun Divider() {
     ) {
         Box(modifier = Modifier.weight(1f).height(1.dp).background(t.hair))
         Text(
-            text = "OR",
+            text = stringResource(R.string.divider_or),
             style = MaterialTheme.typography.labelSmall,
             color = t.ink3,
         )

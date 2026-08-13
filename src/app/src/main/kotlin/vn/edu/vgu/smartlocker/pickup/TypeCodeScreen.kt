@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
@@ -59,7 +61,7 @@ fun TypeCodeScreen(
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     onClick = onBack,
                 )
             },
@@ -67,12 +69,12 @@ fun TypeCodeScreen(
 
         Column {
             Text(
-                text = "Enter code",
+                text = stringResource(R.string.type_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = t.ink,
             )
             Text(
-                text = "From your parcel notice",
+                text = stringResource(R.string.type_sub),
                 style = MaterialTheme.typography.labelLarge,
                 color = t.ink2,
                 modifier = Modifier.padding(top = 4.dp),
@@ -106,7 +108,7 @@ fun TypeCodeScreen(
                         tint = t.refuse,
                     )
                     Text(
-                        text = "Wrong code. Try again.",
+                        text = stringResource(R.string.type_wrong),
                         style = MaterialTheme.typography.labelLarge,
                         color = t.refuse,
                     )
@@ -115,8 +117,8 @@ fun TypeCodeScreen(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            GoButton(text = "Open box", onClick = onAccepted)
-            QuietButton(text = "Scan instead", onClick = onScan)
+            GoButton(text = stringResource(R.string.type_open_box), onClick = onAccepted)
+            QuietButton(text = stringResource(R.string.type_scan_instead), onClick = onScan)
         }
     }
 }

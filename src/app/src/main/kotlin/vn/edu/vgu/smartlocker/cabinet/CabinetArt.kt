@@ -161,7 +161,7 @@ fun CabinetArt(
     ) {
         Image(
             painter = painterResource(R.drawable.cabinet),
-            contentDescription = "The VGU parcel locker cabinet, front elevation",
+            contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_cabinet_render),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Fit,
             colorFilter = if (full) {
@@ -188,29 +188,46 @@ fun CabinetArt(
                 val tintAlpha = light.value
 
                 yours.forEach { door ->
+                    // The others go out as the camera comes in.
+                    //
+                    // Two lit doors says "both of these are yours", which is
+                    // the right answer to the wide shot. Once you have chosen
+                    // one the question has changed to "which box does the
+                    // button open", and a second lit door is then answering
+                    // the old question over the top of the new one.
+                    //
+                    // Tied to `travel` rather than to a switch of its own, so
+                    // the light and the camera are one movement and cannot
+                    // get out of step. Travelling back out brings the other
+                    // doors up again, on the same curve.
+                    val focus =
+                        if (activeDoor == null || door.n == activeDoor) 1f
+                        else 1f - travel.value
+                    if (focus <= 0f) return@forEach
+
                     val path = doorPath(door.n, w, h)
                     // Halo around the door — wide strokes at low alpha stand
                     // in for the bloom filter.
                     drawPath(
                         path,
-                        color = DoorLight.copy(alpha = 0.14f),
+                        color = DoorLight.copy(alpha = 0.14f * focus),
                         style = Stroke(52f * w / 2100f),
                     )
                     drawPath(
                         path,
-                        color = DoorLight.copy(alpha = 0.18f),
+                        color = DoorLight.copy(alpha = 0.18f * focus),
                         style = Stroke(26f * w / 2100f),
                     )
                     drawPath(
                         path,
-                        color = DoorLight.copy(alpha = 0.55f),
+                        color = DoorLight.copy(alpha = 0.55f * focus),
                         style = Stroke(7f * w / 2100f),
                     )
                     // The tint itself: hue and saturation from the amber,
                     // luminance from the render — BlendMode.Color.
                     drawPath(
                         path,
-                        color = DoorLight.copy(alpha = tintAlpha),
+                        color = DoorLight.copy(alpha = tintAlpha * focus),
                         blendMode = BlendMode.Color,
                     )
                 }
