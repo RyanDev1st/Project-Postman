@@ -10,7 +10,9 @@ Product: a **parcel drop-off locker**, with two front-ends — the phone app and
 >
 > **The tester build is current.** Release `5mrcmp0mlql80`, version 0.10.0, 2026-08-13. The old warning here said App Distribution was still serving the Phase 1 skeleton and that a tester was not looking at the current design — that stopped being true at 0.8.0 and this note was left standing. Six design builds have gone out since.
 >
-> **What is not done is the proving.** Eight of the ten blocks are marked `🟡 DOING`: the code is in, it has shipped, and it looks right on a device. Not one has been through the reference-versus-port picture comparison that this phase exists to impose, because **P1.5-01, the loop itself, is still half built** — the Chrome reference half works, the JVM render half has never rendered a component. Shipping is not the check. Until P1.5-01 closes, every block below it is being judged the way the previous three failed ports were judged: by eye, on a phone.
+> **The loop works. The proving has not been done.** P1.5-01 is closed: one command draws five of the app's components to PNG on this machine, and one draws the same five from the mock-up's own stylesheets in Chrome, with no phone involved. An earlier version of this note said the JVM half had never rendered a component — that was read off a stale line in the phase file rather than checked, and it was wrong.
+>
+> What is still true is that **eight of the ten blocks are `🟡 DOING`**: the code is in, it has shipped, and it looks right on a device — but no block has been through the picture comparison. Shipping is not the check. The tool now exists to do it in about a minute per block, so there is no longer a reason to judge them the way the first three failed ports were judged: by eye, on a phone.
 >
 > One task is `🔴 BLOCKED` — P1.5-08, the theme switch, on BUG-003.
 >
@@ -98,7 +100,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
-- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `0/10` · **CURRENT**
+- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `1/10` · **CURRENT**
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/9`
       A receiver registers with a phone number and stays logged in.
@@ -115,7 +117,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 14 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 15 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

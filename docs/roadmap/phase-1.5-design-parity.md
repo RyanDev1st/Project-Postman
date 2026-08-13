@@ -39,7 +39,7 @@ in a build.
 
 ### Running the reference half
 
-It works today. `scratch_reference.html` in `docs/designs/mockup` loads the
+It works today. `reference-harness.html` in `docs/designs/mockup` loads the
 real `screens.css`, the real `glass.css` and the real `liquid.js`, and holds
 the components in the markup they have in `body.html`. Serve the folder, then:
 
@@ -126,7 +126,7 @@ take their colours from `LockerTokens` rather than from constants.
 
 ## Tasks
 
-**Progress: 0 / 10.**
+**Progress: 1 / 10.**
 
 One task per block in the table above — the blocks were already agreed, these
 are the same ten with IDs so the board can count them. IDs carry the phase's
@@ -140,10 +140,20 @@ phase exists to impose. Shipping is not the check. Where a task is marked
 `🟡 DOING` the code is in and looks right on a device; what is missing is the
 PNG pair.
 
-- [ ] **🟡 DOING — P1.5-01** — The parity loop itself
+P1.5-01 is now closed, so the two pictures can actually be taken. Running both
+halves takes about a minute:
+
+```sh
+./gradlew :app:testDebugUnitTest --tests "*DesignParityTest*"   # 5 PNGs in build/parity/
+python -m http.server 8731 --bind 127.0.0.1                     # from docs/designs/mockup
+# then the chrome --headless line above
+```
+
+- [x] **P1.5-01** — The parity loop itself
       - Owner: Claude · Needs: — · Blocks: P1.5-02, P1.5-03, P1.5-04, P1.5-06, P1.5-07, P1.5-08, P1.5-09, P1.5-10
       - Verify: one command renders a Compose component to PNG on this machine, and one renders the same component from the mock-up in Chrome, with no phone involved
-      - Notes: the reference half works — `scratch_reference.html` with `#probe=`. The JVM half is wired in `build.gradle.kts` but has never rendered a component
+      - Notes: port half is `src/app/src/test/.../DesignParityTest.kt`, reference half is `docs/designs/mockup/reference-harness.html`. Both write PNGs that git ignores. Two traps are already paid for and written down in the test: `captureToImage()` never returns under Robolectric because there is no window to read back, so the view is drawn into a bitmap instead; and the frame clock has to be advanced by hand or nothing ever reports idle
+      - Done: 2026-08-13 — Ran one command and got five pictures of the app's own parts, drawn on this computer with no phone plugged in anywhere. Ran a second command and got the same five parts drawn from the designer's original files in a web browser. Both sets came out and can be put side by side. That is the whole point of this phase: a part can now be checked here in about a minute, instead of building the app, sending it to Ryan's phone and waiting to be told it looks wrong.
 
 - [ ] **🟡 DOING — P1.5-02** — Tokens: colour, type, spacing
       - Owner: Claude · Needs: P1.5-01 · Blocks: P1.5-03, P1.5-04, P1.5-06, P1.5-07, P1.5-08, P1.5-09, P1.5-10
