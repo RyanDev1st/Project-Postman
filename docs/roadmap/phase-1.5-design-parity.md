@@ -141,13 +141,19 @@ Recorded so a rebuild does not lose them.
   is not working on Ryan's phone.
 - **The theme switch knob** has "awkward layered fading circles" — concentric
   translucent halo circles that the component does not have.
-- **Nav items sit low and look offset**; the labels crowd the bottom edge.
+- ~~**Nav items sit low and look offset**; the labels crowd the bottom edge.~~
+  **Settled 2026-08-13** by P1.5-06 — every item metric measured against the
+  reference and the bar drawn on this machine. The cause was a `Column` that
+  wrapped its own width, so three labels sat against the left edge of their
+  tabs; `contentAlignment = Center` fixed it.
 - **The app-bar beads** read as dark blobs rather than lit glass.
 - **Cabinet zoom in is too fast, and zoom out is broken**, which then breaks
   the next zoom in.
 - **The map is framed wrong** and does not plot the walk to the cabinet
   correctly.
-- **Recess** was rebuilt on 2026-08-12 and is unverified by eye.
+- ~~**Recess** was rebuilt on 2026-08-12 and is unverified by eye.~~
+  **Settled 2026-08-13** by P1.5-03 — exact in both schemes, on size, radius,
+  fill and both inset shadows.
 
 ## What is coming, so the rebuild does not have to be undone
 
@@ -169,7 +175,7 @@ take their colours from `LockerTokens` rather than from constants.
 
 ## Tasks
 
-**Progress: 3 / 10.**
+**Progress: 4 / 10.**
 
 One task per block in the table above — the blocks were already agreed, these
 are the same ten with IDs so the board can count them. IDs carry the phase's
@@ -213,22 +219,23 @@ python -m http.server 8731 --bind 127.0.0.1                     # from docs/desi
 - [ ] **🟡 DOING — P1.5-04** — `lg` glass: body, bloom, lip, rim
       - Owner: Claude · Needs: P1.5-02 · Blocks: P1.5-05, P1.5-06, P1.5-07
       - Verify: the two PNGs match for a pane over the same backdrop
-      - Notes: ported from `rdev/liquid-glass-react`'s own displacement map rather than guessed. Ryan on 0.9.0: good in light, too much refraction in dark, since halved
+      - Notes: ported from `rdev/liquid-glass-react`'s own displacement map rather than guessed. Ryan on 0.9.0: good in light, too much refraction in dark, since halved. **Cannot close here, for the same reason as P1.5-05 and P1.5-07**: a pane's read is its blur and its rim refraction, and neither `RenderEffect` nor AGSL runs on the JVM. What the loop can see, it agrees with — the pane edge, the lit lip and the fill are right in `bottom-nav.png`, and the `hair` token behind that edge was wrong until BUG-005. **Needs Ryan's phone**
 
 - [ ] **🟡 DOING — P1.5-05** — The backdrop blur
       - Owner: Claude · Needs: P1.5-04 · Blocks: P1.5-06, P1.5-07
       - Verify: device only — text behind the nav bar is blurred, not tinted, on a real phone
       - Notes: `RenderEffect` and AGSL need a GPU, so this one can never have a JVM picture. Working on the emulator since 0.8.2
 
-- [ ] **🟡 DOING — P1.5-06** — The nav bar
+- [x] **P1.5-06** — The nav bar
       - Owner: Claude · Needs: P1.5-02, P1.5-04, P1.5-05 · Blocks: —
       - Verify: the two PNGs match on item metrics, not only the pane
-      - Notes: labels were 9.5sp on a tone failing AA; both fixed in the token pass
+      - Notes: measured 2026-08-13, every item metric against the reference's computed values. **Nine match exactly** — icon 17, selected icon ×1.06 and lifted 1px, icon-to-label gap 2, label 9.5px at line 14.25 and letter-spacing 0.07em, weight 600, item radius 999, accent `#7FA8FF`, selected fill at 24%. **Three moved on the grid** — item padding 7 → 8 and 3 → 2, pane padding 5 → 4 — and they cancel: `5 + 47.25 + 5` and `4 + 49.25 + 4` are both 57.25, so the bar is exactly as tall as the design's by a different route. The label tone is `ink3`, lighter than the mock-up's on purpose. The pane's blur is P1.5-05's, and this Verify says item metrics, not the pane
+      - Done: 2026-08-13 — Measured every part of a nav button against the designer's original and drew the bar on this computer to look at. The icons, the gap under them, the label size, its spacing and weight, the blue of the selected tab and the strength of its wash are all identical. Three paddings moved when the app went onto a spacing grid, but they cancel out and the bar ends up exactly the height the design says. The picture shows what it should: a pill under the middle tab with a lit top edge, lifted off the bar, and the icon riding a touch above it.
 
 - [ ] **🟡 DOING — P1.5-07** — The app bar and its beads
       - Owner: Claude · Needs: P1.5-02, P1.5-04, P1.5-05 · Blocks: —
       - Verify: the two PNGs match, and the beads read as lit glass rather than dark blobs
-      - Notes: the beads were not glass at all until 0.8.2 — the bar was inside the recorded backdrop source, so it could not sample it. Touch targets are 30dp against Material's 48dp guidance and that is still an open question for Ryan
+      - Notes: the beads were not glass at all until 0.8.2 — the bar was inside the recorded backdrop source, so it could not sample it. Touch targets are 30dp against Material's 48dp guidance and that is still an open question for Ryan. **Measured 2026-08-13: the geometry is exact** — 30dp bead, 14dp icon, `ink2` tint, against the reference's 30 × 30, 14 × 14 and `rgb(142,154,168)`. **But this block cannot close on a JVM picture, and now there is proof.** In `build/parity/beads.png` the beads are dark blobs — the very thing the Verify forbids — because a bead's whole read is the backdrop blur, and `RenderEffect` does not run without a GPU. The picture shows the tint with nothing behind it. Same reason as P1.5-05. **Ryan's phone is the only instrument that can close this one**
 
 - [ ] **🔴 BLOCKED — P1.5-08** — The theme switch
       - Owner: _unassigned_ · Needs: P1.5-02 · Blocks: —

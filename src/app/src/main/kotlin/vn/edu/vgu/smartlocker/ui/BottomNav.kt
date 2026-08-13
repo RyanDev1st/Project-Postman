@@ -192,8 +192,15 @@ fun BottomNav(
                                 // The label's line box, measured off the
                                 // reference: 14.2px, which is `normal` line
                                 // height on 9.5px. Set to 11 the whole bar
-                                // came out 3px short — 7 + 17 + 2 + line + 7
+                                // came out 3px short — 8 + 17 + 2 + line + 8
                                 // is the only thing that sets its height.
+                                //
+                                // Those 8s were the reference's 7s until the
+                                // spacing grid took them, and the 5dp pane
+                                // padding became 4 in the same pass. They
+                                // cancel: 5 + 47.25 + 5 and 4 + 49.25 + 4 are
+                                // both 57.25, so the bar is exactly as tall
+                                // as the design's, by a different route.
                                 lineHeight = 14.25.sp,
                                 letterSpacing = 0.07.em,
                                 fontWeight = FontWeight.SemiBold,

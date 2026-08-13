@@ -4,7 +4,7 @@ The plan for the app side of VGU Smart Locker. One file per phase. Every task is
 
 Product: a **parcel drop-off locker**, with two front-ends — the phone app and the cabinet screen. See [ADR 0003](../adr/0003-parcel-locker-product.md).
 
-> ### ⚠️ Phase 1.5 is on the board now, and none of it is ticked
+> ### ⚠️ Phase 1.5 — four of ten closed, and three of the rest need a phone
 >
 > **Ryan put the app design first, as a "Phase 1.5", ahead of Phase 2.** It has a file, ten task IDs and a `Verify` line each, and the totals count it. This board no longer points at Phase 2.
 >
@@ -12,7 +12,11 @@ Product: a **parcel drop-off locker**, with two front-ends — the phone app and
 >
 > **The loop works. The proving has not been done.** P1.5-01 is closed: one command draws five of the app's components to PNG on this machine, and one draws the same five from the mock-up's own stylesheets in Chrome, with no phone involved. An earlier version of this note said the JVM half had never rendered a component — that was read off a stale line in the phase file rather than checked, and it was wrong.
 >
-> **The comparison has started, and it is finding things.** P1.5-02 and P1.5-03 are closed. Checking all 46 colour tokens against the designer's own file by number rather than by eye found two typed in wrong — a dark-mode outline drawn teal instead of pale blue on every card and box in the app, and a washed-out light-mode card shadow. Both fixed, logged as BUG-005. **Six of the ten blocks are still `🟡 DOING`**: the code is in, it has shipped, and it looks right on a device — but those six have not been through the picture comparison. Shipping is not the check.
+> **The comparison has started, and it is finding things.** P1.5-02, P1.5-03 and P1.5-06 are closed. Checking all 46 colour tokens against the designer's own file by number rather than by eye found two typed in wrong — a dark-mode outline drawn teal instead of pale blue on every card and box in the app, and a washed-out light-mode card shadow. Both fixed, logged as BUG-005. That is a fault six builds of eye-checking never caught, found in one pass on this machine.
+>
+> **Three blocks cannot be closed here at all, and now that is proved rather than assumed** — P1.5-04, P1.5-05 and P1.5-07. All three are glass, and glass reads by its backdrop blur, which needs a GPU that a JVM render does not have. `build/parity/beads.png` shows the beads as dark blobs, which is exactly what P1.5-07's own `Verify` forbids. Their numbers are all right — a bead is 30dp with a 14dp icon, matching the design exactly — so what is left is a look on Ryan's phone, and nothing else.
+>
+> **Two blocks are `🟡 DOING` and could still close here** — P1.5-09, the cabinet camera, and P1.5-10, the map card. Both are motion and framing rather than a still component, so neither fits the five-component test as it stands.
 >
 > One task is `🔴 BLOCKED` — P1.5-08, the theme switch, on BUG-003.
 >
@@ -102,7 +106,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
-- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `3/10` · **CURRENT**
+- [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `4/10` · **CURRENT**
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `0/9`
       A receiver registers with a phone number and stays logged in.
@@ -119,7 +123,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 17 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 18 / 87.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
