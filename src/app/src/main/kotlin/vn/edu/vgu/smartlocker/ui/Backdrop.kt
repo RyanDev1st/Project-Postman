@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.Shape
@@ -118,7 +119,11 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
     // is shared by every pane at once.
     val paneLayer = rememberGraphicsLayer()
     val refraction = rememberRefraction()
-    val blurPx = with(LocalDensity.current) { BLUR.toPx() }
+    val density = LocalDensity.current
+    val blurPx = with(density) { BLUR.toPx() }
+    // How much wider than the pane the recording is, on every side, so the
+    // lens has real content to bend rather than a hole. See [Refraction.PAD].
+    val padPx = with(density) { Refraction.PAD.toPx() }
 
     return this
         .onGloballyPositioned { paneOrigin = it.positionInRoot() }
@@ -144,17 +149,62 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
             // Chained, so the frost runs first and the refraction bends the
             // frosted result — the order the material needs, and the order
             // `backdrop-filter` uses.
+            // The recording is the pane plus a margin all round. The blur
+            // wants it as much as the lens does: `DECAL` treats everything
+            // past the layer as transparent, so without the margin the frost
+            // thinned out towards each edge exactly where the rim needs to be
+            // solid.
+            val outer = Size(size.width + 2f * padPx, size.height + 2f * padPx)
+
+            // Where the recorded screen lands inside that margin. The lens
+            // needs it as well as the recording does — see [Refraction].
+            val d = state.sourceOrigin - paneOrigin
+            val at = Offset(d.x + padPx, d.y + padPx)
+            val recorded = state.layer.size
+
             val frost = frostEffect(blurPx)
-            val bend = refraction?.effectFor(size, this@drawWithContent)?.asAndroidRenderEffect()
+            val bend = refraction
+                ?.effectFor(
+                    layer = outer,
+                    pane = size,
+                    contentAt = at,
+                    contentSize = Size(recorded.width.toFloat(), recorded.height.toFloat()),
+                    density = this@drawWithContent,
+                )
+                ?.asAndroidRenderEffect()
+            // Lens first, frost second — `createChainEffect(outer, inner)`.
+            //
+            // The library goes the other way: `backdrop-filter` blurs, then
+            // `filter: url(#…)` displaces the blurred result. This did too,
+            // and it put a hard vertical seam down one end of the nav bar with
+            // sharp page text showing through beyond it.
+            //
+            // The reason is that a blur grows the bounds it hands on. Probed
+            // on the emulator by painting `frag / size` straight out as
+            // colour: with the blur inner, the shader's coordinate space came
+            // back 887px wide where the layer is 810, and the pane's left edge
+            // landed at 125 rather than at the 50 of the margin. So `centre`
+            // was 37px off and the clamp was biting into live content — an
+            // error on one side only, which is what a one-sided seam is.
+            //
+            // Inner effects run on the layer itself, where the coordinates are
+            // known exactly, so the lens goes there and the frost takes its
+            // output. The cost is that the frost now softens the colour
+            // fringes rather than the fringes being made from softened
+            // content. The library does the same thing at the end of its own
+            // chain with a `feGaussianBlur` after the three passes.
             paneLayer.renderEffect =
-                (if (bend != null) RenderEffectApi.createChainEffect(bend, frost) else frost)
+                (if (bend != null) RenderEffectApi.createChainEffect(frost, bend) else frost)
                     .asComposeRenderEffect()
 
-            paneLayer.record(IntSize(size.width.toInt(), size.height.toInt())) {
-                val d = state.sourceOrigin - paneOrigin
-                translate(d.x, d.y) { drawLayer(state.layer) }
+            paneLayer.record(IntSize(outer.width.toInt(), outer.height.toInt())) {
+                translate(at.x, at.y) { drawLayer(state.layer) }
             }
-            clipPath(path) { drawLayer(paneLayer) }
+            // Drawn back with the margin hanging outside, then clipped to the
+            // pane, so the extra never reaches the screen.
+            clipPath(path) {
+                translate(-padPx, -padPx) { drawLayer(paneLayer) }
+            }
             drawContent()
         }
 }
@@ -162,7 +212,22 @@ fun Modifier.backdropBlur(state: BackdropState, shape: Shape): Modifier {
 private typealias RenderEffectApi = android.graphics.RenderEffect
 
 /**
- * Twenty, measured off the live demo rather than read off the README.
+ * Eleven — under the demo's twenty, and deliberately.
+ *
+ * The demo's twenty sits over a busy colour photograph, where a heavy blur
+ * still leaves shape and colour to work with. Our backdrop is a dark UI: thin
+ * type, hairlines and flat panels. Twenty pixels of blur turns that into
+ * even grey, and even grey is what "super frosty and cheap" means. It also
+ * destroys the only thing the refraction has to bend — a lens over mush shows
+ * nothing, so the material loses the very effect that makes it liquid glass
+ * rather than frosted glass.
+ *
+ * Eleven still stops a word being read through the bar, which is the one
+ * thing the blur must do, and leaves enough structure for the edge to bend.
+ *
+ * (History, so this does not move again on the wrong evidence: the README's
+ * default computes to 6px; the live demo runs 20. Neither is a target on its
+ * own — the right figure depends on what is behind the glass.)
  *
  * `liquid-glass-react` documents `blurAmount: 0.0625`, and the filter is
  * `blur(4 + blurAmount * 32)`, so the documented default is 6px. The demo at
@@ -176,7 +241,7 @@ private typealias RenderEffectApi = android.graphics.RenderEffect
  *
  * Read the docs, then go and look at the thing.
  */
-private val BLUR = 20.dp
+private val BLUR = 11.dp
 
 /**
  * `backdrop-filter: blur(6px) saturate(140%)` — the liquid-glass defaults.

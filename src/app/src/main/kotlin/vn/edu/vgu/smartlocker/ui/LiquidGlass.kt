@@ -1,12 +1,18 @@
 package vn.edu.vgu.smartlocker.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -14,6 +20,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.Color
@@ -22,30 +29,31 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
- * The `.lg` material — the nav bar and the app-bar beads.
+ * The glass — the nav bar and the app-bar beads.
  *
- * Four things make it, and the port had two of them:
+ * Ported from `rdev/liquid-glass-react` at its defaults, which is the material
+ * Ryan named and the one its own demo shows. Four parts, and only four:
  *
- * 1. **The body.** A 157° gradient, brightest at the top-left corner.
- * 2. **The specular bloom** — `.lg::before`, a radial highlight hanging off
- *    the top-left corner at `126% 74% at 20% -14%`. This was missing
- *    entirely, and it is most of what makes the material look lit rather
- *    than tinted.
- * 3. **A lip on all four edges**, each a different strength: the top is a
- *    catch of light at 40%, the sides much weaker, the bottom weaker still.
- *    The port drew one flat 1px ring at a single alpha the whole way round.
- * 4. **The rim.** Not a border — `liquid.js` is explicit that a hard inset
- *    ring "was the chalk". It is a specular arc that reaches zero at both
- *    ends, so about three quarters of the perimeter carries no line at all.
+ * 1. **A blurred, saturated copy of what is behind it** — [backdropBlur].
+ * 2. **A lens over that copy**, bending it at the edges — [Refraction].
+ * 3. **A rim**, two masked gradient rings — [rim].
+ * 4. **A drop shadow** — [glassShadow].
  *
- * The refraction in `liquid.js` — the SDF displacement that bends the
- * backdrop at the rim — is **not here yet**. It needs a runtime shader, and
- * that is API 33; this is the material underneath it.
+ * There is no fifth. Nothing is painted on the face: the library's glass
+ * element computes `background: rgba(0, 0, 0, 0)` and its whole appearance is
+ * what 1 and 2 let through. Earlier passes here had a 157° body gradient, a
+ * corner bloom and two white bands across the face, all lifted from the
+ * mock-up's `.lg`. Every one of them was a sheet of white over the only thing
+ * worth seeing, and together they were what "super frosty and cheap" meant.
+ *
+ * The one thing that does sit on the face is the press highlight, and it is
+ * transparent until a finger is down.
  */
 
 /** How far off the surface a pane sits. `.lg` sits in the page; `.lg-pop`
@@ -93,7 +101,13 @@ fun GlassBead(
     content = content,
 )
 
-/** The two bloom geometries, straight off `.lg::before` and `.lg-bead::before`. */
+/**
+ * The press highlight, `radial-gradient(circle at 50% 0%, ...)` — index.tsx
+ * 562-607. Drawn only while a finger is down, and only on a control that has
+ * something to press. [PANE] therefore goes unused today, because no pane is
+ * clickable; it is kept because the geometry belongs with its sibling and a
+ * pane that gains a tap will want it.
+ */
 private enum class Bloom(
     val rx: Float, val ry: Float, val cx: Float, val cy: Float,
     val peak: Float, val mid: Float?, val midStop: Float, val end: Float,
@@ -108,7 +122,7 @@ private enum class Bloom(
      * above the middle is symmetrical, which is what makes a bar of three
      * equal tabs look like one object.
      */
-    PANE(1.00f, 0.62f, 0.50f, 0.00f, 0.50f, 0.14f, 0.24f, 0.50f),
+    PANE(1.00f, 0.62f, 0.50f, 0.00f, 0.22f, 0.06f, 0.24f, 0.50f),
 
     /**
      * The same light, tighter and brighter — a bead is nearly all edge, so
@@ -134,35 +148,22 @@ private fun Glass(
     val t = LocalLockerTokens.current
     val dark = t.dark
 
-    // `rdev/liquid-glass-react`, at its defaults — the material Ryan named.
-    //
-    // Two stacked bands rather than one fade. Each runs transparent at both
-    // ends and peaks in the middle third, so the sheen is a BAND crossing the
-    // pane, not a wash pouring off one corner. That is the difference a
-    // linear fade cannot make: a fade says "lit from over there", a band says
-    // "this is a curved surface catching one light". The mock-up's own `.lg`
-    // is the fade, and it is why the pane read as flat.
-    //
-    // Numbers from src/index.tsx 525-556, with the mouse terms at rest.
-    val bandLow = Brush.linearGradient(
-        0.00f to Color.White.copy(alpha = 0.00f),
-        0.33f to Color.White.copy(alpha = 0.12f),
-        0.66f to Color.White.copy(alpha = 0.40f),
-        1.00f to Color.White.copy(alpha = 0.00f),
-        start = Offset.Zero,
-        end = Offset(0f, 900f),
-    )
-    val bandHigh = Brush.linearGradient(
-        0.00f to Color.White.copy(alpha = 0.00f),
-        0.33f to Color.White.copy(alpha = 0.32f),
-        0.66f to Color.White.copy(alpha = 0.60f),
-        1.00f to Color.White.copy(alpha = 0.00f),
-        start = Offset.Zero,
-        end = Offset(900f, 0f),
+    // `scale(0.96)` while held — index.tsx 444. The library's own indication,
+    // and it has no ripple, so this one has none either.
+    val presses = remember { MutableInteractionSource() }
+    val pressed by presses.collectIsPressedAsState()
+    val squash by animateFloatAsState(
+        targetValue = if (onClick != null && pressed) 0.96f else 1f,
+        animationSpec = tween(200),
+        label = "press",
     )
 
     Box(
         modifier = modifier
+            .then(
+                if (onClick == null) Modifier
+                else Modifier.graphicsLayer { scaleX = squash; scaleY = squash }
+            )
             .glassShadow(dark, lift, shape)
             .clip(shape)
             .then(if (backdrop != null) Modifier.backdropBlur(backdrop, shape) else Modifier)
@@ -198,18 +199,63 @@ private fun Glass(
                     shape,
                 )
             )
-            // The two bands are faint on their own and are meant to be: at
-            // rest this material is mostly the refraction and the edge. They
-            // are drawn at a fraction on a dark ground, where white at 40%
-            // across a whole pane would be a headlight.
-            .background(bandLow, shape, alpha = if (dark) 0.35f else 0.65f)
-            .background(bandHigh, shape, alpha = if (dark) 0.22f else 0.45f)
+            // No gradient on the face. Not a wash, not a band, not a bloom.
+            //
+            // This is the correction, and it is a structural one rather than a
+            // number. `liquid-glass-react` has two white gradients and this
+            // port had both of them — but painted across the whole pane. In
+            // the library they are two `<span>` overlays carrying
+            // `padding: 1.5px` and `maskComposite: exclude`, which masks out
+            // everything except the border. The gradients are the RIM. The
+            // face gets nothing: the library's own glass element computes to
+            // `background: rgba(0, 0, 0, 0)`.
+            //
+            // A gradient laid over the face is the definition of frost, and it
+            // hides the one thing this material is for — the backdrop seen
+            // through it. Lowering the alphas made it a fainter frost. Moving
+            // them to the rim makes it glass. See [rim].
+            //
+            // What is left is a flat veil, and it is a **deliberate departure
+            // from the library**, so it is worth being clear why.
+            //
+            // The library never needs one: every pane in its demo sits on a
+            // colour photograph, so blur and saturation alone give it a body.
+            // This app's nav bar sits at the foot of the screen, and
+            // [lockerGround] runs its light out to 900px — the bar is at 1450.
+            // What is behind it is one flat near-black, and blurring a flat
+            // colour returns the same flat colour. Ported exactly, the bar
+            // came out as a hairline ring around nothing.
+            //
+            // Apple's own dark material does lift over dark content; the
+            // library gestures at the same idea from the other side with
+            // `overLight`, which darkens over bright content. The figure is
+            // read off that behaviour rather than picked: ground is about RGB
+            // 12, an ultra-thin dark material lands near 28, and
+            // 12 + a(255 - 12) = 28 gives 0.07.
+            //
+            // Flat, not graded. A flat veil says the glass is faintly milky.
+            // A graded one says somebody painted a highlight on it, and that
+            // is the difference the last three builds kept getting wrong.
+            .background(
+                if (dark) Color.White.copy(alpha = 0.07f)
+                else Color.Black.copy(alpha = 0.10f),
+                shape,
+            )
             .drawWithContent {
-                bloom(bloom, dark)
                 drawContent()
-                edge(dark, shape)
+                // index.tsx 562-607: the radial highlight exists only while
+                // the control is hovered or held. At rest its opacity is 0.
+                if (onClick != null && pressed) bloom(bloom, dark)
+                rim(dark, shape)
             }
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(
+                if (onClick == null) Modifier
+                else Modifier.clickable(
+                    interactionSource = presses,
+                    indication = null,
+                    onClick = onClick,
+                )
+            ),
         contentAlignment = contentAlignment,
         content = content,
     )
@@ -250,11 +296,33 @@ private fun DrawScope.bloom(b: Bloom, dark: Boolean) {
 }
 
 /**
- * The edge: a bright hairline all the way round, and a soft return under it.
+ * The rim — and in this material the rim is nearly the whole component.
  *
- * `0 0 0 0.5px rgba(255,255,255,.5) inset` and
- * `0 1px 3px rgba(255,255,255,.25) inset`, which is a **complete** ring — not
- * an arc.
+ * `liquid-glass-react` builds it out of two overlay spans, index.tsx 509-559.
+ * Each is the size of the pane, each carries `padding: 1.5px` with
+ * `maskComposite: exclude`, and that mask is what makes them rings: the
+ * middle is cut out and only a pixel and a half at the edge survives. Both
+ * carry the same two inset shadows, and both are filled with a diagonal white
+ * gradient. They differ in how they blend:
+ *
+ *     layer 1   mix-blend-mode: screen    opacity 0.2   stops .00 .12 .40 .00
+ *     layer 2   mix-blend-mode: overlay   opacity 1.0   stops .00 .32 .60 .00
+ *
+ * The gradient is `135deg`, so its axis runs top-left to bottom-right, and
+ * both peaks sit past the middle of it. Around a ring that puts two bright
+ * arcs on opposite flanks with the two diagonal corners dark — which is what a
+ * curved edge does under one light, and it is the single most recognisable
+ * thing about this material. A ring at one flat alpha is a drawn border.
+ *
+ * The blend modes are ported rather than approximated, because they are the
+ * reason the rim is quiet here and blazing in the library's own demo. `screen`
+ * and `overlay` both read the backdrop: over the demo's colour photograph they
+ * bloom, over our near-black ground they stay a suggestion. That is the
+ * material behaving correctly, not the port failing.
+ *
+ * Under the two gradient rings, unchanged, the pair of inset shadows that both
+ * spans carry: `0 0 0 0.5px rgba(255,255,255,.5) inset` and
+ * `0 1px 3px rgba(255,255,255,.25) inset`. A **complete** ring — not an arc.
  *
  * This reverses a decision. The previous edge was a sweep lit from the
  * top-left that fell to nothing across about three quarters of the perimeter,
@@ -270,8 +338,8 @@ private fun DrawScope.bloom(b: Bloom, dark: Boolean) {
  * Half a pixel, so it stays a hairline at any density and never becomes a
  * drawn border.
  */
-private fun DrawScope.edge(dark: Boolean, shape: Shape) {
-    val ring = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@edge)) }
+private fun DrawScope.rim(dark: Boolean, shape: Shape) {
+    val ring = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@rim)) }
     val hair = if (dark) 0.50f else 0.85f
 
     // The soft return, first and underneath: a white glow thrown down from
@@ -281,7 +349,7 @@ private fun DrawScope.edge(dark: Boolean, shape: Shape) {
         val depth = (1f + 3f).dp.toPx()
         drawRect(
             brush = Brush.verticalGradient(
-                0f to Color.White.copy(alpha = if (dark) 0.25f else 0.55f),
+                0f to Color.White.copy(alpha = if (dark) 0.14f else 0.42f),
                 1f to Color.Transparent,
                 startY = 0f,
                 endY = depth,
@@ -294,6 +362,37 @@ private fun DrawScope.edge(dark: Boolean, shape: Shape) {
         ring,
         color = Color.White.copy(alpha = hair),
         style = Stroke(width = 0.5.dp.toPx()),
+    )
+
+    // The two gradient rings. Stroked at twice their width and clipped to the
+    // outline, so what is left is 1.5dp lying inside the edge — which is what
+    // `padding: 1.5px` plus an excluded mask leaves.
+    val band = Stroke(width = 3.dp.toPx())
+    clipPath(ring) {
+        drawPath(ring, brush = diagonal(0.12f, 0.40f), style = band, alpha = 0.2f, blendMode = BlendMode.Screen)
+        drawPath(ring, brush = diagonal(0.32f, 0.60f), style = band, blendMode = BlendMode.Overlay)
+    }
+}
+
+/**
+ * CSS `linear-gradient(135deg, ...)` over this pane, as a Compose brush.
+ *
+ * The angle is not the corner-to-corner diagonal. CSS runs the line at exactly
+ * 135° and then makes it long enough that the two far corners project onto its
+ * ends, which is `(w + h) * cos(45°)`. On a nav bar 358dp by 59dp the two are
+ * nowhere near each other, and using the corners instead would tilt the whole
+ * lighting by about forty degrees.
+ */
+private fun DrawScope.diagonal(mid: Float, peak: Float): Brush {
+    val reach = (size.width + size.height) / 4f
+    val centre = Offset(size.width / 2f, size.height / 2f)
+    return Brush.linearGradient(
+        0.00f to Color.White.copy(alpha = 0f),
+        0.33f to Color.White.copy(alpha = mid),
+        0.66f to Color.White.copy(alpha = peak),
+        1.00f to Color.White.copy(alpha = 0f),
+        start = Offset(centre.x - reach, centre.y - reach),
+        end = Offset(centre.x + reach, centre.y + reach),
     )
 }
 

@@ -15,6 +15,7 @@ Add a row the moment you see a bug. Do not wait until you understand it.
 | ID | Device + OS | Screen | What happened | What should happen | Status | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
 | BUG-002 | Ryan's phone, Android | Settings — dark mode toggle | Faint circles spread out around the knob and sit on the screen behind the toggle. Ryan: "awkward layered fading circles around the moon". | The circles are the design's own — four white 10% rings around the knob — but the pill clips them, so they only lighten the sky inside the pill and never appear outside it. | fixed — the knob now draws inside the track's clip, and the extra 20% disc over the well is gone. Seen in `build/parity/theme-switch.png`. Needs re-testing on Ryan's phone | Claude |
+| BUG-003 | Emulator `parity`, Android 16, 780x1690 @320dpi, software GL | Settings — dark mode toggle | The switch is a speckled grey blob. The knob has no clear shape and the track is dusted with light specks. The two plain toggles above it on the same screen — Parcel arrived, SMS backup — are clean, so it is this component and not the screen. Seen in `v080e-settings.png` at 0.8.0. | The switch reads as one pill with one round knob, the way the mock-up's `.theme-switch` does. | open — found while checking the glass work, not caused by it. May be the same root as BUG-002 seen from the front. Not yet reproduced on a real phone | — |
 
 ## Closed bugs
 

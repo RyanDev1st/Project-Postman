@@ -1,37 +1,48 @@
-0.7.0 — the blur works. Seen working, not hoped for.
+0.8.0 — the glass is a lens now, not a painted panel.
 
-Check the version: long-press the app icon, App info. It must read 0.7.0.
+Check the version first: long-press the app icon, App info. It must read 0.8.0.
 
-Scroll Home so the COLLECTED list passes under the nav bar. Those words should
-be soft, dissolved, unreadable. Until this build they were razor sharp, which
-is what Ryan spotted from a screenshot and called a transparent knockoff. He
-was right, and it was not a matter of degree — there was no blur at all.
+Scroll Home so the COLLECTED list runs under the nav bar. Nothing behind the
+bar should be readable — not in the middle, and not at the two ends. On 0.7.0
+the middle was soft but the words at each end stayed sharp, and there was a
+hard vertical seam near the right-hand end. Both are gone.
 
-Three faults stacked on top of each other, each hiding the next:
+What was wrong, and it was not a matter of taste:
 
-1. The blur was attached to the layer that records the screen. That layer is
-   never drawn to a canvas, and an effect only happens when its layer is
-   drawn. The layer that does reach the screen took its effect from the
-   refraction shader alone, and that shader needs Android 13 — below it the
-   value is nothing, so the line cleared the effect instead of setting one.
+1. The white gradients were on the wrong part of the component. The library
+   Ryan asked for puts them in a ring a pixel and a half wide, masked out of
+   the middle. This app painted them across the whole face. White across the
+   face is the definition of frost, and no amount of lowering the numbers was
+   going to fix where they were. They are now the rim, and the face carries
+   nothing but a flat veil.
 
-2. With that fixed the bar was still see-through, because what the glass
-   samples is a recording of the page, and the page's background was painted
-   by a parent outside that recording. The glass was sampling a transparent
-   sheet. Blur a transparent sheet and you get a transparent sheet.
+2. The lens was squashing the picture. The library's displacement image is
+   covered over the pane, keeping its shape. This app stretched it to fit, and
+   on a bar six times wider than it is tall that pulls six times harder
+   downwards than sideways — the horizontal smear across the bar.
 
-3. Moving the background in did nothing at first, because "inside" is a matter
-   of modifier order, and it was still declared on the wrong side of the
-   recording.
+3. The lens was reaching outside the recorded screen and finding nothing.
+   Where it found nothing the bar was simply transparent, so the page showed
+   through at full sharpness. That is the sharp words at the two ends.
 
-None of these are settings. No amount of tuning alphas, gradients or light
-direction — five builds of it — could have reached them.
+4. The blur was running before the lens, and a blur quietly grows the frame it
+   hands on. Measured on the emulator, the lens was working in a frame 887
+   pixels wide while it had been told 810, so it was aiming 37 pixels off
+   centre — an error on one side only, which is what the seam was.
 
-**Everything else in this build is unchanged.** The material's numbers are the
-same as 0.6.0. What changed is that they now apply to something.
+None of the four is a setting. They were found by measuring, not by taste:
+the library's image was decoded and read pixel by pixel, and the app was made
+to paint its own coordinates on screen so they could be read back.
 
-One honest limit. This material is a lens: it shows what is behind it,
-blurred and saturated, and has little substance of its own. Over the parcel
-cards and the cabinet render it should now read as glass. Over empty
-background it will always be quiet, because our ground is near-black and flat
-and there is nothing there to bend.
+One honest addition that is NOT in the library. Over the ground at the foot of
+this app's screens there is one flat near-black and nothing else, and blurring
+a flat colour returns the same flat colour. Ported exactly, the bar came out
+as a ring around nothing. So the glass now lifts very slightly over dark
+content, the way Apple's own dark material does. Flat, about seven percent.
+
+Also in this build: a control shrinks by four percent while held, and its
+highlight only appears under a finger. Both are the library's.
+
+Known and not fixed here: the Dark mode switch on Settings is a speckled grey
+blob. It is logged as BUG-003. It is not caused by this change — the two plain
+toggles above it on the same screen are clean.
