@@ -1,53 +1,61 @@
-0.10.1 — the outline around every card was the wrong colour
+0.10.2 — you can sign in now, and the app stops closing itself
 
-This build is small and it is mostly one fix, but please look at it in dark
-mode.
+TWO THINGS, AND THE FIRST ONE IS THE ONE YOU HIT
 
-WHAT CHANGED
+**The app was closing itself, and that was a real crash.** You said it quit at
+the "send code" part. It did: tapping Continue on the code screen took you to
+the Home screen, and the Home screen died the moment it tried to draw the map.
+The app was gone before it drew a single pixel of Home, so it looked like it
+simply exited.
 
-The thin outline drawn around every card, every input box, every number chip
-and every piece of glass in the app was a teal, where the design says a pale
-blue. One digit was typed wrong when the colours were first put in, and it has
-been in every build you have seen. In dark mode it is on almost every edge on
-screen. The shadow under a card in light mode was also slightly washed out,
-and is now the design's own.
+It was caused by the language switching added earlier the same day. To change
+language without restarting the screen, the app hands every screen a
+replacement Android "context" carrying Vietnamese or English. That replacement
+was a detached one — it had the right words but no longer led back to the
+screen it belonged to. The map asks the system for permission to show your
+location, and to do that it has to find the screen it is running in. It
+walked, found nothing, and threw. Fixed by wrapping the real screen instead of
+replacing it. Vietnamese still switches everything, instantly, with no
+restart — please check that too.
 
-It was found by a check that compares all 46 of the app's colours against the
-designer's original file by number rather than by eye. Six builds of looking
-at screens never caught it. 45 of the 46 now match exactly; the one that does
-not is a caption grey, made lighter on purpose because the original failed the
-readability standard.
+**Nothing in the sign-in flow could be typed into.** The phone box and the six
+code boxes were pictures. Tapping them raised no keyboard, the Send code
+button ignored whatever was in the field, and the only way back was the back
+gesture, which from the sign-in screen closes the app. So the flow was a dead
+end however you approached it.
 
-One gap in the map card that was not on the spacing grid is now on it.
+Now: type a number, type a code, get in. Send code stays off until the number
+is a real Vietnamese mobile. Continue stays off until there are six digits.
+The code screen shows the number you actually typed, and going back to correct
+a typo keeps it.
 
-WHAT WE NEED YOUR EYES ON
+**There is still no server**, so nothing can say whether a code is the right
+code. Any six digits will let you in. The screen says so in as many words, and
+that message and the leniency are in this test build only — they cannot reach
+a real user, and they disappear the day the sign-in call is wired.
 
-Four things can only be judged on a real phone, because they need the graphics
-chip that a computer test does not have:
+WHAT TO TRY
 
-1. The bottom bar and the two round buttons in the top bar. They should look
-   like frosted glass with the screen blurred behind them, not like dark
-   discs. On the test computer they come out as dark discs, which is expected
-   and tells us nothing.
-2. The dark/light switch in Settings (BUG-003). It drew perfectly clean on the
-   test computer, so the speckling you saw is probably the emulator and not
-   the app. One look settles it.
-3. The switch's halo circles (BUG-002), which should now be clipped inside the
-   pill and not spread behind it.
-4. The cabinet picture on the sign-in screen (BUG-004), which on the emulator
-   fills only the left third of its box. We think that is the emulator too.
+1. Sign in. Type 912345678, then any six digits. You should land on Home with
+   your parcel, the map and the walk.
+2. Switch to Tiếng Việt in Settings, then walk the same path again.
+3. Try to get the number wrong — five digits, or one starting with 2. Send
+   code should stay off.
 
-The cabinet screen itself is worth a look while you are there: tap a door and
-the camera should push in on it while the other doors fade back.
+STILL ONLY YOUR PHONE CAN SETTLE THESE
 
-ONE DECISION FOR YOU
+Unchanged from 0.10.1, and all four need the graphics chip a test computer
+does not have: the bottom bar and the two round top-bar buttons should read as
+frosted glass with the screen blurred behind them; the dark/light switch in
+Settings (BUG-003) and its halo circles (BUG-002); and the cabinet picture on
+the sign-in screen (BUG-004), which on the emulator fills only the left third
+of its box.
+
+ONE DECISION STILL WAITING ON YOU
 
 The design pass put the app on one spacing grid and one set of corner radii.
-Four values in the mock-up do not sit on either — the card's corner is 18 and
-its padding 14, and the bottom bar's padding is 5 with a 3 gap. The app now
-uses 22, 12, 4 and 2. Everything else matches the mock-up exactly.
-
-So "match the mock-up" and "sit on a grid" now disagree, in four places, none
-by more than 4dp. It has been written down and settled in favour of the grid,
-because the mock-up's own values were eyeballed. Say if you would rather have
-the mock-up's numbers back — it is a small change either way.
+Four values in the mock-up sit on neither — the card's corner is 18 and its
+padding 14, and the bottom bar's padding is 5 with a 3 gap; the app uses 22,
+12, 4 and 2. Everything else matches the mock-up exactly. It is settled in
+favour of the grid for now, because the mock-up's own values were eyeballed.
+Say the word if you would rather have the mock-up's numbers back.
