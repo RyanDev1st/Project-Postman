@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -159,6 +161,18 @@ fun CabinetArt(
                 }
             },
     ) {
+        // Which doors are lit, and how strongly — the dimming below and the
+        // light above both read it and have to agree.
+        //
+        // Read in composition, so the two animations recompose this while they
+        // run. That is 420ms once when the lights come up and 720ms on a zoom,
+        // and it buys one list instead of the same rule written out in three
+        // draw scopes that could drift apart.
+        val focus = yours.map { door ->
+            door to if (activeDoor == null || door.n == activeDoor) 1f else 1f - travel.value
+        }
+        val anyLit = light.value > 0f && focus.any { it.second > 0f }
+
         Image(
             painter = painterResource(R.drawable.cabinet),
             contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_cabinet_render),
@@ -177,8 +191,66 @@ fun CabinetArt(
                         )
                     )
                 )
+            } else if (anyLit) {
+                // **The rest of the cabinet goes back so the lit doors come
+                // forward.** Twenty identical doors with two of them tinted
+                // still reads as twenty doors: the amber says "this one is
+                // yours" but nothing says the other eighteen are not. Taking
+                // the light off them is what makes two boxes look lit rather
+                // than merely coloured.
+                //
+                // A colour filter and not a black rectangle over the top. The
+                // render is a cabinet on a transparent field, so a rectangle
+                // would darken the ground around it too and leave a dark
+                // square sitting on the page. A filter only touches pixels
+                // that were drawn.
+                //
+                // Same shape as `full` above and weaker: drained most of the
+                // way and dimmed, on `light` so the cabinet sinks as the doors
+                // come up, one movement rather than two.
+                val d = light.value
+                val keep = 1f - 0.62f * d          // how much colour is left
+                val grey = (1f - keep) / 3f
+                ColorFilter.colorMatrix(
+                    ColorMatrix(
+                        floatArrayOf(
+                            keep + grey, grey, grey, 0f, 0f,
+                            grey, keep + grey, grey, 0f, 0f,
+                            grey, grey, keep + grey, 0f, 0f,
+                            0f, 0f, 0f, 1f - 0.45f * d, 0f,
+                        )
+                    )
+                )
             } else null,
         )
+
+        // The lit doors, at the render's own colour, punched back through the
+        // dimmed cabinet. Drawing the picture a second time and clipping it to
+        // the doors is what lets those doors keep their real brightness while
+        // everything around them is knocked back — a filter cannot be undone
+        // in one place, and the amber below takes its luminance from whatever
+        // it lands on, so tinting a dimmed door only gives a dim amber.
+        // One per door, each with its own alpha: a door on its way out has to
+        // sink back on its own curve, and a single copy carrying one alpha for
+        // all of them would drag the door you are looking at down with it.
+        if (anyLit && !full) {
+            focus.forEach { (door, f) ->
+                if (f <= 0f) return@forEach
+                Image(
+                    painter = painterResource(R.drawable.cabinet),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawWithContent {
+                            clipPath(doorPath(door.n, size.width, size.height)) {
+                                this@drawWithContent.drawContent()
+                            }
+                        },
+                    contentScale = ContentScale.Fit,
+                    alpha = f,
+                )
+            }
+        }
 
         if (light.value > 0f) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -245,95 +317,3 @@ fun CabinetArt(
         }
     }
 }
-
-/**
- * Which of [yours] was tapped, or null for a tap on the cabinet's body.
- *
- * Only lit doors are targets. A free door is information, not a control — the
- * mock-up gives it no hit polygon either.
- */
-private fun doorAt(at: Offset, w: Float, h: Float, yours: List<YourDoor>): String? {
-    if (w <= 0f || h <= 0f) return null
-    val x = at.x / w
-    val y = at.y / h
-    return yours.firstOrNull { door ->
-        DOOR_POLYGONS[unpad(door.n)]?.let { encloses(it, x, y) } == true
-    }?.n
-}
-
-/**
- * Ray casting, in the projection's own unit square.
- *
- * The doors are convex quads and a bounding box would nearly work, but they
- * sit edge to edge: a box test lets a tap near a shared border pick the
- * neighbour. Counting crossings cannot get a corner wrong.
- */
-private fun encloses(corners: List<Pair<Float, Float>>, x: Float, y: Float): Boolean {
-    var inside = false
-    var j = corners.lastIndex
-    for (i in corners.indices) {
-        val (xi, yi) = corners[i]
-        val (xj, yj) = corners[j]
-        if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
-            inside = !inside
-        }
-        j = i
-    }
-    return inside
-}
-
-/** A door's four projected corners as a path in the current draw size. */
-private fun doorPath(n: String, w: Float, h: Float): Path {
-    val corners = DOOR_POLYGONS[unpad(n)] ?: return Path()
-    return Path().apply {
-        corners.forEachIndexed { i, (x, y) ->
-            val px = x * w
-            val py = y * h
-            if (i == 0) moveTo(px, py) else lineTo(px, py)
-        }
-        close()
-    }
-}
-
-/** "04" -> "4", "07" -> "7" — the projections are keyed by the bare number. */
-internal fun unpad(n: String): String = n.toIntOrNull()?.toString() ?: n
-
-/** Centre and size of a door, in fractions of the frame. */
-internal fun boxOf(n: String): BoxDim {
-    val c = DOOR_POLYGONS[unpad(n)] ?: return BoxDim(0.5f, 0.5f, 0.1f, 0.1f)
-    val xs = c.map { it.first }
-    val ys = c.map { it.second }
-    return BoxDim(
-        cx = (xs.min() + xs.max()) / 2,
-        cy = (ys.min() + ys.max()) / 2,
-        w = xs.max() - xs.min(),
-        h = ys.max() - ys.min(),
-    )
-}
-
-internal data class BoxDim(val cx: Float, val cy: Float, val w: Float, val h: Float)
-
-/**
- * The scale and slide that put one door in the middle of the frame.
- *
- * The render is an orthographic elevation, so a door is the same rectangle
- * wherever it sits and this is only a scale and a slide. The origin stays at
- * the centre and the pan is solved for, so every state is a plain
- * (scale, x, y) any two of which tween cleanly. With
- * `translate(t) scale(k)` about the centre, an image point p lands at
- * `0.5 + k(p - 0.5) + t`, so `t = -k(c - 0.5)` puts c in the middle.
- *
- * The centre is clamped to keep the frame inside the picture: after scaling
- * by k the visible window is 1/k of the image wide, so the centre can only
- * travel to within half of that of each edge.
- */
-internal fun zoomFor(n: String): Zoom {
-    val b = boxOf(n)
-    val scale = ZOOM_COVERAGE / b.w
-    val half = 0.5f / scale
-    val cx = b.cx.coerceIn(half, 1 - half)
-    val cy = b.cy.coerceIn(half, 1 - half)
-    return Zoom(scale, -scale * (cx - 0.5f), -scale * (cy - 0.5f))
-}
-
-internal data class Zoom(val scale: Float, val tx: Float, val ty: Float)
