@@ -47,7 +47,10 @@ internal fun rememberWalk(granted: Boolean): Walk {
             Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude(),
         )
         walk = if (asCrow > WALKABLE_METRES) {
-            Walk.TooFar(asCrow.toInt())
+            Walk.TooFar(
+                metres = asCrow.toInt(),
+                you = org.maplibre.geojson.Point.fromLngLat(here.longitude, here.latitude),
+            )
         } else {
             withContext(Dispatchers.IO) {
                 routeToGate(here.latitude, here.longitude)

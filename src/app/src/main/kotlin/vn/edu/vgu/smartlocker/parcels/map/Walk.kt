@@ -18,10 +18,9 @@ import java.net.URLEncoder
  *   claims nothing about where you started.
  * - [FromYou] — you are close enough to walk, so this is a real route from
  *   where you stand.
- * - [TooFar] — you are kilometres away. **Not a walk.** Drawing a route here
- *   would be a forty-minute line across a province, which is worse than
- *   drawing nothing: the card would be describing a journey nobody is making.
- *   It carries the real distance instead, and the map keeps the gate.
+ * - [TooFar] — you are kilometres away. **Not a walk, and no line at all.**
+ *   It carries the real distance, and where you are, so the map can show you
+ *   and the cabinet together.
  */
 internal sealed interface Walk {
 
@@ -33,7 +32,27 @@ internal sealed interface Walk {
         val seconds: Int,
     ) : Walk
 
-    data class TooFar(val metres: Int) : Walk
+    /**
+     * The cabinet is kilometres away.
+     *
+     * [you] is here because of what the first version of this got wrong. It
+     * held only the distance, so the caption said "40 km away · too far to
+     * walk" over the **baked walking line around the campus** — the map drew
+     * the same picture at forty kilometres as at forty metres. Ryan, holding
+     * it: *"doesnt show the right location it shows exactly this always"*.
+     *
+     * A red line on a map means "this is your way". Drawing one that is not
+     * yours is the same lie as a caption that is not true, and the harder one
+     * to catch, because a picture is not read as a claim.
+     *
+     * So at this distance the map draws no line. It shows two points — where
+     * you are and where the cabinet is — and the gap between them is the
+     * fact. The earlier reasoning against this, that framing both gives "a
+     * view of a province with two invisible dots in it", was simply wrong:
+     * both markers are drawn at a fixed size on the screen, so they are
+     * exactly as visible at forty kilometres as at four hundred metres.
+     */
+    data class TooFar(val metres: Int, val you: Point) : Walk
 }
 
 /**

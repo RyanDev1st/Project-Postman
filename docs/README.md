@@ -54,7 +54,8 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0013-a-real-map-and-its-key.md](adr/0013-a-real-map-and-its-key.md) | A real Google map on Home, its key in gitignored `local.properties`, the drawn plan as fallback | superseded by 0014 |
 | [adr/0014-openfreemap-not-google.md](adr/0014-openfreemap-not-google.md) | OpenFreeMap tiles drawn by MapLibre. No key, no account, no card. The baked plan deleted | accepted |
 | [adr/0015-language-in-the-composition.md](adr/0015-language-in-the-composition.md) | The language is swapped in the composition, not on the Activity. The platform's own API is API 33, and both platform routes restart the screen | accepted |
-| [adr/0016-precise-location-and-live-routing.md](adr/0016-precise-location-and-live-routing.md) | Precise location returns, and the walk is routed live from where you stand. Past 3 km it says the distance instead of drawing a walk nobody is taking | accepted |
+| [adr/0016-precise-location-and-live-routing.md](adr/0016-precise-location-and-live-routing.md) | Precise location returns, and the walk is routed live from where you stand. Past 3 km it says the distance instead of drawing a walk nobody is taking | accepted, one row reversed by 0017 |
+| [adr/0017-no-line-when-it-is-not-a-walk.md](adr/0017-no-line-when-it-is-not-a-walk.md) | Past 3 km the map draws no line at all — just you and the cabinet, framed together. A red line means "this is your way", and drawing one that is not is the same lie as a wrong caption | accepted |
 
 ## Findings — dated reports
 

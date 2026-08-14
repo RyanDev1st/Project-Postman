@@ -188,50 +188,75 @@ private class MapWiring {
 /**
  * What the camera should fit.
  *
- * A real route is framed on itself. Everything else is framed on the baked
- * approach to the gate: with no fix there is nothing else to show, and from
- * thirty kilometres away a box containing both you and the cabinet is a view
- * of a province with two invisible dots in it.
+ * A real route is framed on itself. Too far to walk, and it frames **you and
+ * the cabinet together** — that is the whole fact at that distance, and the
+ * gap on screen says it better than the caption does.
+ *
+ * That last case used to frame the gate alone, on the reasoning that a box
+ * holding both would be "a view of a province with two invisible dots in it".
+ * The dots are not invisible: both markers draw at a fixed size on the
+ * screen. What the old framing actually produced was a street-level view of a
+ * campus the person was forty kilometres from, with a walking line across it
+ * — the app looking like it thought they were standing at the gate.
+ *
+ * With no fix at all there is still nothing else to show, so that keeps the
+ * baked approach.
  */
 private fun boundsOf(walk: Walk): LatLngBounds = when (walk) {
     is Walk.FromYou -> LatLngBounds.Builder()
         .includes(walk.line.map { LatLng(it.latitude(), it.longitude()) })
         .build()
-    else -> Route.BOUNDS
+    is Walk.TooFar -> LatLngBounds.Builder()
+        .includes(
+            listOf(
+                LatLng(walk.you.latitude(), walk.you.longitude()),
+                LatLng(Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude()),
+            )
+        )
+        .build()
+    Walk.Baked -> Route.BOUNDS
 }
 
 /**
  * The walk: a wide quiet underlay so it reads over any tile colour, then the
  * accent on top. The same two-line order the drawn plan used, and the gate as
  * a dot at the end of it.
+ *
+ * **Too far to walk draws no line.** Only the gate dot goes down, and the
+ * camera puts the person's own dot in frame with it. A line here would be the
+ * baked campus approach, forty kilometres from where the phone is — see
+ * [Walk.TooFar].
  */
 private fun Style.addRoute(walk: Walk, accent: Int, underlay: Int) {
-    // The line the person would actually walk, when we know it. `TooFar`
-    // deliberately falls through to the baked approach rather than drawing a
-    // route across a province — see Walk.kt.
     val line = when (walk) {
         is Walk.FromYou -> walk.line
-        else -> Route.LINE
+        Walk.Baked -> Route.LINE
+        is Walk.TooFar -> null
     }
-    addSource(GeoJsonSource(SRC_LINE, LineString.fromLngLats(line)))
-    addSource(GeoJsonSource(SRC_GATE, Route.GATE_POINT))
 
-    addLayer(
-        LineLayer(LAYER_UNDER, SRC_LINE).withProperties(
-            PropertyFactory.lineColor(underlay),
-            PropertyFactory.lineWidth(7.5f),
-            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+    if (line != null) {
+        addSource(GeoJsonSource(SRC_LINE, LineString.fromLngLats(line)))
+        addLayer(
+            LineLayer(LAYER_UNDER, SRC_LINE).withProperties(
+                PropertyFactory.lineColor(underlay),
+                PropertyFactory.lineWidth(7.5f),
+                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+            )
         )
-    )
-    addLayer(
-        LineLayer(LAYER_LINE, SRC_LINE).withProperties(
-            PropertyFactory.lineColor(accent),
-            PropertyFactory.lineWidth(3.4f),
-            PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-            PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+        addLayer(
+            LineLayer(LAYER_LINE, SRC_LINE).withProperties(
+                PropertyFactory.lineColor(accent),
+                PropertyFactory.lineWidth(3.4f),
+                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+            )
         )
-    )
+    }
+
+    // The cabinet, always. It is the one thing the card exists to point at,
+    // and it is the only mark on the map when the walk is not a walk.
+    addSource(GeoJsonSource(SRC_GATE, Route.GATE_POINT))
     addLayer(
         CircleLayer(LAYER_GATE, SRC_GATE).withProperties(
             PropertyFactory.circleRadius(5.5f),
