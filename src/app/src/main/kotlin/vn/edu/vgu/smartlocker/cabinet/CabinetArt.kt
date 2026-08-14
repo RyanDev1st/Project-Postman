@@ -170,21 +170,17 @@ fun CabinetArt(
             contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_cabinet_render),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Fit,
-            // Both filters live in CabinetLight.kt — see [dimFilter] for why
-            // the rest of the cabinet is darkened rather than faded.
-            colorFilter = when {
-                full -> FullFilter
-                anyLit -> dimFilter(light.value)
-                else -> null
-            },
+            // The rest of the cabinet goes see-through, not dark. See
+            // [ghostAlpha] in CabinetLight.kt.
+            alpha = ghostAlpha(full = full, anyLit = anyLit, light = light.value),
         )
 
-        // The lit doors, at the render's own colour, punched back through the
-        // dimmed cabinet. Drawing the picture a second time and clipping it to
-        // the doors is what lets those doors keep their real brightness while
-        // everything around them is knocked back — a filter cannot be undone
-        // in one place, and the amber below takes its luminance from whatever
-        // it lands on, so tinting a dimmed door only gives a dim amber.
+        // The lit doors, at the render's own colour and fully solid, drawn back
+        // over the ghost. Drawing the picture a second time and clipping it to
+        // the doors is what lets those doors stay present while everything
+        // around them fades — one alpha cannot be undone in a patch, and the
+        // amber below takes its luminance from whatever it lands on, so
+        // tinting a faded door only gives a faded amber.
         // One per door, each with its own alpha: a door on its way out has to
         // sink back on its own curve, and a single copy carrying one alpha for
         // all of them would drag the door you are looking at down with it.

@@ -2,8 +2,6 @@ package vn.edu.vgu.smartlocker.cabinet
 
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import vn.edu.vgu.smartlocker.ui.theme.DoorLight
@@ -18,64 +16,56 @@ import vn.edu.vgu.smartlocker.ui.theme.DoorLight
  */
 
 /**
- * The whole cabinet, knocked back so the lit doors come forward.
+ * How solid the cabinet itself is drawn.
  *
+ * **The cabinet goes see-through, and the doors that are yours stay solid.**
  * Twenty identical doors with two of them tinted still reads as twenty doors:
  * the amber says "this one is yours", but nothing says the other eighteen are
- * not. Taking the light off them is what makes two boxes look lit rather than
- * merely coloured.
+ * not. Fading the cabinet to a ghost and leaving two doors at full strength
+ * says it without a word — the solid things are the ones that are yours.
  *
- * **Darkened, not faded.** The first version of this dropped the alpha to 0.55
- * and drained the colour, and on a screen it barely showed. The render is
- * already grey — measured, its median saturation is 0.036 — so draining it
- * moves a pixel by under three parts in 255, and the alpha only mixed a grey
- * cabinet into a grey card. It came out milky rather than off, and the lit
- * doors measured *darker* than their unlit neighbours: 0.69 of their
- * luminance, the highlight the dimmest thing on the cabinet. With the light
- * on the colour rows they measure 1.39 of it.
+ * Ryan asked for it in those terms, and against two earlier attempts:
  *
- * Alpha stays at 1. Transparency dims by borrowing the background, so it would
- * lighten the cabinet in the day scheme and darken it at night — two opposite
- * readings of one state.
+ * 1. Alpha at 0.55, with the colour drained. It barely showed. The render is
+ *    already grey — its median saturation is 0.036 — so draining it moves a
+ *    pixel by under three parts in 255, and 0.55 over a pale card left the
+ *    cabinet milky rather than gone. That failure was one of degree and it was
+ *    read as one of kind.
+ * 2. Darkening instead, by multiplying the colour rows. That worked, in that
+ *    the lit doors went from 0.69 of their neighbours' luminance to 1.39 of
+ *    it. But a dark cabinet is still a cabinet, drawn heavier than the page
+ *    around it, and it says "switched off" rather than "not yours".
  *
- * A filter and not a black rectangle over the top: the render is a cabinet on
- * a transparent field, so a rectangle would darken the ground around it too
- * and leave a dark square sitting on the page. A filter only touches pixels
- * that were drawn.
+ * The [LIT_GHOST] figure is low on purpose. The cabinet's grey sits close to
+ * the card behind it, so anything gentler than this reads as a smudge instead
+ * of a ghost.
  *
- * @param d how far the light has come up, 0 to 1. Driven by the same
- *   animation that raises the door tint, so the cabinet sinks as the doors
- *   come up — one movement rather than two.
+ * Transparency borrows the background, which means the cabinet recedes into a
+ * pale page by day and a dark one at night. That is the point, not a fault:
+ * receding is the same instruction in both, and the doors that stay solid
+ * carry the message either way.
+ *
+ * @param light how far the lights have come up, 0 to 1 — the same animation
+ *   that raises the door tint, so the cabinet fades as the doors arrive: one
+ *   movement rather than two.
  */
-internal fun dimFilter(d: Float): ColorFilter {
-    val keep = 1f - 0.62f * d          // how much colour is left
-    val grey = (1f - keep) / 3f
-    val lit = 1f - 0.42f * d           // how much light is left
-    return ColorFilter.colorMatrix(
-        ColorMatrix(
-            floatArrayOf(
-                lit * (keep + grey), lit * grey, lit * grey, 0f, 0f,
-                lit * grey, lit * (keep + grey), lit * grey, 0f, 0f,
-                lit * grey, lit * grey, lit * (keep + grey), 0f, 0f,
-                0f, 0f, 0f, 1f, 0f,
-            )
-        )
-    )
+internal fun ghostAlpha(full: Boolean, anyLit: Boolean, light: Float): Float = when {
+    // Every door taken. Nothing here is yours, so the whole picture steps
+    // back and the badge the caller draws over it is what is left to read.
+    // Not animated: `light` only rises when a door IS yours, so it never
+    // moves in this state.
+    full -> FULL_GHOST
+    anyLit -> 1f - (1f - LIT_GHOST) * light
+    else -> 1f
 }
 
-/** saturate(.22) brightness(.72) — the cabinet when every door is taken.
- * Drained and dimmed, so the badge drawn on top has something to be louder
- * than. Absence is not a message, so the words are the caller's job. */
-internal val FullFilter: ColorFilter = ColorFilter.colorMatrix(
-    ColorMatrix(
-        floatArrayOf(
-            0.33f, 0.33f, 0.33f, 0f, 0f,
-            0.33f, 0.33f, 0.33f, 0f, 0f,
-            0.33f, 0.33f, 0.33f, 0f, 0f,
-            0f, 0f, 0f, 0.72f, 0f,
-        )
-    )
-)
+/** The cabinet behind your lit doors. */
+private const val LIT_GHOST = 0.28f
+
+/** The cabinet when every door is taken. Held a little more present than
+ * [LIT_GHOST]: there is no lit door to carry the picture, so a fainter
+ * cabinet would leave the badge floating over nothing. */
+private const val FULL_GHOST = 0.38f
 
 /**
  * One lit door: the halo around it, then the amber on it.
