@@ -26,9 +26,32 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
         Nothing here waits on the server — the payload is a place and a clock
         reading, and the screen knows both — so this stays DOING, not BLOCKED.
 
-- [ ] **P5-02** — The app scans the QR on the cabinet screen
-      - Owner: _unassigned_ · Needs: P5-01, P2-04, P4-04 · Blocks: P5-03
+- [ ] **🟡 DOING — P5-02** — The app scans the QR on the cabinet screen
+      - Owner: Claude · Needs: P5-01, P2-04, P4-04 · Blocks: P5-03
       - Verify: a real phone reads the real cabinet screen in daylight **and** in a dark corridor
+      - Notes: **Built and checked by machine; not ticked.** The scan screen used
+        to be a drawing of a scanner — a dark box, four corners, a sweep, and no
+        camera behind any of it. It has a camera now (CameraX), a reader
+        (ML Kit), and rules about what it is willing to believe
+        (`pickup/SessionCode.kt`). One code is acted on and the rest of the
+        thirty a second are dropped, so a scan can only ever do one thing once.
+        The scanner button in the Home bar was wired to nothing and now opens
+        the screen; that is why it looked finished and was not.
+        Checked: `:app:testDebugUnitTest` — 11 rules about the string, including
+        that the cabinet's own `qr.js` still writes the format this reads.
+        `:app:connectedDebugAndroidTest -Pemulator` — 4 tests, ML Kit reading
+        the cabinet encoder's real QR on a device with **no Google Play
+        Services installed at all**, which is the open question in
+        [ADR 0018](../adr/0018-ml-kit-and-play-services.md).
+        Seen on the emulator: the viewfinder shows live camera, the corners and
+        sweep sit over it. Not seen: a read through the lens — the emulator's
+        virtual room points its camera at a television, not at the wall the QR
+        was hung on.
+        What is missing is the Verify itself, and no machine here can stand in
+        for it: **a real phone, a real cabinet screen, daylight and a dark
+        corridor.** Until P5-03 there is no server, so a good code moves the
+        screen to "Opened" and opens nothing. That is the demo saying what it
+        read, not a door reporting that it moved.
 
 - [ ] **P5-03** — The server checks the user, then opens their box
       - Owner: _unassigned_ · Needs: P5-02 · Blocks: P5-04, P5-05, P5-06, P5-07, P5-08, P6-05, P7-03

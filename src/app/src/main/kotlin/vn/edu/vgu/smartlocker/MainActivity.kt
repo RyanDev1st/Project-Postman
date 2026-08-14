@@ -27,6 +27,7 @@ import vn.edu.vgu.smartlocker.loading.LoadingScreen
 import vn.edu.vgu.smartlocker.parcels.HomeScreen
 import vn.edu.vgu.smartlocker.pickup.OpenedScreen
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
+import vn.edu.vgu.smartlocker.pickup.Scanned
 import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
 import vn.edu.vgu.smartlocker.settings.SettingsScreen
 import vn.edu.vgu.smartlocker.ui.AppLanguage
@@ -187,6 +188,7 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
+                    onScan = { screen = Screen.SCAN },
                     content = {
                         HomeScreen(
                             onOpen = { scanBox = it; screen = Screen.SCAN },
@@ -201,6 +203,7 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
+                    onScan = { screen = Screen.SCAN },
                     content = {
                         CabinetScreen(
                             onScan = { scanBox = it; screen = Screen.SCAN },
@@ -214,6 +217,7 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
+                    onScan = { screen = Screen.SCAN },
                     content = {
                         SettingsScreen(
                             dark = dark,
@@ -228,6 +232,16 @@ fun AppSkeleton(
                     onScanned = { screen = Screen.OPENED },
                     onTypeCode = { screen = Screen.TYPE_CODE },
                     onBack = { screen = lastMain },
+                    // A code from one of our cabinets, read a moment ago, is
+                    // the only thing that moves the screen on. `Stale` and
+                    // `NotOurs` stay here and say nothing yet - the sentences
+                    // for them are P5-05, and silence beats a wrong sentence.
+                    //
+                    // Nothing is asked of a server here, because there is no
+                    // server. P5-03 puts the open request in this line, and
+                    // until it does, "Opened" is the demo saying what it read,
+                    // not a door reporting that it moved.
+                    onRead = { if (it is Scanned.Ours) screen = Screen.OPENED },
                 )
 
                 Screen.OPENED -> OpenedScreen(

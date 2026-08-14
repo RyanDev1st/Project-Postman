@@ -36,6 +36,11 @@ android {
         versionCode = 15
         versionName = "0.10.2"
 
+        // Runs the androidTest source set on a device. Needed because ML Kit
+        // is native code and no JVM test can reach it - see ScanPipelineTest.
+        // The emulator wants x86_64, so that run needs -Pemulator too.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         // One ABI, not four.
         //
         // MapLibre ships libmaplibre.so per architecture, 8-11 MB each, and
@@ -168,6 +173,19 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.maplibre)
 
+    // Reading the QR on the cabinet screen (P5-02). CameraX runs the camera;
+    // ML Kit reads a QR out of the frames it hands over.
+    //
+    // ML Kit brings Google Play Services with it - `barcode-scanning` depends
+    // on play-services-basement whether the model is bundled or downloaded,
+    // so there is no Google-free version of this choice. That is a real cost
+    // and it is argued in ADR 0018, with zxing-cpp named as the way out.
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
     // Preview support. debugImplementation so the tooling never ships in a
     // release build.
     implementation(libs.androidx.ui.tooling.preview)
@@ -183,4 +201,9 @@ dependencies {
     // than testImplementation because it is a manifest, and it has to be
     // merged into the app under test rather than sit on the test classpath.
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // On a device, because ML Kit cannot run anywhere else.
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

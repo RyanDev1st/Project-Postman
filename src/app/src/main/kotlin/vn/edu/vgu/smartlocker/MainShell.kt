@@ -57,6 +57,9 @@ fun MainShell(
     dark: Boolean,
     onToggleDark: () -> Unit,
     onSelectTab: (Screen) -> Unit,
+    /** The scanner button in the Home bar. It drew a scanner and did nothing
+     * until P5-02, because until P5-02 there was no scanner behind it. */
+    onScan: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val t = LocalLockerTokens.current
@@ -139,6 +142,7 @@ fun MainShell(
             TabAppBar(
                 screen = screen,
                 onToggleDark = onToggleDark,
+                onScan = onScan,
                 backdrop = backdrop,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -215,6 +219,7 @@ private fun tabOf(i: Int): Screen = when (i) {
 private fun TabAppBar(
     screen: Screen,
     onToggleDark: () -> Unit,
+    onScan: () -> Unit,
     backdrop: BackdropState,
     modifier: Modifier = Modifier,
 ) {
@@ -236,7 +241,7 @@ private fun TabAppBar(
                 ScanButton(
                     icon = AppIcons.Scan,
                     contentDescription = stringResource(R.string.cd_scan_cabinet),
-                    onClick = {},
+                    onClick = onScan,
                 )
                 AppBarBead(
                     icon = AppIcons.Bell,

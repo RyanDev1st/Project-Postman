@@ -143,7 +143,7 @@ Eight screens. Two are register, three are tabs, three are the pickup.
 
 - **The phone scans the cabinet, never the reverse** — [ADR 0003](../adr/0003-parcel-locker-product.md). The QR only says which cabinet and when; the token proves who is holding the phone. A photograph of the screen opens nothing.
 - The camera permission is asked for **here**, at the moment it is obviously needed — not on first open, before any trust exists.
-- Refused permission is not a dead end: it drops to screen 6.
+- Refused permission is not a dead end. The viewfinder stays, the line under it becomes *"No camera. Type the code instead"*, and the quiet **Use a code** button already on the screen is the way to 6. It does **not** jump there on its own: a screen that disappears the moment you refuse gives nobody a chance to change their mind, and a refusal is often a mis-tap.
 - Endpoints 6 and 9. Task **P5-02**.
 
 ## 5 — Opened

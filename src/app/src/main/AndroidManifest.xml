@@ -48,6 +48,26 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!--
+        The camera, to read the QR on the cabinet screen. P5-02.
+
+        Asked for on the scan screen, at the moment a person taps "Scan to
+        open" - never on first open. By then the need is obvious: they are
+        standing at a locker holding a phone at a code.
+
+        Refusing it is not a dead end. The typed code is the other way in
+        (P5-08), and the scan screen offers it in the same breath as it
+        explains why the camera is dark.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!--
+        The app reads a code off a screen an arm's length away. It does not
+        need autofocus or a flash to do that, and a phone missing either must
+        still be able to collect a parcel.
+    -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
     <application
         android:label="@string/app_name"
         android:supportsRtl="true"

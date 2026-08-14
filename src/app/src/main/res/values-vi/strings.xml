@@ -109,6 +109,7 @@
     <string name="cd_cabinet_render">Tủ gửi hàng VGU, nhìn từ mặt trước</string>
 
     <!-- Quét -->
+    <string name="scan_no_camera">Không có máy ảnh. Hãy nhập mã</string>
     <string name="scan_title">Quét màn hình tủ</string>
 
     <!-- Đã mở -->

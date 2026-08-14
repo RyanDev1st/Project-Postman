@@ -56,6 +56,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0015-language-in-the-composition.md](adr/0015-language-in-the-composition.md) | The language is swapped in the composition, not on the Activity. The platform's own API is API 33, and both platform routes restart the screen | accepted |
 | [adr/0016-precise-location-and-live-routing.md](adr/0016-precise-location-and-live-routing.md) | Precise location returns, and the walk is routed live from where you stand. Past 3 km it says the distance instead of drawing a walk nobody is taking | accepted, one row reversed by 0017 |
 | [adr/0017-no-line-when-it-is-not-a-walk.md](adr/0017-no-line-when-it-is-not-a-walk.md) | Past 3 km the map draws no line at all — just you and the cabinet, framed together. A red line means "this is your way", and drawing one that is not is the same lie as a wrong caption | accepted |
+| [adr/0018-ml-kit-and-play-services.md](adr/0018-ml-kit-and-play-services.md) | The QR reader is ML Kit, bundled model. There is no Google-free build of it, so the pickup path depends on Play Services. No key, no card. zxing-cpp is the named way out | accepted |
 
 ## Findings — dated reports
 

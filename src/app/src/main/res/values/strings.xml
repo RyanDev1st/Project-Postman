@@ -137,6 +137,9 @@
     <string name="cd_cabinet_render">The VGU parcel locker cabinet, front elevation</string>
 
     <!-- 4. Scan -->
+    <!-- The camera was refused. Says what is wrong and points at the way
+         in that does not need one, rather than leaving a dark box. -->
+    <string name="scan_no_camera">No camera. Use a code instead</string>
     <string name="scan_title">Scan the cabinet</string>
 
     <!-- 5. Opened -->

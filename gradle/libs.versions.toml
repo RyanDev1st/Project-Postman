@@ -30,6 +30,23 @@ maplibre = "11.11.0"
 robolectric = "4.15.1"
 junit = "4.13.2"
 
+# Runs a test on a real device or emulator, which Robolectric cannot: ML Kit
+# is native code behind a Play Services shim and there is no JVM stand-in for
+# it. Checked on Google's Maven 2026-08-14, newest stable of each.
+androidxTestRunner = "1.7.0"
+androidxTestJunit = "1.3.0"
+
+# Reading the QR on the cabinet screen. Checked against Google's Maven on
+# 2026-08-14, not from memory: these are the newest stable of each.
+#
+# CameraX is 1.6.1 and not 1.7.0-alpha03, which is newer. Alpha is not
+# stable, and the rule at the top of this file has not changed.
+camerax = "1.6.1"
+# The bundled model, not `play-services-mlkit-barcode-scanning`. Bundled
+# costs about 2.5MB of APK and buys a scanner that works the first time a
+# student stands at a locker, with no model to download first. See ADR 0018.
+mlkit = "17.3.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -76,6 +93,20 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+
+# The camera, and the thing that reads a QR out of its frames. P5-02.
+#
+# camera-view carries PreviewView, which is the well-trodden path and the one
+# every worked example uses. camera-compose exists at this version and would
+# be Compose-native, but it hands you a SurfaceRequest to plumb yourself -
+# more moving parts on the screen that has to work in a dark corridor.
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -152,7 +152,7 @@ Each folder in `docs/` gets a one-line `README.md`. `docs/README.md` is the one 
 
 | Check | Command or rule |
 | --- | --- |
-| Tests | Fill this in once the stack is chosen |
+| Tests | `./gradlew :app:testDebugUnitTest` on this machine. `./gradlew :app:connectedDebugAndroidTest -Pemulator` on a device, for what only a device can run |
 | Lint and types | Use the project's own commands. Do not invent new tools |
 | Behavior | Say what output you expect. If there is no test, give the steps to reproduce |
 | Screens | Take a screenshot on a real Android phone and a real iPhone. Compare to the agreed design |
