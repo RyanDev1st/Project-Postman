@@ -2,8 +2,10 @@ package vn.edu.vgu.smartlocker.parcels
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -40,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.parcels.map.LiveMap
 import vn.edu.vgu.smartlocker.parcels.map.Route
+import vn.edu.vgu.smartlocker.parcels.map.Walk
+import vn.edu.vgu.smartlocker.parcels.map.rememberWalk
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.GlassBead
@@ -58,7 +62,6 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 @Composable
 fun MapCard(
     cabinet: String = stringResource(R.string.cabinet_back_gate),
-    walk: String = rememberWalkLabel(),
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
@@ -66,8 +69,16 @@ fun MapCard(
     val ctx = LocalContext.current
     var opened by remember { mutableStateOf(false) }
 
+    // One walk, read twice: the map draws it and the line under the map
+    // describes it. Worked out here rather than inside LiveMap so the two
+    // cannot end up describing different journeys — which is the whole of
+    // what was wrong, a caption reading "7 min walk" over a line that started
+    // somewhere the person had never been.
+    val route = rememberWalk(granted = locationGranted())
+    val walk = walkLabel(route)
+
     if (opened) {
-        MapSheet(cabinet = cabinet, walk = walk, onClose = { opened = false })
+        MapSheet(cabinet = cabinet, walk = walk, route = route, onClose = { opened = false })
     }
 
     CardMaterial(
@@ -81,6 +92,7 @@ fun MapCard(
                     .fillMaxWidth()
                     .height(112.dp),
                 onClick = { opened = true; onClick() },
+                walk = route,
             )
             Row(
                 modifier = Modifier
@@ -130,16 +142,40 @@ fun MapCard(
     }
 }
 
+/** Whether the map may ask the phone where it is. Read here as well as inside
+ * [LiveMap] because the walk is worked out before the map is composed. */
+@Composable
+private fun locationGranted(): Boolean {
+    val ctx = LocalContext.current
+    return ContextCompat.checkSelfPermission(
+        ctx, android.Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
 /**
- * "7 min walk · 543 m", built from the route the map actually draws.
+ * What the line under the map says, and it says a different thing for each of
+ * the three walks — which is the point.
+ *
+ * - A real route: "7 min walk · 543 m", its own numbers, not the baked ones.
+ * - Too far: the distance and nothing about walking. Ryan will be testing
+ *   from another province, and "7 min walk" over a thirty-kilometre gap is
+ *   the app lying about the only fact on the card.
+ * - No fix: the baked figures, which describe the drawn line honestly — it is
+ *   the approach to the gate, and it is what the map is showing.
  *
  * Minutes are rounded rather than truncated: 6 min 32 s is nearer seven than
  * six, and a walk that takes longer than it said is the one error a person
  * standing outside notices.
  */
 @Composable
-private fun rememberWalkLabel(): String =
-    stringResource(R.string.map_walk, (Route.SECONDS + 30) / 60, Route.METRES)
+private fun walkLabel(walk: Walk): String = when (walk) {
+    is Walk.FromYou ->
+        stringResource(R.string.map_walk, (walk.seconds + 30) / 60, walk.metres)
+    is Walk.TooFar ->
+        stringResource(R.string.map_too_far, walk.metres / 1000)
+    Walk.Baked ->
+        stringResource(R.string.map_walk, (Route.SECONDS + 30) / 60, Route.METRES)
+}
 
 /**
  * Hand the walk to whatever maps app the phone has.
@@ -182,6 +218,7 @@ private fun walkThere(ctx: android.content.Context, cabinet: String) {
 private fun MapSheet(
     cabinet: String,
     walk: String,
+    route: Walk,
     onClose: () -> Unit,
 ) {
     val t = LocalLockerTokens.current
@@ -193,6 +230,7 @@ private fun MapSheet(
             LiveMap(
                 modifier = Modifier.fillMaxSize(),
                 interactive = true,
+                walk = route,
             )
 
             // The only chrome: what you are looking at, and the way out.

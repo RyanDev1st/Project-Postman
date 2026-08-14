@@ -30,15 +30,23 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!--
-        MapLibre's own manifest asks for FINE, and the merger had quietly
-        granted it: the app info page said "precise location" while the
-        comment above said the opposite. Taken back out. The location
-        component works from a coarse fix, and the one thing that would
-        change is an accuracy nobody looking at this card can see.
+        Precise location, asked for and back on purpose - see ADR 0016.
+
+        It was removed once, and the reasoning was right at the time: the map
+        drew a fixed line and a blue dot, and for a dot on a 112dp card a
+        coarse fix is an accuracy nobody can see.
+
+        That stopped being true when the walk started being routed from where
+        the person is standing. A coarse fix can be one to three kilometres
+        out; the walk to the gate is 543 metres. Routing from it would draw a
+        path beginning somewhere the person has never been - which is exactly
+        the fault this permission is here to fix, not a smaller version of it.
+
+        Both are requested together, so the system dialog offers Precise and
+        Approximate side by side and the choice stays the user's. Approximate
+        still gets the blue dot and the gate; it does not get a route.
     -->
-    <uses-permission
-        android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:label="@string/app_name"

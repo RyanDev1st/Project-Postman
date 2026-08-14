@@ -56,10 +56,13 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
  * Maps app for the walk, which is what [onClick] does.
  */
 @Composable
-fun LiveMap(
+internal fun LiveMap(
     modifier: Modifier = Modifier,
     interactive: Boolean = false,
     onClick: () -> Unit = {},
+    /** Which walk to draw. The caller works it out because the caption under
+     * the map has to describe the same one — see [rememberWalk]. */
+    walk: Walk = Walk.Baked,
 ) {
     val t = LocalLockerTokens.current
     val ctx = LocalContext.current
@@ -71,15 +74,28 @@ fun LiveMap(
     // still shows the walk to the gate — it just cannot show where you are.
     var granted by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED
         )
     }
+    // Both are asked for together, which is the only way the system offers a
+    // choice: the dialog shows "Precise" and "Approximate" side by side, and
+    // asking for FINE alone removes the second and the person's say with it.
+    // Approximate still gets a blue dot; it does not get a route, because a
+    // fix that can be two kilometres out cannot start a walk of five hundred
+    // metres. See ADR 0016.
     val ask = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted = it }
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { granted = it[Manifest.permission.ACCESS_FINE_LOCATION] == true }
     LaunchedEffect(Unit) {
-        if (!granted) ask.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (!granted) {
+            ask.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                )
+            )
+        }
     }
 
     // The app's scheme, not the phone's: the in-app toggle can disagree with
@@ -122,11 +138,15 @@ fun LiveMap(
                 // with the gate cut off the end. Bounds ask the map what size
                 // it actually is, which is also the rule for the cabinet
                 // screen: never assume a size.
-                if (!wiring.framed) {
+                // Re-framed when the walk changes, not once and for ever: the
+                // route arrives a moment after the map does, and a camera set
+                // only on the first pass would stay on the baked line while a
+                // different line was drawn under it.
+                if (wiring.framedFor != walk) {
                     map.moveCamera(
-                        CameraUpdateFactory.newLatLngBounds(Route.BOUNDS, edgePad),
+                        CameraUpdateFactory.newLatLngBounds(boundsOf(walk), edgePad),
                     )
-                    wiring.framed = true
+                    wiring.framedFor = walk
                 }
 
                 // Only the card hands the tap on. Opened out, a tap is how
@@ -140,7 +160,7 @@ fun LiveMap(
                 // to be added again inside the callback each time the scheme
                 // changes. It is not a leak; it is a new style object.
                 map.setStyle(Style.Builder().fromUri(styleUri)) { style ->
-                    style.addRoute(accent, underlay)
+                    style.addRoute(walk, accent, underlay)
                     if (granted) map.showWhereYouAre(ctx, style)
                 }
             }
@@ -153,9 +173,31 @@ fun LiveMap(
 private class MapWiring {
     var clickBound = false
 
-    /** The camera is placed once. Setting it on every update would drag the
-     * view back to the route the moment you panned away from it. */
-    var framed = false
+    /**
+     * Which walk the camera was placed for, or null before the first one.
+     *
+     * A boolean until the route stopped being fixed. The live route arrives a
+     * moment after the map does, so a camera placed once and never again sat
+     * on the baked line with a different line drawn under it. Holding the walk
+     * itself re-frames exactly when the thing being framed changes, and still
+     * leaves a pan alone.
+     */
+    var framedFor: Walk? = null
+}
+
+/**
+ * What the camera should fit.
+ *
+ * A real route is framed on itself. Everything else is framed on the baked
+ * approach to the gate: with no fix there is nothing else to show, and from
+ * thirty kilometres away a box containing both you and the cabinet is a view
+ * of a province with two invisible dots in it.
+ */
+private fun boundsOf(walk: Walk): LatLngBounds = when (walk) {
+    is Walk.FromYou -> LatLngBounds.Builder()
+        .includes(walk.line.map { LatLng(it.latitude(), it.longitude()) })
+        .build()
+    else -> Route.BOUNDS
 }
 
 /**
@@ -163,8 +205,15 @@ private class MapWiring {
  * accent on top. The same two-line order the drawn plan used, and the gate as
  * a dot at the end of it.
  */
-private fun Style.addRoute(accent: Int, underlay: Int) {
-    addSource(GeoJsonSource(SRC_LINE, LineString.fromLngLats(Route.LINE)))
+private fun Style.addRoute(walk: Walk, accent: Int, underlay: Int) {
+    // The line the person would actually walk, when we know it. `TooFar`
+    // deliberately falls through to the baked approach rather than drawing a
+    // route across a province — see Walk.kt.
+    val line = when (walk) {
+        is Walk.FromYou -> walk.line
+        else -> Route.LINE
+    }
+    addSource(GeoJsonSource(SRC_LINE, LineString.fromLngLats(line)))
     addSource(GeoJsonSource(SRC_GATE, Route.GATE_POINT))
 
     addLayer(
