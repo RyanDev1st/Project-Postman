@@ -10,10 +10,21 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
 
 ## Tasks
 
-- [ ] **P5-01** — The cabinet screen shows the QR session code
-      - Owner: _unassigned_ · Needs: P0-07, P1-06 · Blocks: P5-02
+- [ ] **🟡 DOING — P5-01** — The cabinet screen shows the QR session code
+      - Owner: Claude · Needs: P0-07, P1-06 · Blocks: P5-02
       - Verify: the real cabinet shows a QR, and it changes on the agreed timer
-      - Notes: the QR says *which cabinet, at what moment*. It is not a key. See `architecture.md` section 6
+      - Notes: the QR says *which cabinet, at what moment*. It is not a key. See `architecture.md` section 6.
+        **Built and checked by machine; not ticked.** The screen draws
+        `VGU1|<cabinet-id>|<unix-seconds>`, redraws every 30 s and counts down
+        from 60, per P0-07. `node scripts/checkqr.js` runs the shipped `qr.js`
+        and proves the payload, the timings, and that a cabinet with no id
+        draws nothing rather than sending a phone nowhere.
+        `python scripts/checkqr.py` draws the code and reads it back with
+        `zxing-cpp`, an unrelated decoder — 3 payloads, all exact.
+        What is missing is the Verify itself: **there is no real cabinet**, and
+        this task also needs P1-06, which is 🔴 BLOCKED on a server address.
+        Nothing here waits on the server — the payload is a place and a clock
+        reading, and the screen knows both — so this stays DOING, not BLOCKED.
 
 - [ ] **P5-02** — The app scans the QR on the cabinet screen
       - Owner: _unassigned_ · Needs: P5-01, P2-04, P4-04 · Blocks: P5-03

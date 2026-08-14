@@ -29,6 +29,20 @@ window.CABINET_CONFIG = {
    * net.js refuses anything else. */
   SERVER_BASE_URL: "https://example.invalid",
 
+  /* How long a QR session code is good for, and how often the screen draws
+   * a new one. Both are guesses from P0-07 and both live in
+   * `config/settings.json` as the source of truth - these are the same
+   * numbers, repeated so one cabinet can be changed without a release.
+   *
+   * Raise QR_SESSION_SECONDS if people find a code expires while they are
+   * still walking up. It is safe to: the code says which cabinet and when,
+   * and nothing else, so a longer life is not the risk it would be for a
+   * typed code. Nothing else has to change.
+   *
+   * Leave them out and qr.js uses 60 and 30. */
+  QR_SESSION_SECONDS: 60,
+  QR_REFRESH_SECONDS: 30,
+
   /* The cabinet key. Sent on every call, as X-Cabinet-Key.
    *
    * The value below is deliberately not a key and will not work anywhere.

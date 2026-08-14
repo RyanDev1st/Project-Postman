@@ -49,6 +49,42 @@ CABINET_NETWORK = [
     (r"\bnew\s+EventSource\b", "EventSource"),
 ]
 
+# Waivers. One line per file, and every line names the ADR that decided it.
+#
+# A waiver is not a way to quiet the checker. It is the record of a decision
+# that was argued somewhere a person can read, and the ADR reference is the
+# part that matters: a waiver nobody can trace back is indistinguishable from
+# a rule quietly dropped. If the ADR is ever reversed, the entry goes with it
+# and this file starts failing again, which is the point.
+#
+# Keyed by path so a waiver covers one file and not a folder. The listed
+# reasons are the only ones forgiven in that file - everything else in it is
+# still checked.
+WAIVERS: dict[str, tuple[str, list[str]]] = {
+    # The route to the gate is fetched from a public router. It must NOT go
+    # through Http.kt: that door attaches the receiver's bearer token to
+    # every request, and a third-party router has no business holding a token
+    # that opens lockers. Its own connection, HTTPS only.
+    "src/app/src/main/kotlin/vn/edu/vgu/smartlocker/parcels/map/Walk.kt": (
+        "ADR 0016 - the router gets its own connection, never the app's door",
+        ["HttpURLConnection", "URL(", "openConnection", "a hard-coded address"],
+    ),
+    # The map tile style URL. OpenFreeMap needs no key and no account, so
+    # this address is not a secret - it is the public endpoint of a public
+    # service, and MapLibre has to be handed it directly.
+    "src/app/src/main/kotlin/vn/edu/vgu/smartlocker/parcels/map/LiveMap.kt": (
+        "ADR 0014 - OpenFreeMap tiles, no key, no account, no card",
+        ["a hard-coded address"],
+    ),
+}
+
+
+def waived(rel: str, what: str) -> bool:
+    """Whether this exact finding, in this exact file, was decided in an ADR."""
+    entry = WAIVERS.get(rel)
+    return bool(entry) and what in entry[1]
+
+
 # P1-07. Things that must never be built into a shipped front-end.
 SECRETS = [
     # Reserved names are exempt, and only reserved names. RFC 2606 and 6761
@@ -115,6 +151,8 @@ def scan(files: list[Path], patterns, door: Path, label: str) -> list[str]:
             for match in re.finditer(pattern, body):
                 line = body[: match.start()].count("\n") + 1
                 rel = path.relative_to(ROOT).as_posix()
+                if waived(rel, name):
+                    continue
                 problems.append(
                     f"  {rel}:{line}  {name}\n"
                     f"      {label} calls go through {door.relative_to(ROOT).as_posix()}"
@@ -131,6 +169,8 @@ def scan_secrets(files: list[Path]) -> list[str]:
             for match in re.finditer(pattern, body, re.I):
                 line = body[: match.start()].count("\n") + 1
                 rel = path.relative_to(ROOT).as_posix()
+                if waived(rel, what):
+                    continue
                 problems.append(f"  {rel}:{line}  {what}: {match.group(0)[:60]}")
         for match in PLAIN_HTTP.finditer(body):
             line = body[: match.start()].count("\n") + 1
@@ -186,6 +226,16 @@ def main() -> int:
             failed = True
             print(f"\n{title}:")
             print("\n".join(problems))
+
+    # Always shown, pass or fail. A waiver that only the source reveals is a
+    # rule quietly dropped; printed every run, it stays something a person
+    # has to keep agreeing with.
+    if WAIVERS:
+        print("\nwaived, each by a decision written down:")
+        for rel, (why, what) in sorted(WAIVERS.items()):
+            print(f"  {rel}")
+            print(f"      {', '.join(what)}")
+            print(f"      {why}")
 
     if failed:
         print("\nnot clean")

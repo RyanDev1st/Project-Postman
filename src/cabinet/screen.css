@@ -150,3 +150,53 @@ body {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   opacity: 0.75;
 }
+
+/* --- the QR session code (P5-01) -------------------------------------- */
+
+/* Sized against the viewport, like everything else here: nobody can say what
+ * screen this runs on (P0-02 is deferred), so a fixed pixel square would be
+ * a postage stamp on one panel and off the edge of another.
+ *
+ * The floor matters more than the ceiling. A QR has to be big enough to
+ * scan from where a person naturally stands, and P5-02 is checked in a dark
+ * corridor where the camera has least to work with. */
+.qr-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--unit) * 1.4);
+  padding: calc(var(--unit) * 2) 0;
+}
+
+/* White quiet zone around the code, always - a QR printed straight onto a
+ * dark panel does not scan, and this screen has a dark scheme. The padding
+ * is the quiet zone the standard asks for, drawn in CSS so it survives
+ * whatever the page background is doing. */
+#qr {
+  width: clamp(180px, calc(var(--unit) * 26), 340px);
+  height: auto;
+  aspect-ratio: 1;
+  background: #fff;
+  padding: calc(var(--unit) * 1.2);
+  border-radius: calc(var(--unit) * 1.2);
+  image-rendering: pixelated;
+}
+
+.qr-say {
+  margin: 0;
+  font-size: calc(var(--unit) * 2);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.qr-note {
+  margin: 0;
+  font-size: calc(var(--unit) * 1.7);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.qr-note b {
+  color: var(--ink);
+  font-weight: 600;
+}
