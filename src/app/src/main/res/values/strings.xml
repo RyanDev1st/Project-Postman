@@ -111,6 +111,10 @@
     <string name="map_walk_there">Walk there</string>
     <string name="map_close">Close the map</string>
     <string name="map_walk">%1$d min walk · %2$d m</string>
+    <!-- Shown instead of a walking time when the cabinet is kilometres away.
+         Saying "7 min walk" there would be the app lying about the only fact
+         on the card. -->
+    <string name="map_too_far">%1$d km away · too far to walk</string>
     <string name="map_no_app">No maps app to open this in</string>
 
     <!-- 8. Cabinet -->

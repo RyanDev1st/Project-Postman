@@ -63,7 +63,7 @@ private fun sampleSecond() = SmallClaim(
         R.string.cab_dropped,
         stringResource(R.string.time_at_yesterday, "21:40"),
     ),
-    left = "31h",
+    left = stringResource(R.string.time_hours_left, "31"),
     pct = 0.65f,
     soon = false,
 )

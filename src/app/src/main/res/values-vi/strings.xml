@@ -64,7 +64,7 @@
     <string name="tab_settings">CÀI ĐẶT</string>
     <string name="greeting">Chào %1$s</string>
     <string name="title_settings">Cài đặt</string>
-    <string name="cd_menu">Menu</string>
+    <string name="cd_menu">Trình đơn</string>
     <string name="cd_scan_cabinet">Quét tủ</string>
     <string name="cd_notifications">Thông báo</string>
     <string name="cd_back">Quay lại</string>
@@ -86,6 +86,7 @@
     <string name="map_walk_there">Chỉ đường</string>
     <string name="map_close">Đóng bản đồ</string>
     <string name="map_walk">đi bộ %1$d phút · %2$d m</string>
+    <string name="map_too_far">cách %1$d km · quá xa để đi bộ</string>
     <string name="map_no_app">Không có ứng dụng bản đồ để mở</string>
 
     <!-- Tủ -->
