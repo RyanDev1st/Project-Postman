@@ -45,9 +45,19 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
         [ADR 0018](../adr/0018-ml-kit-and-play-services.md).
         `python scripts/checkscan.py` — the whole loop on an emulator. It holds
         a live code in front of the app's camera, and the app refuses it while
-        it is dated in the future, then reads it and opens the door screen the
-        moment it comes good. The app's own freshness rule picks that moment,
-        so a passing run has exercised the refusal as well as the read.
+        it is dated in the future, then reads it and answers the moment it
+        comes good. The app's own freshness rule picks that moment, so a
+        passing run has exercised the refusal as well as the read. Both answers
+        are checked: `checkscan.py` opens the door at the back gate, and
+        `checkscan.py vgu-library` gets "Nothing waiting here."
+        **The scan is no longer a demo.** Which cabinet the code came from
+        decides what happens, the same way it will with a server. Scanning a
+        cabinet with nothing of yours in it says so instead of opening box 04,
+        which is what it did while every live code opened the same door. An
+        expired code says "scan again" whichever cabinet it names, so a dead
+        code never reveals where your parcels are. The only imagined part left
+        in the scan flow is the one line that says boxes 04 and 07 at the back
+        gate are yours.
         What is missing is the Verify itself, and no machine here can stand in
         for it: **a real phone, a real cabinet screen, daylight and a dark
         corridor.** The emulator hands the camera a picture file — no lens, no

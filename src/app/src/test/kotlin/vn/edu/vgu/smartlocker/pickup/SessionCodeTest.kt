@@ -160,6 +160,75 @@ class SessionCodeTest {
         )
     }
 
+    // ---- what the app does about a code it has read ----
+
+    /** Both parcels are at the back gate, and nothing is at the library. */
+    private val yours = mapOf("vgu-back-gate" to listOf("04", "07"))
+
+    @Test
+    fun `a live code at your cabinet opens your box`() {
+        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
+        assertEquals(Pickup.Open("04"), whatToDo(read, yours))
+    }
+
+    /** Two parcels there, and you already said which one you came for. */
+    @Test
+    fun `the box you tapped on Home is the one that opens`() {
+        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
+        assertEquals(Pickup.Open("07"), whatToDo(read, yours, want = "07"))
+    }
+
+    /** You tapped 07, then walked to a cabinet where only 04 is yours. */
+    @Test
+    fun `asking for a box that is not at this cabinet opens the one that is`() {
+        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
+        val onlyOne = mapOf("vgu-back-gate" to listOf("04"))
+        assertEquals(Pickup.Open("04"), whatToDo(read, onlyOne, want = "07"))
+    }
+
+    /**
+     * The fault this whole check exists for. Before the codes carried a real
+     * cabinet id, any live code opened box 04 - so standing at the library and
+     * scanning it announced a door at the back gate.
+     */
+    @Test
+    fun `a cabinet with nothing of yours in it says so`() {
+        val read = readSessionCode("VGU1|vgu-library|$now", now)
+        assertEquals(Pickup.NoParcelHere, whatToDo(read, yours))
+    }
+
+    @Test
+    fun `an expired code says scan again`() {
+        val read = readSessionCode("VGU1|vgu-back-gate|${now - 3_600}", now)
+        assertEquals(Pickup.ScanAgain, whatToDo(read, yours))
+    }
+
+    /**
+     * An expired code is told to scan again whichever cabinet it is from.
+     * Answering "no parcel for you here" would let somebody with a dead code
+     * work out where your parcels are without ever holding a live one.
+     */
+    @Test
+    fun `an expired code never says whether a parcel is there`() {
+        val mine = readSessionCode("VGU1|vgu-back-gate|${now - 3_600}", now)
+        val theirs = readSessionCode("VGU1|vgu-library|${now - 3_600}", now)
+        assertEquals(whatToDo(theirs, yours), whatToDo(mine, yours))
+        assertEquals(Pickup.ScanAgain, whatToDo(mine, yours))
+    }
+
+    @Test
+    fun `a stranger's QR is not answered at all`() {
+        val read = readSessionCode("https://vgu.edu.vn", now)
+        assertEquals(Pickup.KeepLooking, whatToDo(read, yours))
+    }
+
+    /** Nothing waiting anywhere. Every cabinet is a cabinet with none of yours. */
+    @Test
+    fun `with no parcels at all, a live code still opens nothing`() {
+        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
+        assertEquals(Pickup.NoParcelHere, whatToDo(read, emptyMap()))
+    }
+
     /** `src/cabinet/qr.js`, found by walking up from wherever tests run. */
     private fun qrJs(): String {
         var dir: File? = File(".").absoluteFile

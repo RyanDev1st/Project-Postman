@@ -26,9 +26,10 @@ import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
 import vn.edu.vgu.smartlocker.loading.LoadingScreen
 import vn.edu.vgu.smartlocker.parcels.HomeScreen
 import vn.edu.vgu.smartlocker.pickup.OpenedScreen
+import vn.edu.vgu.smartlocker.pickup.Pickup
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
-import vn.edu.vgu.smartlocker.pickup.Scanned
 import vn.edu.vgu.smartlocker.pickup.TypeCodeScreen
+import vn.edu.vgu.smartlocker.pickup.whatToDo
 import vn.edu.vgu.smartlocker.settings.SettingsScreen
 import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.AppLanguageProvider
@@ -47,6 +48,20 @@ enum class Screen {
     HOME, CABINET, SETTINGS,
     SCAN, OPENED, TYPE_CODE,
 }
+
+/**
+ * The parcels we are pretending are waiting for you, by cabinet.
+ *
+ * **The one thing in the scan flow that is still made up.** Boxes 04 and 07 at
+ * the back gate are the same two the Home screen shows, and this is the list
+ * the scanner checks a code against - so scanning the library cabinet says
+ * there is nothing there for you, because there is not.
+ *
+ * The ids are the ones a real cabinet screen puts in its QR: see
+ * `src/cabinet/config.js`. P4-04 fetches this list from the server and this
+ * line goes.
+ */
+private val YOUR_PARCELS = mapOf("vgu-back-gate" to listOf("04", "07"))
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,6 +143,10 @@ fun AppSkeleton(
     var lastMain by remember { mutableStateOf(Screen.HOME) }
     var scanBox by remember { mutableStateOf("04") }
 
+    // A sentence for a code that was read and not acted on. Null nearly
+    // always; the scan screen shows "Scan the cabinet" instead.
+    var scanNote by remember { mutableStateOf<Int?>(null) }
+
     // The number being signed in with, local part — see `VnMobile`. Held here
     // rather than in SignInScreen because the code screen has to show it, and
     // going back to correct a typo must not lose it.
@@ -140,6 +159,15 @@ fun AppSkeleton(
     fun gotoMain(tab: Screen) {
         lastMain = tab
         screen = tab
+    }
+
+    // Arriving at the scanner always arrives at a clean one. A sentence left
+    // over from a code somebody scanned five minutes ago is about a cabinet
+    // they may not even be standing at now.
+    fun gotoScan(box: String = scanBox) {
+        scanBox = box
+        scanNote = null
+        screen = Screen.SCAN
     }
 
     BackHandler(enabled = screen != Screen.SIGN_IN) {
@@ -188,11 +216,11 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
-                    onScan = { screen = Screen.SCAN },
+                    onScan = { gotoScan() },
                     content = {
                         HomeScreen(
-                            onOpen = { scanBox = it; screen = Screen.SCAN },
-                            onOpenSecond = { scanBox = it; screen = Screen.SCAN },
+                            onOpen = { gotoScan(it) },
+                            onOpenSecond = { gotoScan(it) },
                             onMap = {},
                         )
                     },
@@ -203,10 +231,10 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
-                    onScan = { screen = Screen.SCAN },
+                    onScan = { gotoScan() },
                     content = {
                         CabinetScreen(
-                            onScan = { scanBox = it; screen = Screen.SCAN },
+                            onScan = { gotoScan(it) },
                             onTypeCode = { screen = Screen.TYPE_CODE },
                         )
                     },
@@ -217,7 +245,7 @@ fun AppSkeleton(
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
-                    onScan = { screen = Screen.SCAN },
+                    onScan = { gotoScan() },
                     content = {
                         SettingsScreen(
                             dark = dark,
@@ -232,26 +260,36 @@ fun AppSkeleton(
                     onScanned = { screen = Screen.OPENED },
                     onTypeCode = { screen = Screen.TYPE_CODE },
                     onBack = { screen = lastMain },
-                    // A code from one of our cabinets, read a moment ago, is
-                    // the only thing that moves the screen on. `Stale` and
-                    // `NotOurs` stay here and say nothing yet - the sentences
-                    // for them are P5-05, and silence beats a wrong sentence.
+                    note = scanNote,
+                    // Which cabinet you scanned decides what happens, the same
+                    // way it will when there is a server. Scanning a cabinet
+                    // with nothing of yours in it says so, rather than opening
+                    // a box at a different cabinet - which is what this did
+                    // until the codes started carrying a real cabinet id.
                     //
-                    // Nothing is asked of a server here, because there is no
-                    // server. P5-03 puts the open request in this line, and
-                    // until it does, "Opened" is the demo saying what it read,
-                    // not a door reporting that it moved.
-                    onRead = { if (it is Scanned.Ours) screen = Screen.OPENED },
+                    // What is still imagined is only [YOUR_PARCELS]. P5-03
+                    // replaces that line with the server's answer, and until
+                    // it does, "Opened" is the demo saying what it read - not
+                    // a door reporting that it moved.
+                    onRead = { read ->
+                        when (val next = whatToDo(read, YOUR_PARCELS, scanBox)) {
+                            is Pickup.Open -> { scanBox = next.box; screen = Screen.OPENED }
+                            Pickup.ScanAgain -> scanNote = R.string.refused_session_expired
+                            Pickup.NoParcelHere -> scanNote = R.string.refused_no_parcel_here
+                            Pickup.KeepLooking -> Unit
+                        }
+                    },
                 )
 
                 Screen.OPENED -> OpenedScreen(
+                    box = scanBox,
                     onDone = { screen = lastMain },
                     onBack = { screen = lastMain },
                 )
 
                 Screen.TYPE_CODE -> TypeCodeScreen(
                     onAccepted = { screen = Screen.OPENED },
-                    onScan = { screen = Screen.SCAN },
+                    onScan = { gotoScan() },
                     onBack = { screen = lastMain },
                 )
             }

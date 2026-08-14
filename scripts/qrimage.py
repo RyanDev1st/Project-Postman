@@ -94,3 +94,22 @@ def tiled(code, width: int, height: int, across: int = 3):
                  (height - side) * row // (across - 1)),
             )
     return frame
+
+
+if __name__ == "__main__":
+    # Draw one code to a file, for a person to point a phone at.
+    #
+    #   python scripts/qrimage.py "VGU1|vgu-back-gate|1786690000" out.png [scale]
+    #
+    # Any string works, including one that is not ours - which is how the
+    # "a stranger's QR is ignored" case gets something to be ignored.
+    import sys
+
+    if len(sys.argv) < 3:
+        print(__doc__)
+        print('  python scripts/qrimage.py "<payload>" <out.png> [scale]')
+        raise SystemExit(2)
+    scale = int(sys.argv[3]) if len(sys.argv) > 3 else 12
+    image, version = draw(sys.argv[1], scale=scale, quiet=4)
+    image.convert("RGB").save(sys.argv[2])
+    print(f"v{version}  {image.width}x{image.width}px  {sys.argv[2]}  {sys.argv[1]}")

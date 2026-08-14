@@ -69,10 +69,15 @@ fun ScanScreen(
     onScanned: () -> Unit,
     onTypeCode: () -> Unit,
     onBack: () -> Unit = {},
-    /** What a read code turns out to be. Null while nothing has been read.
-     * Held by the caller because what happens next - a door, a message, a
-     * different screen - is not this screen's decision. */
+    /** What a read code turns out to be. Held by the caller because what
+     * happens next - a door, a message, a different screen - is not this
+     * screen's decision. */
     onRead: (Scanned) -> Unit = {},
+    /** A sentence to show instead of "Scan the cabinet": the code was expired,
+     * or nothing in that cabinet is yours. The caller decides which, because
+     * only the caller knows what is waiting for you. Null the rest of the
+     * time, which is nearly always. */
+    note: Int? = null,
 ) {
     val t = LocalLockerTokens.current
     val ctx = LocalContext.current
@@ -111,7 +116,9 @@ fun ScanScreen(
         ) {
             Aperture(modifier = Modifier.fillMaxWidth(), live = allowed, onRead = onRead)
             Text(
-                text = stringResource(if (allowed) R.string.scan_title else R.string.scan_no_camera),
+                text = stringResource(
+                    note ?: if (allowed) R.string.scan_title else R.string.scan_no_camera,
+                ),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 color = t.ink,
                 modifier = Modifier.padding(top = 16.dp),
@@ -134,10 +141,18 @@ fun ScanScreen(
  * permission, and it stops the moment between the screen appearing and the
  * first frame arriving from being a white flash.
  *
- * One code is acted on and the rest are dropped. ML Kit will read the same
+ * Each code is acted on once and the rest are dropped. ML Kit reads the same
  * code out of thirty frames a second, and the door behind this must open
- * once — rule 6 in `working-rules.md`, and P5-07's Verify counts the
- * requests in the server log.
+ * once — rule 6 in `working-rules.md`, and P5-07's Verify counts the requests
+ * in the server log. When P5-03 puts a real request behind this, it goes on
+ * this same one-per-code path and nowhere else.
+ *
+ * It is the *code* that is remembered, not the fact of having read one. A
+ * refused code — expired, or a cabinet with nothing of yours in it — leaves a
+ * sentence on the screen and the camera still running, because the cabinet
+ * draws a new code every 30 seconds and the next one is the answer. Latching
+ * after the first read would mean "scan again" was advice the app itself made
+ * impossible to follow.
  */
 @Composable
 fun Aperture(
@@ -146,7 +161,7 @@ fun Aperture(
     onRead: (Scanned) -> Unit = {},
 ) {
     val t = LocalLockerTokens.current
-    var taken by remember { mutableStateOf(false) }
+    var acted by remember { mutableStateOf<String?>(null) }
     val sweep by rememberInfiniteTransition().animateFloat(
         initialValue = 0.2f,
         targetValue = 0.78f,
@@ -166,16 +181,16 @@ fun Aperture(
             QrCamera(
                 modifier = Modifier.fillMaxSize(),
                 onCode = { raw ->
-                    // Every frame carrying the same code lands here. The
-                    // first one that is a code from a cabinet ends it; the
-                    // rest are dropped, so what happens next happens once.
-                    if (taken) return@QrCamera
+                    // Every frame carrying the same code lands here. The first
+                    // one is acted on and the rest are dropped, so whatever
+                    // happens next happens once per code.
+                    if (raw == acted) return@QrCamera
                     val read = readSessionCode(raw, System.currentTimeMillis() / 1000)
                     // A stranger's QR is not an event. Someone waving a phone
                     // around a lobby catches posters and payment codes, and
                     // the right answer is to keep looking.
                     if (read is Scanned.NotOurs) return@QrCamera
-                    taken = true
+                    acted = raw
                     onRead(read)
                 },
             )

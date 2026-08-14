@@ -107,3 +107,58 @@ internal fun readSessionCode(raw: String?, now: Long): Scanned {
     }
     return Scanned.Ours(cabinet, at)
 }
+
+/**
+ * What the app does about a code it has read.
+ *
+ * Reading the code and acting on it are two questions and this is the second
+ * one. It is kept apart because the answer is about *you* - which parcels are
+ * yours, and where - while [readSessionCode] is only about the string.
+ */
+internal sealed interface Pickup {
+
+    /** A cabinet you have a parcel at, and a live code. Open that box. */
+    data class Open(val box: String) : Pickup
+
+    /**
+     * Ours, and expired. Normal, not a failure: the cabinet redraws every 30
+     * seconds and anybody who walks up mid-cycle catches an old one.
+     */
+    data object ScanAgain : Pickup
+
+    /**
+     * A cabinet of ours, a live code, and nothing here belongs to you.
+     *
+     * Checked *after* staleness on purpose. An expired code is told to scan
+     * again and nothing else, so standing in front of a cabinet with a dead
+     * code never reveals whether you have a parcel in it.
+     */
+    data object NoParcelHere : Pickup
+
+    /** Somebody else's QR. Say nothing and keep looking. */
+    data object KeepLooking : Pickup
+}
+
+/**
+ * [yours] maps a cabinet id to the boxes waiting for you in it. [want] is the
+ * box you tapped on Home, if you tapped one: scanning a cabinet where two
+ * parcels are yours should open the one you asked for, and the first one
+ * otherwise.
+ *
+ * There is no server in this yet. When P5-03 lands, this decides *whether to
+ * ask* and the server decides what actually opens - the app must never be the
+ * thing that says a door moved.
+ */
+internal fun whatToDo(read: Scanned, yours: Map<String, List<String>>, want: String? = null): Pickup =
+    when (read) {
+        is Scanned.Stale -> Pickup.ScanAgain
+        Scanned.NotOurs -> Pickup.KeepLooking
+        is Scanned.Ours -> {
+            val boxes = yours[read.cabinet].orEmpty()
+            when {
+                boxes.isEmpty() -> Pickup.NoParcelHere
+                want in boxes -> Pickup.Open(want!!)
+                else -> Pickup.Open(boxes.first())
+            }
+        }
+    }
