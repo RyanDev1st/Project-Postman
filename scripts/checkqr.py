@@ -29,13 +29,14 @@ it this script says so and stops rather than passing quietly.
 
 from __future__ import annotations
 
-import json
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-VENDOR = ROOT / "src/cabinet/vendor/qrcode.js"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import qrimage
+
+ROOT = qrimage.ROOT
+VENDOR = qrimage.VENDOR
 
 # What a cabinet actually puts on screen, plus the shapes that stress the
 # encoder: a longer id, and the biggest moment a 32-bit clock will ever show.
@@ -45,26 +46,10 @@ PAYLOADS = [
     "VGU1|vgu-library-ground-floor-north|2147483647",
 ]
 
-ENCODE_JS = """
-const fs = require('fs');
-const src = fs.readFileSync(process.argv[2], 'utf8');
-// Browser bundle: `var QRCode = function(t){...}(...)`. Evaluate it and hand
-// back the global it declares. Local name differs so it cannot collide.
-const lib = eval(src + '\\n;QRCode');
-const qr = lib.create(process.argv[3], { errorCorrectionLevel: 'M' });
-const size = qr.modules.size, d = qr.modules.data, rows = [];
-for (let y = 0; y < size; y++) {
-  let r = '';
-  for (let x = 0; x < size; x++) r += d[y * size + x] ? '1' : '0';
-  rows.push(r);
-}
-console.log(JSON.stringify({ version: qr.version, size, rows }));
-"""
-
 
 def main() -> int:
     try:
-        from PIL import Image
+        from PIL import Image  # noqa: F401 - qrimage needs it, this is the check
         import zxingcpp
     except ImportError as missing:
         print(f"cannot run: {missing.name} is not installed")
@@ -77,44 +62,20 @@ def main() -> int:
         print(f"cannot run: {VENDOR.relative_to(ROOT).as_posix()} is missing")
         return 2
 
-    helper = ROOT / "build" / "checkqr-encode.js"
-    helper.parent.mkdir(parents=True, exist_ok=True)
-    helper.write_text(ENCODE_JS, encoding="utf-8")
-
     problems = []
     for payload in PAYLOADS:
-        out = subprocess.run(
-            ["node", str(helper), str(VENDOR), payload],
-            capture_output=True, text=True,
-        )
-        if out.returncode:
-            problems.append(f"  {payload}\n      encoder failed: {out.stderr.strip()[:160]}")
+        try:
+            im, version = qrimage.draw(payload)
+        except RuntimeError as failed:
+            problems.append(f"  {payload}\n      {failed}")
             continue
-
-        qr = json.loads(out.stdout)
-        size, rows = qr["size"], qr["rows"]
-
-        # A quiet zone is part of the code, not decoration. Without it a
-        # decoder has no edge to find and the read fails on a real screen.
-        quiet, scale = 4, 8
-        side = (size + quiet * 2) * scale
-        im = Image.new("L", (side, side), 255)
-        px = im.load()
-        for y, row in enumerate(rows):
-            for x, cell in enumerate(row):
-                if cell == "1":
-                    for dy in range(scale):
-                        for dx in range(scale):
-                            px[(x + quiet) * scale + dx, (y + quiet) * scale + dy] = 0
 
         result = zxingcpp.read_barcode(im)
         got = result.text if result else None
         if got != payload:
             problems.append(f"  {payload}\n      read back as {got!r}")
         else:
-            print(f"  v{qr['version']} {size}x{size}  reads back exactly  {payload}")
-
-    helper.unlink(missing_ok=True)
+            print(f"  v{version} {im.width}x{im.width}px  reads back exactly  {payload}")
 
     if problems:
         print("\nthe cabinet QR does not read back:")
