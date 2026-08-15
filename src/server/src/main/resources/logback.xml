@@ -1,0 +1,24 @@
+<!--
+  What the server prints.
+
+  The server log is the evidence a door opened - "when a locker opens, the
+  server log is the evidence, not the screen". So it has to be readable by a
+  person scrolling it, which Netty's DEBUG output at startup is not: it buries
+  the four lines that matter under forty about buffer allocators.
+
+  INFO at the root, and Netty pinned to WARN.
+-->
+<configuration>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss} %-5level %logger{20} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+  <logger name="io.netty" level="WARN"/>
+  <logger name="io.ktor.server.Application" level="INFO"/>
+</configuration>

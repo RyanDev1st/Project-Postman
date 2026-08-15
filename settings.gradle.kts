@@ -31,6 +31,10 @@ rootProject.name = "project-postman"
 include(":app")
 project(":app").projectDir = file("src/app")
 
-// The OTP sender server. Same rule as the app: source lives in src/.
-include(":otp-server")
-project(":otp-server").projectDir = file("src/otp-server")
+// Our API server. Same rule as the app: source lives in src/.
+//
+// It was `:otp-server` while it only sent a one-time code. It serves the whole
+// contract now and decides who may open a locker, so the name went with the
+// old scope. See ADR 0020.
+include(":server")
+project(":server").projectDir = file("src/server")

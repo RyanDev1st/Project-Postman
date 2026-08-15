@@ -58,6 +58,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0017-no-line-when-it-is-not-a-walk.md](adr/0017-no-line-when-it-is-not-a-walk.md) | Past 3 km the map draws no line at all — just you and the cabinet, framed together. A red line means "this is your way", and drawing one that is not is the same lie as a wrong caption | accepted |
 | [adr/0018-ml-kit-and-play-services.md](adr/0018-ml-kit-and-play-services.md) | The QR reader is ML Kit, bundled model. There is no Google-free build of it, so the pickup path depends on Play Services. No key, no card. zxing-cpp is the named way out | accepted |
 | [adr/0019-we-own-the-server.md](adr/0019-we-own-the-server.md) | We build the API and the database. The Server team keeps the cabinet hardware. Their schema cannot say who a parcel belongs to, and nothing they wrote is authenticated | accepted, reverses the split in CLAUDE.md |
+| [adr/0020-the-server-is-kotlin.md](adr/0020-the-server-is-kotlin.md) | The server is Kotlin, Ktor and SQLite, not FastAPI and MySQL — the repo had already half-decided it. The ESP32 polls for commands because nothing can dial it | accepted, reverses one row of 0019 |
 
 ## Findings — dated reports
 

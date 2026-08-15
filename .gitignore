@@ -53,3 +53,14 @@ build/
 Pods/
 *.log
 .DS_Store
+
+# The server's own data and its development certificate.
+#
+# data/ holds the SQLite file - real phone numbers, real tokens, and the log
+# of who opened what. It is never committed.
+#
+# config/dev-cert/ holds a PRIVATE KEY. A private key in a repo is a private
+# key in every clone. The public locker.crt beside it is the part that gets
+# installed on a phone, and it is regenerated with the keystore.
+data/
+config/dev-cert/

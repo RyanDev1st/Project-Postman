@@ -61,6 +61,8 @@ What the Server team owns is listed in [architecture.md](docs/reference/architec
 
 **Cabinet screen: a web page.** HTML, CSS and JavaScript, laid out to fit any screen. Decided in [ADR 0009](docs/adr/0009-start-phase-1-early.md), because nobody can say yet what the screen is. Never assume a size.
 
+**Server: Kotlin and Ktor, with SQLite.** One file for the database, no service to install. Decided in [ADR 0020](docs/adr/0020-the-server-is-kotlin.md). It serves **HTTPS only** — both front-ends refuse plain HTTP and there is no flag to turn that off. Start it with `./gradlew :server:run`; check it with `python scripts/checkserver.py`.
+
 ## Task tracking (agents: read this before you start any work)
 
 The board is `docs/roadmap/README.md`. One file per phase. Every task is a checkbox. The shape never changes:

@@ -20,6 +20,8 @@ firebaseAppdistribution = "5.3.0"
 # Checked on Maven Central 2026-08-11. Newest stable of each.
 bouncycastle = "1.80"
 sqlite = "3.49.1.0"
+# Checked on Maven Central 2026-08-15. Newest stable of the 1.5 line.
+logback = "1.5.18"
 # Checked on Maven Central 2026-08-12. Renders the OpenFreeMap vector tiles.
 # Not Google's: see ADR 0014.
 maplibre = "11.11.0"
@@ -69,6 +71,20 @@ ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
+
+# Generates the development TLS certificate. Both front-ends refuse plain
+# HTTP with no flag to turn it off, so the server serves TLS from the first
+# commit and development needs a certificate to serve. See ADR 0020.
+ktor-network-tls-certificates = { group = "io.ktor", name = "ktor-network-tls-certificates", version.ref = "ktor" }
+
+# Catches the exception a refusal throws to stop a route, and turns anything
+# unexpected into a 500 with no stack trace on the wire.
+ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
+
+# Ktor logs through slf4j and needs a binding, or every line is swallowed and
+# the server's log is the evidence a door opened. Checked on Maven Central
+# 2026-08-15: newest stable.
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 
 # Argon2id, for password hashing. Bouncy Castle rather than a hand-written
 # one: password hashing is where quiet mistakes cost the most, and this is
