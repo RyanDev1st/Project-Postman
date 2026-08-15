@@ -58,6 +58,16 @@ class Backend(context: Context) {
 
     suspend fun history(): Answer<List<Event>> = io { api.history() }
 
+    /**
+     * How long a parcel may sit, and when the ticket starts saying hurry.
+     *
+     * Read through here rather than by a screen making its own [Settings], so
+     * there is one copy holding one file open. Endpoint 15 can correct both
+     * without a new build - see [refreshSettings].
+     */
+    val pickupCodeHours: Int get() = settings.pickupCodeHours
+    val collectSoonHours: Int get() = settings.collectSoonHours
+
     // --- The door ----------------------------------------------------------
 
     /**

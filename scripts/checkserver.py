@@ -440,6 +440,15 @@ def main() -> int:
         status, history = call("GET", "/parcels/history", token=alice)
         actions = [e["action"] for e in history.get("events", [])]
         check("collect-opened" in actions, f"her open is written down: {actions}")
+
+        # The app's ledger draws a box number, a place and a date. The place
+        # comes from here, joined to the cabinet - the event row only stores an
+        # id, and a ledger row with no place is a row nobody can act on.
+        places = {e.get("cabinet_name", "") for e in history.get("events", [])}
+        check(
+            places and all(places),
+            f"every history line says which cabinet, by name: {places}",
+        )
         _, his = call("GET", "/parcels/history", token=bob)
         check(his.get("events") == [], "and it is not in his history")
 

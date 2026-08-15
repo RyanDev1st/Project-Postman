@@ -38,11 +38,17 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
 /** One line of the ledger: what you already collected. */
 data class LedgerEntry(val box: String, val cabinet: String, val when_: String)
 
-// The samples are composable functions rather than constants, because a place
-// name and the word "today" have to turn over with the language and a
-// top-level `val` is built once, in whatever language the process started in.
-// A default argument of a composable is evaluated inside the composition, so
-// these still read as defaults at the call site.
+// --- Preview fixtures ---------------------------------------------------
+//
+// **These are for @Preview only, and HomeScreen no longer defaults to them.**
+// They were default arguments, which meant the shipping call site got a
+// made-up parcel at Back Gate box 04 for free if it forgot to pass anything -
+// and it did forget, for six builds. The parameters below are required now,
+// so a screen with no data has to say so rather than inventing a parcel.
+//
+// They are composable functions rather than constants because a place name and
+// the word "today" turn over with the language, and a top-level `val` is built
+// once, in whatever language the process started in.
 
 @Composable
 private fun sample() = Claim(
@@ -90,13 +96,30 @@ private fun sampleLedger() = listOf(
  */
 @Composable
 fun HomeScreen(
+    parcels: List<Claim>,
+    second: List<SmallClaim>,
+    ledger: List<LedgerEntry>,
     onOpen: (String) -> Unit = {},
     onOpenSecond: (String) -> Unit = {},
     onMap: () -> Unit = {},
-    parcels: List<Claim> = listOf(sample()),
-    second: List<SmallClaim> = listOf(sampleSecond()),
-    ledger: List<LedgerEntry> = sampleLedger(),
-    freeCount: Int = 6,
+    /**
+     * How many boxes are free, or **null when nobody has said**.
+     *
+     * It used to default to 6, and the empty ticket drew that 6 as large as a
+     * real box number. Nothing on the receiver's side of the contract reports
+     * free boxes, so that number was invented, and it looked exactly as solid
+     * as a number that is not.
+     */
+    freeCount: Int? = null,
+    /**
+     * A sentence to show instead of "nothing waiting" - the same `note: Int?`
+     * the sign-in and scan screens take.
+     *
+     * It matters most when it is null-shaped trouble: if the server cannot be
+     * reached, an empty Home would quietly report that nobody has sent you
+     * anything, which is a different fact from *we could not ask*.
+     */
+    note: Int? = null,
 ) {
     val t = LocalLockerTokens.current
     Column(
@@ -111,15 +134,15 @@ fun HomeScreen(
             ClaimTicket(
                 claim = Claim(
                     cabinet = stringResource(R.string.cabinet_back_gate),
-                    box = "%02d".format(freeCount),
+                    box = freeCount?.let { "%02d".format(it) } ?: "\u2014",
                     dropped = "",
                     collectBy = "",
-                    left = stringResource(R.string.home_nearest),
+                    left = if (note == null) stringResource(R.string.home_nearest) else "",
                     pct = 0f,
                     soon = false,
                 ),
                 isFree = true,
-                freeNote = stringResource(R.string.home_nothing_waiting),
+                freeNote = stringResource(note ?: R.string.home_nothing_waiting),
             )
         } else {
             ClaimTicket(claim = parcels.first())
@@ -242,17 +265,31 @@ fun Ledger(entries: List<LedgerEntry>, modifier: Modifier = Modifier) {
 @Preview(showBackground = true, heightDp = 900)
 @Composable
 private fun HomePreview() {
-    PreviewTheme { HomeScreen() }
+    PreviewTheme {
+        HomeScreen(
+            parcels = listOf(sample()),
+            second = listOf(sampleSecond()),
+            ledger = sampleLedger(),
+        )
+    }
 }
 
 @Preview(showBackground = true, heightDp = 900, name = "dark")
 @Composable
 private fun HomeDarkPreview() {
-    PreviewTheme(dark = true) { HomeScreen() }
+    PreviewTheme(dark = true) {
+        HomeScreen(
+            parcels = listOf(sample()),
+            second = listOf(sampleSecond()),
+            ledger = sampleLedger(),
+        )
+    }
 }
 
 @Preview(showBackground = true, heightDp = 900, name = "empty")
 @Composable
 private fun HomeEmptyPreview() {
-    PreviewTheme { HomeScreen(parcels = emptyList(), second = emptyList()) }
+    PreviewTheme {
+        HomeScreen(parcels = emptyList(), second = emptyList(), ledger = sampleLedger())
+    }
 }

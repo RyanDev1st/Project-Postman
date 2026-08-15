@@ -50,6 +50,8 @@
 
     <string name="time_at_today">%1$s hôm nay</string>
     <string name="time_at_yesterday">%1$s hôm qua</string>
+    <string name="time_at_tomorrow">%1$s ngày mai</string>
+    <string name="time_at_on">%1$s ngày %2$s</string>
     <string name="time_hours_left">còn %1$s giờ</string>
     <string name="date_2_aug">2 thg 8</string>
     <string name="date_28_jul">28 thg 7</string>

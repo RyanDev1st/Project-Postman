@@ -10,6 +10,7 @@
 
   "pickup_code_digits": 6,
   "pickup_code_hours": 48,
+  "collect_soon_hours": 12,
   "wrong_tries_before_lock": 5,
   "box_lock_minutes": 15,
 

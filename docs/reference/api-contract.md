@@ -84,7 +84,7 @@ One path, told apart by whether a receiver token is sent:
 | --- | --- | --- | --- | --- |
 | 5 | List my waiting parcels | `GET /parcels` | token | cabinet name, box number, time it arrived |
 | 6 | **Pick up by scanning — the main path** | `POST /parcels/collect` | token, QR session code | which box opened, or a refusal code |
-| 7 | My history | `GET /parcels/history` | token | list of time, box, action |
+| 7 | My history | `GET /parcels/history` | token | list of time, box, action, cabinet name |
 | 8 | Register this phone for notifications | `POST /devices` | token, device id | ok |
 
 ## Endpoints — the cabinet screen

@@ -44,6 +44,15 @@ class Settings(context: Context) {
     val receiverTokenDays: Int get() = number("receiver_token_days", 30)
     val pickupCodeDigits: Int get() = number("pickup_code_digits", 6)
     val pickupCodeHours: Int get() = number("pickup_code_hours", 48)
+
+    /**
+     * Under this many hours left, the claim ticket says hurry.
+     *
+     * A guess, not a measurement - which is why it is here and not in Kotlin.
+     * The design's own samples put the line somewhere between 6 hours, which
+     * is drawn urgent, and 31, which is not.
+     */
+    val collectSoonHours: Int get() = number("collect_soon_hours", 12)
     val wrongTriesBeforeLock: Int get() = number("wrong_tries_before_lock", 5)
     val boxLockMinutes: Int get() = number("box_lock_minutes", 15)
     val uncollectedChaseDays: Int get() = number("uncollected_chase_days", 3)

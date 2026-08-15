@@ -77,14 +77,22 @@ fun Route.parcelRoutes(db: Db, tokens: Tokens, collect: Collect) {
     get("/parcels/history") {
         val me = call.receiverId(tokens)
         val events = db.rows(
-            """SELECT at, box_number, action FROM events
-                WHERE receiver_id = ? ORDER BY at DESC LIMIT 200""",
+            """SELECT e.at AS at, e.box_number AS box_number, e.action AS action,
+                      c.name AS cabinet_name
+                 FROM events e
+                 LEFT JOIN cabinets c ON c.id = e.cabinet_id
+                WHERE e.receiver_id = ? ORDER BY e.at DESC LIMIT 200""",
             me,
         ) {
             EventJson(
                 at = it.num("at").asIso(),
                 boxNumber = it.str("box_number"),
                 action = it.str("action"),
+                // Joined, not stored on the event. A cabinet that is renamed
+                // should read by its new name everywhere, including in what
+                // already happened - the row records where, not what it was
+                // called that day. LEFT, so a deleted cabinet still lists.
+                cabinetName = it.str("cabinet_name"),
             )
         }
         call.respond(EventsResponse(events))
@@ -127,6 +135,7 @@ data class EventJson(
     val at: String,
     @SerialName("box_number") val boxNumber: String,
     val action: String,
+    @SerialName("cabinet_name") val cabinetName: String = "",
 )
 
 @Serializable

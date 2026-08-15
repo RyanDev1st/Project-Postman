@@ -258,6 +258,8 @@ Every value in this design that we chose rather than measured lives in **one set
 | How many digits in a typed pickup code | 6 | Never, without reading [ADR 0004](../adr/0004-offline-pickup.md) first |
 | Wrong tries before a box locks | 5 | Real users get locked out by accident |
 | How long a box stays locked | 15 minutes | — |
+| How long an unconfirmed open is believed | 120 seconds | Doors are reported shut later than that, or a parcel comes back too slowly. There is no sensor ([ADR 0006](../adr/0006-no-sensor.md)), so the report is a tap that may never come — see BUG-008 |
+| Hours left before the ticket says hurry | 12 | People arrive too late, or the app nags too early |
 | Days before an uncollected parcel is chased | 3 | Boxes fill up, or nobody complains |
 | Server address | — | Moving between test and real |
 | Notification route | push | SMS or Zalo turns out to be needed |

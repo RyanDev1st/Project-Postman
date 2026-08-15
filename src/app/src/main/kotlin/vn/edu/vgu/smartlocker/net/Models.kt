@@ -49,12 +49,18 @@ data class Parcel(
 }
 
 /** One line of what happened, for the history screen. */
-data class Event(val at: String, val boxNumber: String, val action: String) {
+data class Event(
+    val at: String,
+    val boxNumber: String,
+    val action: String,
+    val cabinetName: String,
+) {
     companion object {
         fun from(json: JSONObject) = Event(
             at = json.optString("at"),
             boxNumber = json.optString("box_number"),
             action = json.optString("action"),
+            cabinetName = json.optString("cabinet_name"),
         )
     }
 }

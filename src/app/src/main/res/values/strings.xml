@@ -77,6 +77,9 @@
          ours, and were the English left standing in a Vietnamese screen. -->
     <string name="time_at_today">%1$s today</string>
     <string name="time_at_yesterday">%1$s yesterday</string>
+    <string name="time_at_tomorrow">%1$s tomorrow</string>
+    <!-- A parcel more than a day out: "14:20 on 18 Aug". -->
+    <string name="time_at_on">%1$s on %2$s</string>
     <string name="time_hours_left">%1$sh left</string>
     <string name="date_2_aug">2 Aug</string>
     <string name="date_28_jul">28 Jul</string>

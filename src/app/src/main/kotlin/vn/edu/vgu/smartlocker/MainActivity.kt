@@ -30,6 +30,7 @@ import vn.edu.vgu.smartlocker.auth.SignInScreen
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
 import vn.edu.vgu.smartlocker.loading.LoadingScreen
 import vn.edu.vgu.smartlocker.parcels.HomeScreen
+import vn.edu.vgu.smartlocker.parcels.rememberHome
 import vn.edu.vgu.smartlocker.pickup.OpenedScreen
 import vn.edu.vgu.smartlocker.pickup.Pickup
 import vn.edu.vgu.smartlocker.pickup.ScanScreen
@@ -276,7 +277,15 @@ fun AppSkeleton(
                     onSelectTab = ::gotoMain,
                     onScan = { gotoScan() },
                     content = {
+                        // Reloaded when Home is arrived at, which includes
+                        // coming back from a collect - so a parcel that has
+                        // just been taken out stops being listed.
+                        val home = rememberHome(backend, reloadKey = openedBox)
                         HomeScreen(
+                            parcels = home.parcels,
+                            second = home.second,
+                            ledger = home.ledger,
+                            note = home.trouble?.let(::sentenceFor),
                             onOpen = { gotoScan() },
                             onOpenSecond = { gotoScan() },
                             onMap = {},
