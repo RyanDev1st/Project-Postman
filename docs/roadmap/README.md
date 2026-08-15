@@ -101,7 +101,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 
 ## Phases
 
-- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `11/17`
+- [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `12/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
 - [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
@@ -123,7 +123,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/10`
       Device tests, bug fixing, release build, rollback page.
 
-**Total: 18 / 88.**  ·  7 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 5 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 19 / 88.**  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 
@@ -146,7 +146,7 @@ Tick a phase box only when every task inside it is ticked **and** its Exit check
 
 **One thing still gates the work: the shape of the API.** Which calls exist, what each is for, and which caller may make it. Agree that with the Server team before Phase 2. Everything else in the contract — paths, field names, numbers, error codes — changes one file, because every call goes through one network file (P1-04 ✅) and every guessed number lives in one settings file (P0-15 ✅).
 
-**No Phase 0 task is ours any more.** P0-12 and P0-13 closed on 2026-08-07 — [ADR 0010](../adr/0010-c4-offline-exception.md) gave rule C4 a narrow offline exception, and the challenge–response exchange is written into `api-contract.md` as endpoints 16 and 17. Everything still open in Phase 0 waits on the hardware team, the Server team, or the group chat.
+**Phase 0 is ours again, because the server is.** On 2026-08-15 the Server team handed over what they had — a FastAPI app whose schema could not say who a parcel belonged to, and no authentication anywhere — and the split moved to where the skill is: [ADR 0019](../adr/0019-we-own-the-server.md). P0-04 was rewritten in the same change, because *send the contract and wait* could never have closed. P0-08 closed, because the masked-name format was only ever waiting on a team that was not going to answer. What is still open in Phase 0 waits on the hardware team or the group chat.
 
 > ⚠️ **P0-13 was decided under delegation, not at a team sitting.** The board asked for a team decision; the CSE lead made the call on 2026-08-07 so the work could move. The team still needs telling, and if they disagree, reversing it is one new ADR and no code — ADR 0004's Option A is a day's work.
 

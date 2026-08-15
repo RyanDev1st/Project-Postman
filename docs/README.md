@@ -25,7 +25,8 @@ Edit these in place. No date in the name.
 | --- | --- |
 | [reference/working-rules.md](reference/working-rules.md) | **How this team works.** Evidence, small batches, verify, review, restraint. Holds the assumption log |
 | [reference/architecture.md](reference/architecture.md) | The parts of the system and how they connect. Two front-ends |
-| [reference/api-contract.md](reference/api-contract.md) | Every request each front-end sends and every answer it expects. **Draft** |
+| [reference/api-contract.md](reference/api-contract.md) | Every request each front-end sends and every answer it expects. **Built** — this is what `src/server/` serves |
+| [reference/cabinet-firmware.md](reference/cabinet-firmware.md) | For the hardware team: the two calls the ESP32 makes, its key, and a reference sketch |
 | [reference/app-screens.md](reference/app-screens.md) | The phone app: every screen, what leads where, what each must never show |
 | [reference/releasing.md](reference/releasing.md) | How a build gets onto the team's phones. Firebase App Distribution |
 | [reference/how-it-works.html](reference/how-it-works.html) | **One chart** of the whole process, for anyone. Open it in a browser |

@@ -110,6 +110,31 @@ def refusal(answer) -> str:
 # --- running it -----------------------------------------------------------
 
 
+def kill_whatever_holds_the_port() -> None:
+    """Last resort: find the process on PORT and end it.
+
+    Only ever aimed at our own port, and only after a terminate that did not
+    take. On Windows a process started from a shell script survives its
+    parent, which is how one of these was left running across three runs.
+    """
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["netstat", "-ano"], capture_output=True, text=True).stdout
+            for line in out.splitlines():
+                if f":{PORT} " in line and "LISTENING" in line:
+                    subprocess.run(["taskkill", "/F", "/PID", line.split()[-1]],
+                                   capture_output=True)
+        else:
+            out = subprocess.run(["lsof", "-ti", f"tcp:{PORT}"],
+                                 capture_output=True, text=True).stdout
+            for pid in out.split():
+                subprocess.run(["kill", "-9", pid], capture_output=True)
+    except Exception:
+        # Nothing here is worth failing a run over. The port check that
+        # follows is what actually decides.
+        pass
+
+
 def free_port_or_die() -> None:
     """Refuse to run if something is already on the port.
 
@@ -205,12 +230,28 @@ class Server:
         return None
 
     def stop(self) -> None:
+        """Stop it, and then make sure it is actually stopped.
+
+        Asking politely is not enough, and this is the second time that has
+        bitten: a server left holding the port answers the next run's requests,
+        every check passes, and the report is about a build that no longer
+        exists. So the port is what gets checked, not the process handle.
+        """
         if self.proc and self.proc.poll() is None:
             self.proc.terminate()
             try:
                 self.proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
+
+        for _ in range(10):
+            with socket.socket() as probe:
+                probe.settimeout(1)
+                if probe.connect_ex(("127.0.0.1", PORT)) != 0:
+                    return
+            kill_whatever_holds_the_port()
+            time.sleep(0.5)
+        print(f"  WARN something is still on {PORT} - the next run will refuse to start")
 
 
 def register(server: Server, phone: str) -> str:

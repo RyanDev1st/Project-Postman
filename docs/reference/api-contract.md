@@ -1,8 +1,12 @@
 # API contract — front-ends ↔ server
 
-**Status: OUR PROPOSAL. Written, not yet sent.** Sending it is task **P0-04**.
+**Status: BUILT.** As of 2026-08-15 this is not a proposal to anybody — it is what `src/server/` serves. [ADR 0019](../adr/0019-we-own-the-server.md): we own the server, because the team that was going to build it builds hardware.
 
-The Server team does not have an API design yet. So this is not a form with blanks for them to fill — it is **our complete draft**, with every value chosen. Their job is to read it and say what is wrong. See [ADR 0005](../adr/0005-we-propose-they-object.md).
+That changes what this file is for. It was a draft to be argued with; it is now the description of a running thing, and **the code and this page must agree**. If they ever disagree, the code is what students meet, so fix whichever is wrong in the same change — never one alone.
+
+What has *not* changed is that every number here is a guess with a default, living in `config/settings.json`. See the settings table in [architecture.md](architecture.md).
+
+Endpoints 1 to 15 and 18 are built and checked by `python scripts/checkserver.py`. Endpoints 16, 17, 19, 20 and 21 are written down here and **not built** — they are marked where they appear.
 
 Every number in here is a **guess with a default**, and every one of them lives in the settings file (task **P0-15**) so correcting it costs five minutes, not a release. See the settings table in [architecture.md](architecture.md).
 
@@ -12,10 +16,9 @@ Product: a parcel drop-off locker. See [ADR 0003](../adr/0003-parcel-locker-prod
 
 ## How to use this file
 
-- **We wrote all of it.** Paths, fields, error codes, numbers. Nothing is left blank.
-- **The Server team reads it and objects.** Anything they cannot build, or would build differently, they say so and we change it.
-- **Silence means agreement.** We build against this until told otherwise.
-- **Once they have agreed a value, it stops being ours to change alone.** A change after that needs both teams — rule C2.
+- **We wrote all of it, and we serve all of it.** Paths, fields, error codes, numbers.
+- **A shape change is a three-sided change.** The server writes it, the app reads it, and the cabinet screen carries it. Changing one and not the others is how a scan starts failing with nothing in either build saying why.
+- **The hardware team gets the part that touches them**, and only that: [cabinet-firmware.md](cabinet-firmware.md). Two calls, one key, one rule.
 
 Paths are a suggestion and cost almost nothing to change: every call in the app goes through one file (task P1-04), so renaming them all is a ten-minute job.
 
@@ -94,6 +97,14 @@ One path, told apart by whether a receiver token is sent:
 | 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next |
 | 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
+| 22 | **Anything for me to do?** | `GET /cabinet/commands` | cabinet key | a list of doors to open, each with an id |
+| 23 | That is done | `POST /cabinet/command-done` | cabinet key, command id, result | ok |
+
+**Endpoints 22 and 23 are the ESP32's, and were added with [ADR 0020](../adr/0020-the-server-is-kotlin.md).** The board cannot be dialled — it takes a DHCP address on campus Wi-Fi and has no name — so it asks once a second rather than being told. The cost is up to a second before a door opens, which a person standing at a locker will accept.
+
+**A command is handed over exactly once.** The row is stamped as taken inside the same transaction that reads it, so a board that loses the reply and asks again is handed nothing. That is where "an open never comes from a retry" stops being a wish. Endpoint 23 is for the record only and nothing waits on it: a cabinet that loses power between opening a door and saying so must not leave somebody standing at an open box being told it failed.
+
+The full protocol, and a reference sketch, are in [cabinet-firmware.md](cabinet-firmware.md).
 
 **Endpoint 10 returns a masked name.** `Nguyễn V. A***`, never the full name. The shipper already knows who he is delivering to — he only needs to confirm he has the right person. Without masking, anyone can stand at the cabinet, type phone numbers, and collect names. See task P0-08.
 
@@ -236,13 +247,20 @@ Every failure the server can send, with the code we propose and the exact words 
 
 **A wrong typed code must not say whether that code exists.** "Not right" and "not right yet" are the same message. Anything else lets somebody at the keypad work out which codes are real.
 
-## What we still need from the Server team
+## What is still open
 
-Not blanks. Three things only they can answer, and one thing we need a yes to.
+Three of the four questions on this list were addressed to the Server team. Two of them are now ours to answer and are answered; the rest are below.
 
-1. **Can you build this?** If any endpoint above is awkward on your side, say which and why. We would far rather change it now than after the screens exist.
-2. **How does the cabinet get its key, and how is it replaced if a cabinet is stolen?** The one design question we cannot answer for you — it depends on how you issue credentials. (blocks P0-05)
-3. **What does endpoint 10 return when two people share one phone number?** Rare, but it decides whether the shipper sees a list or an error. (blocks P3-03)
-4. **Confirm the masked-name format.** We propose `Nguyễn V. A***`. If your data cannot produce that shape, tell us what it can. (blocks P0-08)
+**Answered, because we build the server now:**
 
-Everything else in this file is a number, and every number lives in the settings file. Want a different value? Change the setting. No meeting needed — once endpoint 15 exists and task **P1-08** is ticked. Until then a changed number needs a new release, so endpoint 15 is worth building early.
+- *How does a cabinet get its key, and how is it replaced if one is stolen?* The server issues it once, at `cabinet add`, and keeps only a hash. `cabinet rotate` replaces it and kills the old one. What remains of **P0-05** is the hardware half — what a person physically does at a cabinet — and that is in [cabinet-firmware.md](cabinet-firmware.md).
+- *Confirm the masked-name format.* Ours to decide, and decided: `maskName` in `Phone.kt` writes `Nguyễn V. A***`. **P0-08** is answered.
+
+**Still open, and now ours to decide:**
+
+1. **What does endpoint 10 return when two people share one phone number?** Today the phone number is `UNIQUE` in the schema, so the second person cannot register at all — which is an answer, but not one anybody chose. It decides whether the shipper sees a list or an error. (blocks P3-03)
+2. **Endpoints 16, 17, 19, 20 and 21 are written and not built.** Offline pickup, reconciliation, Google sign-in and passwords. Nothing depends on them yet and none is on the path to a working pickup.
+
+**Still open for the hardware team:** the three questions at the end of [cabinet-firmware.md](cabinet-firmware.md) — how a key reaches a board, how long a latch needs, and what happens on a power cut mid-open.
+
+Everything else in this file is a number, and every number lives in the settings file. Want a different value? Change the setting. Endpoint 15 is built, so that reaches an installed phone; **P1-08** is the proof of it on a real one.

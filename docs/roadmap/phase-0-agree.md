@@ -2,20 +2,18 @@
 
 **Goal:** settle everything that costs the most to change late. No code in this phase.
 
-**Progress: 11 / 17.**  ·  5 deferred `⏸️ LATER`  ·  **P0-04 is the critical path for the whole board**
+**Progress: 12 / 17.**  ·  3 deferred `⏸️ LATER`  ·  **P0-04 is the critical path for the whole board**
 
 Phase 0 is the cheapest phase and it prevents the most rework. **It no longer gates Phase 1** — see [ADR 0009](../adr/0009-start-phase-1-early.md).
 
 ## Where this phase stands
 
-Nine ticked, six deferred, two left.
+Twelve ticked, three deferred, two left.
 
 | Left to do | Why it is still here |
 | --- | --- |
-| **P0-13** — does rule C4 gain an offline exception? | The sharpest question on the board, and now the most urgent. Nothing offline gets built until it is settled |
-| **P0-12** — the offline design | The way is chosen (challenge and response). It needs writing into `api-contract.md`, and ADR 0004 marked `accepted` — which is what raises P0-13 |
-
-Both are ours. Neither waits on another team.
+| **P0-04** — the contract, and the server that serves it | 🟡 The server is built and passes 29 checks. What is missing is a real phone reaching it: somebody has to fill in `server_base_url`, install the certificate, and try |
+| **P0-05** — how a cabinet proves it is the cabinet | 🔴 Our half is done — the server issues and rotates keys. The other half is what a person does at a real cabinet, and that is the hardware team's |
 
 ```
    P0-03 ✅ ──> P0-15 ✅ ──┐
@@ -30,7 +28,9 @@ Both are ours. Neither waits on another team.
 
 **Everything deferred was waiting on somebody else.** P0-02 and P0-16 on the hardware team, P0-05 and P0-08 on the Server team, P0-17 on a group-chat answer. None of them moved in a day, and the app they exist to serve had not been started.
 
-**P0-04 came back out of the deferred list on 2026-08-07.** Deferring it looked free because its `Blocks` line said `—`. It was wrong: no server address means no P1-05 and no P1-06, and every open task on the board chains back to one of those two. Sending the contract is now the single thing that unblocks the project.
+**P0-04 came back out of the deferred list on 2026-08-07.** Deferring it looked free because its `Blocks` line said `—`. It was wrong: no server address means no P1-05 and no P1-06, and every open task on the board chains back to one of those two.
+
+**Two of those waits ended on 2026-08-15, by stopping waiting.** The Server team turned out not to be building a server — [ADR 0019](../adr/0019-we-own-the-server.md) — so P0-08 was ours to answer and is answered, and half of P0-05 came with it. The lesson is worth keeping: both had sat `⏸️ LATER` for ten days on an answer that was never coming, and neither was hard once somebody owned it.
 
 ## Who answers the deferred ones
 
@@ -38,9 +38,9 @@ They come back. This is who closes them when they do.
 
 | Who | Tasks | What is needed |
 | --- | --- | --- |
-| **Hardware team** | P0-02 ⏸️, P0-16 ⏸️ | A screen spec, and a cabinet we can touch |
-| **Server team** | **P0-04 — send it**, then P0-05 ⏸️, P0-08 ⏸️ | P0-04 is no longer deferred and is the one thing holding up everything. Then the key, then the masked format |
-| **Us, the IT team** | — | P0-12 and P0-13 closed on 2026-08-07. Nothing in Phase 0 is ours any more |
+| **Hardware team** | P0-02 ⏸️, P0-16 ⏸️, P0-05 🔴 | A screen spec, a cabinet we can touch, and the three answers at the end of [cabinet-firmware.md](../reference/cabinet-firmware.md) |
+| **Server team** | — | There is no server team. The server is ours — [ADR 0019](../adr/0019-we-own-the-server.md) |
+| **Us, the IT team** | **P0-04**, and the answered half of P0-05 | P0-04 is built and needs a phone pointed at it. P0-08 closed on 2026-08-15 |
 | **The group chat** | P0-17 ⏸️ | One question, whenever somebody cannot install the app |
 
 ## Tasks
@@ -64,17 +64,20 @@ They come back. This is who closes them when they do.
       - Verify: [ADR 0001](../adr/0001-tech-stack.md) is `accepted` for the phone app, and `CLAUDE.md` names the real stack
       - Done: 2026-08-05 — Chose to build the Android app natively, in Kotlin. Nobody on the team has used any of the options before, so the usual tie-breaker of "use what you already know" did not apply. Native won because when a beginner hits a problem the error message is Android's own and the first search result answers it — with a cross-platform tool the same problem arrives translated, and you cannot tell whose fault it is. The cost is real and we took it knowingly: an iPhone version later means writing the app a second time, not converting it. The design work carries over even though the code will not.
 
-- [ ] **P0-04** — Write the whole API contract as our proposal, and send it
-      - Owner: _unassigned_ · Needs: P0-01 · Blocks: P1-05, P1-06
-      - Verify: `api-contract.md` has zero `TO AGREE` markers **and** it has been sent to the Server team with a date recorded here
-      - Notes: was `⏸️ LATER`. **Un-deferred on 2026-08-07, and this is not a reversal of [ADR 0009](../adr/0009-start-phase-1-early.md) — it is the condition that ADR set.** It says to agree the shape *before Phase 2*, and Phase 2 is next: every open task on the whole board now chains back to P1-05 or P1-06, and both need a server address that only this task produces. `server_base_url` in `config/settings.json` is empty
-      - Notes: **the Blocks line used to say `—`, and that was the whole problem.** The dependency was real and unrecorded, so deferring this looked free. It is the critical path for 60 tasks
-      - Notes: the document itself is finished — 17 endpoints, every value chosen, zero blanks. What is left is a person sending it and writing the date here
+- [ ] **🟡 DOING — P0-04** — Write the whole API contract, and stand up the server that serves it
+      - Owner: Claude · Needs: P0-01 · Blocks: P1-05, P1-06
+      - Verify: a real phone reaches the real server at a real address and gets a real answer back — a one-time code by SMS, and its own parcel list
+      - Notes: **rewritten on 2026-08-15, because it could never have closed as written.** It said *send it to the Server team with a date recorded here*, and there is nobody to send it to: they are ECE students building hardware, and the server is ours — [ADR 0019](../adr/0019-we-own-the-server.md). Sending a contract to a team that will not implement it is not a step, it is a wait. Same ID, same place in the chain, new Verify
+      - Notes: **the Blocks line used to say `—`, and that was the whole problem.** The dependency was real and unrecorded, so deferring this looked free. It is the critical path for the rest of the board
+      - Notes: **Built and checked by machine; not ticked.** `src/server/` is Kotlin, Ktor and SQLite — [ADR 0020](../adr/0020-the-server-is-kotlin.md) — serving endpoints 1 to 15, 18, and the two the ESP32 needs. It speaks HTTPS only, because both front-ends refuse plain HTTP and there is no flag to turn that off.
+        `python scripts/checkserver.py` — 29 checks. It starts the server over real TLS, registers two phones, drops a parcel, collects it by a scan, watches the hardware take the open command, and then tries to steal the parcel four ways. All four refused by the server.
+        What is missing is the Verify itself: **no real phone has ever reached it.** `server_base_url` is still blank in `config/settings.json`, on purpose — the address is different on every machine and a LAN address is not something to commit, so somebody has to fill it in, install the certificate on the phone, and try. `src/server/README.md` is the three steps.
 
-- [ ] **⏸️ LATER — P0-05** — Agree how the cabinet proves it is the cabinet
+- [ ] **🔴 BLOCKED — P0-05** — Agree how the cabinet proves it is the cabinet
       - Owner: _unassigned_ · Needs: — · Blocks: —
-      - Verify: the key type, how it is placed on the cabinet, and how it is replaced are written in `api-contract.md`
-      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — keep it simple now, redefine before the cabinet is real. Until then the cabinet sends a plain key we issue ourselves, and it is a **test key, never a real one**. Get this wrong and a stolen cabinet opens every box, so this must be settled before any cabinet leaves a desk. The key never enters this repo
+      - Verify: the key type, how it is placed on the cabinet, and how it is replaced are written down, **and a person has put one on a real cabinet**
+      - Notes: **no longer deferred and no longer the Server team's.** Half of it is answered, because the server issuing the key is ours now: `cabinet add` prints a key once, the server keeps only a hash, and `cabinet rotate` replaces it and kills the old one. One key per cabinet, never a shared master, so a stolen cabinet costs that cabinet
+      - Notes: 🔴 what is left is the hardware team's half — what a person physically does at a cabinet to get the key onto the board, and what happens on a power cut mid-open. Asked at the end of [cabinet-firmware.md](../reference/cabinet-firmware.md). Get this wrong and a stolen cabinet opens every box, so it must be settled before any cabinet leaves a desk. The key never enters this repo
 
 - [x] **P0-06** — Decide how the receiver is told a parcel arrived
       - Owner: Team · Needs: — · Blocks: P0-11, P4-01
@@ -86,10 +89,11 @@ They come back. This is who closes them when they do.
       - Verify: the lifetime in seconds and the refresh rate are written down, and both are adjustable without a new release
       - Done: 2026-08-05 — Set the code on the cabinet screen to last 60 seconds, with the screen drawing a new one every 30 seconds. Both numbers are guesses, so both went into the settings list where anyone can change them. If people find it expires while they are still walking up, the number goes up; nothing else has to change. The code itself only says which cabinet and when, so a longer life is not dangerous the way the typed code would be.
 
-- [ ] **⏸️ LATER — P0-08** — Agree what the shipper sees when he looks up a receiver
-      - Owner: _unassigned_ · Needs: — · Blocks: —
-      - Verify: the exact masked format is written in `api-contract.md` with a worked example, **and the Server team has confirmed they can produce it**
-      - Notes: deferred by [ADR 0009](../adr/0009-start-phase-1-early.md) — redefine when the Server team answers. We build `Nguyễn V. A***` meanwhile. **What is deferred is the shape of the mask, not the masking** — never a full name, never a phone number, because the cabinet screen is a public terminal
+- [x] **P0-08** — Agree what the shipper sees when he looks up a receiver
+      - Owner: Claude · Needs: — · Blocks: —
+      - Verify: the exact masked format is written down with a worked example, **and the thing that serves it can produce it**
+      - Notes: was `⏸️ LATER`, waiting on the Server team to say what their data could produce. That question is ours now — [ADR 0019](../adr/0019-we-own-the-server.md) — so it is answered rather than waited on
+      - Done: 2026-08-15 — Typing a phone number on the cabinet gives back a masked name and nothing else. `maskName` in the server writes `Nguyễn Văn An` as `Nguyễn V. A***`, and the reply carries no phone number at all — `checkserver.py` looks for the number it just registered anywhere in that answer and fails if it finds it. That matters because the cabinet screen stands in a lobby where anyone can walk up and type numbers.
 
 - [x] **P0-09** — List the test devices, and stand up the cabinet simulator
       - Owner: Team · Needs: — · Blocks: P1-01

@@ -21,6 +21,15 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
         draws nothing rather than sending a phone nowhere.
         `python scripts/checkqr.py` draws the code and reads it back with
         `zxing-cpp`, an unrelated decoder — 3 payloads, all exact.
+        **Changed on 2026-08-15: the screen no longer composes its own code.**
+        It asks the server for one — endpoint 9 — and draws exactly what comes
+        back. A screen that invents codes cannot work against a server that
+        checks them, and `VGU1|cabinet|seconds` was guessable anyway: an id and
+        a clock reading are two things anybody can type. The fourth field is 32
+        random bytes and is the only part that proves anything.
+        `node scripts/checkqr.js` now also proves the screen says so plainly
+        when the server refuses its key or cannot be reached, instead of
+        leaving a dead code up for somebody to scan.
         What is missing is the Verify itself: **there is no real cabinet**, and
         this task also needs P1-06, which is 🔴 BLOCKED on a server address.
         Nothing here waits on the server — the payload is a place and a clock
@@ -65,9 +74,13 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
         code moves the screen to "Opened" and opens nothing. That is the demo
         saying what it read, not a door reporting that it moved.
 
-- [ ] **P5-03** — The server checks the user, then opens their box
-      - Owner: _unassigned_ · Needs: P5-02 · Blocks: P5-04, P5-05, P5-06, P5-07, P5-08, P6-05, P7-03
+- [ ] **🟡 DOING — P5-03** — The server checks the user, then opens their box
+      - Owner: Claude · Needs: P5-02 · Blocks: P5-04, P5-05, P5-06, P5-07, P5-08, P6-05, P7-03
       - Verify: the correct door physically opens, and the server log shows which user and which box
+      - Notes: **Built and checked by machine; not ticked.** The rule is `parcels/Collect.kt` on the server, and it is the reason the server exists. In order: a session code this server issued and still live **by its own clock**; a parcel that is both this person's and at that cabinet, asked as one query so the two cannot be told apart; a box that is not faulty; and one open per code per parcel, enforced by a primary key rather than by a check somebody has to remember.
+        The app decides none of it now. `whatToDo` returns Ask, ScanAgain or KeepLooking, and **no answer it can give opens a door**. The hardcoded list of your parcels is gone — it ran on the caller's phone and protected nothing.
+        `python scripts/checkserver.py` — a parcel is dropped, collected by a scan, and the ESP32 is handed the open command exactly once. Asking twice is handed nothing.
+        What is missing is the Verify itself: **no door.** The server queues an open and a real board has never picked one up. Until then this moves a row in a table, not metal.
 
 - [ ] **P5-04** — The door closes and the parcel is marked collected
       - Owner: _unassigned_ · Needs: P5-03, P0-10 · Blocks: P6-01, P6-02, P6-03, P7-01, P7-02
@@ -101,7 +114,9 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
 - [ ] **P5-10** — A scan opens only your box, only at the cabinet you are standing at
       - Owner: _unassigned_ · Needs: P5-03 · Blocks: —
       - Verify: four attempts against the real server, all refused — (1) a made-up session code, (2) a real code from the Library used to collect a parcel at the Back Gate, (3) another person's parcel with your own token, (4) the same code and parcel collected twice. Each refusal is read from the server log, not from the app
-      - Notes: every one of these is refused by the app today, and **none of those refusals count.** The app's checks run on the caller's phone; an attacker calls `POST /parcels/collect` directly and never runs our code. This task is the only place the rules are actually tested. The rules are `api-contract.md`, "The scanned code — what protects it"
+      - Notes: every one of these used to be refused by the app, and **none of those refusals counted.** The app's checks ran on the caller's phone; an attacker calls `POST /parcels/collect` directly and never runs our code. The rules are `api-contract.md`, "The scanned code — what protects it"
+      - Notes: **All four are refused by the server, and checked.** `python scripts/checkserver.py` runs them against a real server over TLS: a made-up code answers `SESSION_EXPIRED`; a Library code used at the Back Gate, another person's token, and the same code twice all answer `NO_PARCEL_HERE`. The checker asserts those last two read **identically**, because a different answer would tell somebody probing which cabinets hold your parcels. No token at all answers `TOKEN_EXPIRED`, and a cabinet call with no key answers `CABINET_UNKNOWN`.
+        What is missing is the Verify's own words: *against the real server*. It is our real server, and it is on a laptop. Nobody has run these four against one standing in a lobby with a cabinet wired to it, and P5-03 has to open a real door before this can be more than a table of rows
 
 ## Safety rules for this phase
 
