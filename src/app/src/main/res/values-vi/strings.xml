@@ -35,7 +35,7 @@
     <string name="code_label">MÃ 6 SỐ</string>
     <string name="code_continue">Tiếp tục</string>
     <string name="code_resend_in">Gửi lại sau %1$s</string>
-    <string name="demo_any_code">Bản dùng thử — chưa có máy chủ, nên 6 chữ số bất kỳ đều vào được.</string>
+    <string name="no_server_address">Bản này chưa có địa chỉ máy chủ, nên không đăng nhập được.</string>
 
     <string name="cabinet_back_gate">Cổng sau</string>
     <string name="cabinet_library">Thư viện</string>
@@ -147,4 +147,6 @@
     <string name="refused_unknown">Có lỗi xảy ra. Thử lại.</string>
 
     <string name="unclear_result">Chưa rõ thao tác có thành công không. Kiểm tra tủ trước.</string>
+
+    <string name="working">Đang xử lý…</string>
 </resources>

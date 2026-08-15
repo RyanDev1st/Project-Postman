@@ -41,9 +41,9 @@ VENDOR = qrimage.VENDOR
 # What a cabinet actually puts on screen, plus the shapes that stress the
 # encoder: a longer id, and the biggest moment a 32-bit clock will ever show.
 PAYLOADS = [
-    "VGU1|vgu-test-01|1755158400",
-    "VGU1|vgu-back-gate-02|1755158430",
-    "VGU1|vgu-library-ground-floor-north|2147483647",
+    "VGU1|vgu-test-01|1755158400|8Kt2ZQx1vB3nR7wY0pLmA5sJdF6gH4cE",
+    "VGU1|vgu-back-gate-02|1755158430|qW9eR2tY5uI8oP1aS4dF7gH0jK3lZ6xC",
+    "VGU1|vgu-library-ground-floor-north|2147483647|mN3bV6cX9zL2kJ5hG8fD1sA4pO7iU0yT",
 ]
 
 

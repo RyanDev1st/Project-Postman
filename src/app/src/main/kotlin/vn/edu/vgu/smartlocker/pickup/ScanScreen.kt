@@ -69,14 +69,20 @@ fun ScanScreen(
     onScanned: () -> Unit,
     onTypeCode: () -> Unit,
     onBack: () -> Unit = {},
-    /** What a read code turns out to be. Held by the caller because what
-     * happens next - a door, a message, a different screen - is not this
-     * screen's decision. */
-    onRead: (Scanned) -> Unit = {},
+    /** What a read code turns out to be, **and the string it was read from**.
+     *
+     * The raw string is passed on rather than rebuilt from [Scanned], because
+     * the server compares the whole thing against what it issued - a code
+     * reassembled from the parts this app understood would differ by whatever
+     * it did not, and would be refused.
+     *
+     * Held by the caller because what happens next - a door, a message, a
+     * different screen - is not this screen's decision. */
+    onRead: (Scanned, String) -> Unit = { _, _ -> },
     /** A sentence to show instead of "Scan the cabinet": the code was expired,
-     * or nothing in that cabinet is yours. The caller decides which, because
-     * only the caller knows what is waiting for you. Null the rest of the
-     * time, which is nearly always. */
+     * nothing in that cabinet is yours, or the server could not be reached.
+     * The caller decides which, because only the caller has asked the server.
+     * Null the rest of the time, which is nearly always. */
     note: Int? = null,
 ) {
     val t = LocalLockerTokens.current
@@ -97,7 +103,10 @@ fun ScanScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(
-            brand = stringResource(R.string.box_label, "04"),
+            // Not a box number. Standing here, nobody knows which door will
+            // open - the server decides that when the code is sent, and this
+            // bar said "Box 04" for weeks whatever was actually waiting.
+            brand = stringResource(R.string.scan_title),
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
@@ -158,7 +167,7 @@ fun ScanScreen(
 fun Aperture(
     modifier: Modifier = Modifier,
     live: Boolean = false,
-    onRead: (Scanned) -> Unit = {},
+    onRead: (Scanned, String) -> Unit = { _, _ -> },
 ) {
     val t = LocalLockerTokens.current
     var acted by remember { mutableStateOf<String?>(null) }
@@ -191,7 +200,7 @@ fun Aperture(
                     // the right answer is to keep looking.
                     if (read is Scanned.NotOurs) return@QrCamera
                     acted = raw
-                    onRead(read)
+                    onRead(read, raw)
                 },
             )
         }

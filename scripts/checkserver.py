@@ -284,6 +284,20 @@ def main() -> int:
         code = session.get("session_code", "")
         check(len(code) > 20, "the cabinet screen was issued a session code")
 
+        # The shape the app parses, checked against a code the server really
+        # issued. This is the only place both ends run at once, so it is the
+        # only place the two halves of `VGU1|cabinet|seconds|random` can be
+        # compared for real rather than by grepping each other's source.
+        fields = code.split("|")
+        check(len(fields) == 4, f"it has the four fields SessionCode.kt reads: {len(fields)}")
+        check(fields[0] == "VGU1", f"the format marker is VGU1: {fields[0]!r}")
+        check(fields[1] == BACK_GATE, f"it names the cabinet that issued it: {fields[1]!r}")
+        check(
+            fields[2].isdigit() and abs(int(fields[2]) - time.time()) < 120,
+            f"the clock reading is unix seconds, and now: {fields[2]!r}",
+        )
+        check(len(fields[3]) >= 32, f"and the random field is long enough to be random: {len(fields[3])}")
+
         status, opened = call("POST", "/parcels/collect", {"session_code": code}, token=alice)
         check(status == 200 and opened.get("box_number") == box,
               f"she scanned it and box {opened.get('box_number')} was told to open")

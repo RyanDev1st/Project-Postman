@@ -38,14 +38,20 @@ function check(ok, what) {
   if (!ok) problems.push("  " + what);
 }
 
-/* The browser, only as far as qr.js reaches into it. */
-function fakeDom(cabinetId) {
+/* The browser, only as far as qr.js reaches into it - plus CabinetNet, which
+ * stands in for the server.
+ *
+ * `answer` is what net.js would have resolved to. It is passed in so the same
+ * stub covers the three cases the screen must tell apart: a code, a refusal,
+ * and a server that cannot be reached. */
+function fakeDom(cabinetId, answer) {
   const els = {};
   for (const id of ["qr", "qr-note", "qr-count"]) {
     els[id] = { id, hidden: false, textContent: "", width: 264, height: 264 };
   }
   const drawn = [];
   const timers = [];
+  const asked = [];
   const g = {
     CABINET_CONFIG: {
       CABINET_ID: cabinetId,
@@ -53,6 +59,15 @@ function fakeDom(cabinetId) {
       QR_REFRESH_SECONDS: 30,
     },
     CABINET_BUILD: { VERSION: "test", CABINET_ID: null },
+    CabinetNet: {
+      ready: () => Boolean(cabinetId),
+      call(path) {
+        asked.push(path);
+        /* Resolved, never rejected - the same promise contract net.js keeps,
+         * so a missing catch here would be a missing catch there. */
+        return Promise.resolve(answer);
+      },
+    },
     QRCode: {
       toCanvas(canvas, payload, opts, done) {
         drawn.push({ payload, opts, canvas });
@@ -70,44 +85,54 @@ function fakeDom(cabinetId) {
     },
   };
   g.window = g;
-  return { g, els, drawn, timers };
+  return { g, els, drawn, timers, asked };
 }
 
-/* Run the shipped file against that stub. */
-function run(cabinetId) {
+/* Run the shipped file against that stub.
+ *
+ * Async, because the screen now asks the server before it draws anything. The
+ * await lets the promise the stub resolved actually settle before anything is
+ * checked - without it every assertion would run against a screen that is
+ * still waiting, and pass or fail for the wrong reason. */
+async function run(cabinetId, answer) {
   const src = fs.readFileSync(path.join(CABINET, "qr.js"), "utf8");
-  const { g, els, drawn, timers } = fakeDom(cabinetId);
+  const { g, els, drawn, timers, asked } = fakeDom(cabinetId, answer);
   const fn = new Function(
     "window", "document", "setInterval", "Date",
     "var self = window; " + src
   );
   fn(g, g.document, g.setInterval, Date);
-  return { els, drawn, timers };
+  await new Promise((r) => setImmediate(r));
+  return { els, drawn, timers, asked };
+}
+
+/* A code shaped the way the server's Sessions.format writes them. */
+function serverCode(cabinetId) {
+  return ["VGU1", cabinetId, Math.floor(Date.now() / 1000), "cr7Qk2p0aXZlLXJhbmRvbS1ieXRlcw"].join("|");
 }
 
 /* --- a cabinet that knows which cabinet it is ------------------------- */
 
-const now = Math.floor(Date.now() / 1000);
-const set = run("vgu-test-01");
+async function main() {
 
+const issued = serverCode("vgu-test-01");
+const set = await run("vgu-test-01", { state: "ok", value: { session_code: issued, lives_seconds: 60 } });
+
+check(set.asked.includes("/cabinet/session"), `asked for ${JSON.stringify(set.asked)}, expected /cabinet/session`);
 check(set.drawn.length === 1, `drew ${set.drawn.length} codes on load, expected 1`);
 
 const payload = set.drawn.length ? set.drawn[0].payload : "";
 console.log("payload: " + JSON.stringify(payload));
 
-const parts = payload.split("|");
-check(parts.length === 3, `payload has ${parts.length} fields, expected 3`);
-check(parts[0] === "VGU1", `format marker is ${JSON.stringify(parts[0])}, expected "VGU1"`);
-check(parts[1] === "vgu-test-01", `cabinet id is ${JSON.stringify(parts[1])}, expected the configured one`);
+/* The screen draws what the server sent, byte for byte. Anything else - a
+ * re-encoding, a trim, a "helpful" rebuild from the parts - is a code the
+ * server will not recognise, because the server compares the whole string. */
+check(payload === issued, "the screen did not draw exactly the code the server issued");
 
-const stamp = Number(parts[2]);
-check(Number.isInteger(stamp), `moment ${JSON.stringify(parts[2])} is not a whole number of seconds`);
-check(Math.abs(stamp - now) <= 2, `moment is ${stamp - now}s off the clock, expected now`);
-
-/* The code is a location and a clock reading, never a secret. If a key ever
- * reaches this payload it is on a public screen, photographable by anyone
- * standing in the lobby. */
-check(!/key|token|secret|bearer/i.test(payload), "payload contains something that reads like a secret");
+/* The code is a place, a moment and a random field, never a secret of the
+ * cabinet's. If the cabinet KEY ever reached this payload it would be on a
+ * public screen, photographable by anyone standing in the lobby. */
+check(!/key|token|bearer/i.test(payload), "payload contains something that reads like a cabinet credential");
 
 /* Error correction M, not H: M keeps the modules large, and large is what
  * reads in the dark corridor P5-02 is checked in. */
@@ -115,16 +140,33 @@ const opts = set.drawn.length ? set.drawn[0].opts : {};
 check(opts.errorCorrectionLevel === "M", `error correction is ${opts.errorCorrectionLevel}, expected M`);
 check(opts.margin >= 2, `quiet zone margin is ${opts.margin}, expected at least 2 modules`);
 
-/* Two timers: redraw, and the countdown. Both from the settings, in ms. */
-check(set.timers.includes(30 * 1000), `no 30s redraw timer, got ${JSON.stringify(set.timers)}`);
+/* Two timers: ask again, and the countdown. Both from the settings, in ms. */
+check(set.timers.includes(30 * 1000), `no 30s refresh timer, got ${JSON.stringify(set.timers)}`);
 check(set.timers.includes(1000), `no 1s countdown timer, got ${JSON.stringify(set.timers)}`);
 
-check(set.els["qr"].hidden === false, "the canvas is hidden on a cabinet that has an id");
+check(set.els["qr"].hidden === false, "the canvas is hidden on a cabinet that has a code");
+
+/* --- a server that will not answer ------------------------------------ */
+
+/* The one that matters. An unreachable server must not leave the last code on
+ * screen: it will expire, and a student scanning it gets refused by a server
+ * they cannot see, with nothing on the screen to explain why. */
+const down = await run("vgu-test-01", { state: "unclear", why: "could not reach the server" });
+check(down.drawn.length === 0, "drew a code while the server was unreachable - it cannot have come from the server");
+check(down.els["qr"].hidden === true, "left a canvas up with no code behind it");
+check(/server/i.test(down.els["qr-note"].textContent), `an unreachable server says ${JSON.stringify(down.els["qr-note"].textContent)}, which does not explain itself`);
+
+/* --- a cabinet whose key the server does not know --------------------- */
+
+const rejected = await run("vgu-test-01", { state: "refused", code: "CABINET_UNKNOWN" });
+check(rejected.drawn.length === 0, "drew a code after the server refused this cabinet's key");
+check(/key/i.test(rejected.els["qr-note"].textContent), `a refused key says ${JSON.stringify(rejected.els["qr-note"].textContent)}, which does not name the problem`);
 
 /* --- a cabinet nobody has named yet ----------------------------------- */
 
-const unset = run(null);
+const unset = await run(null, { state: "ok", value: { session_code: serverCode("x"), lives_seconds: 60 } });
 check(unset.drawn.length === 0, "drew a code for a cabinet with no id - it would send a phone nowhere");
+check(unset.asked.length === 0, "asked the server for a code before knowing which cabinet it is");
 check(unset.els["qr"].hidden === true, "left a blank canvas up instead of hiding it");
 check(/no id/i.test(unset.els["qr-note"].textContent), `unset cabinet says ${JSON.stringify(unset.els["qr-note"].textContent)}, which does not explain itself`);
 check(unset.els["qr-count"].hidden === true, "left a countdown ticking under a code that is never coming");
@@ -137,4 +179,8 @@ if (problems.length) {
   console.log("\nnot clean");
   process.exit(1);
 }
-console.log("cabinet QR: payload, timings and the unset case all correct");
+console.log("cabinet QR: it carries the server's code, and says so plainly when there is not one");
+
+}
+
+main();

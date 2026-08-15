@@ -28,12 +28,15 @@ import java.util.concurrent.TimeUnit
  *
  * **What the picture is.** `assets/cabinet-qr.png` is the shipped cabinet
  * encoder's own output - `src/cabinet/vendor/qrcode.js`, the same file that
- * runs on the screen - drawn at the size and quiet zone `scripts/checkqr.py`
- * uses, and checked by that script against `zxing-cpp` before it was saved. It
- * is a fixture, not a fake: nothing in it was written by hand.
+ * runs on the screen - and it was read back with `zxing-cpp`, an unrelated
+ * decoder, before it was saved. It is a fixture, not a fake: nothing in it was
+ * written by hand.
  *
- * To draw a new one, encode the payload with that vendored file and save the
- * matrix as a PNG with a quiet zone of at least 4 modules.
+ * To draw a new one:
+ *
+ *     python -c "import sys; sys.path.insert(0,'scripts'); import qrimage; \
+ *       im, v = qrimage.draw('<payload>'); \
+ *       im.save('src/app/src/androidTest/assets/cabinet-qr.png')"
  *
  * **What this does not prove.** No lens, no glass, no corridor. It proves the
  * code decodes and the app believes the right thing about it. Whether a phone
@@ -43,7 +46,17 @@ import java.util.concurrent.TimeUnit
 @RunWith(AndroidJUnit4::class)
 class ScanPipelineTest {
 
-    private val payload = "VGU1|vgu-back-gate-01|1786690000"
+    /**
+     * A code shaped the way the server issues them - `Sessions.format`.
+     *
+     * The fourth field is 43 characters because that is what 32 random bytes
+     * come to in unpadded base64url, and its length is the point: it pushes
+     * the code to QR version 5, which is the size a phone will actually be
+     * asked to read off a lit screen. A shorter fixture would be an easier
+     * picture than the real one.
+     */
+    private val payload =
+        "VGU1|vgu-back-gate-01|1786690000|Zm9yLXRlc3RzLW9ubHktbm90LWEtcmVhbC1zZXNzaW9"
     private val issued = 1_786_690_000L
 
     private val scanner = BarcodeScanning.getClient(

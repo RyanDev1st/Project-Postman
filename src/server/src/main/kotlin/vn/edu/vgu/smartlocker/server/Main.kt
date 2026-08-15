@@ -170,6 +170,19 @@ private fun announce(config: Config) {
     log.info("sms       {}", if (config.speedSmsToken != null) "SpeedSMS" else "DEMO - codes print here")
     log.info("listening on https://localhost:{}", config.port)
     Tls.lanAddresses().forEach { log.info("        or https://{}:{}", it, config.port) }
+
+    // The address is left blank in the repo on purpose - it is different on
+    // every machine, and a LAN address is not something to commit. Printing
+    // the line to paste is the difference between a two-minute setup and an
+    // afternoon wondering why the phone cannot see anything.
+    if (config.settings["server_base_url"]?.toString().orEmpty().trim('"').isBlank()) {
+        val address = Tls.lanAddresses().firstOrNull() ?: "localhost"
+        log.warn("")
+        log.warn("config/settings.json has no server_base_url, so the app cannot reach this.")
+        log.warn("  for a phone or the cabinet screen:  \"server_base_url\": \"https://{}:{}\"", address, config.port)
+        log.warn("  for the Android emulator:           \"server_base_url\": \"https://10.0.2.2:{}\"", config.port)
+        log.warn("")
+    }
 }
 
 /**

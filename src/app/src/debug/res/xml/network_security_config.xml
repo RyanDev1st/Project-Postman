@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    DEBUG BUILDS ONLY. This file lives in src/debug/ and is not in a release
+    APK, which is the whole reason it is allowed to exist.
+
+    The server serves HTTPS with a certificate it generated itself
+    (config/dev-cert/locker.crt - ADR 0020). Android does not trust it, and it
+    should not: nothing signed it. So a debug build is told to also accept
+    certificates a person has installed on the phone by hand, and installing
+    that one file is a step somebody does once per phone.
+
+    What this does NOT do:
+
+      - It does not allow plain HTTP. `cleartextTrafficPermitted` is false, and
+        Http.kt refuses a non-https URL before a socket is opened anyway. Two
+        locks on the same door, on purpose.
+      - It does not reach a release build. A student's phone trusts the system
+        store and nothing else, so a real cabinet needs a real certificate.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- The development certificate, once somebody has installed it.
+                 Settings > Security > Encryption & credentials > Install a
+                 certificate > CA certificate. -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

@@ -13,11 +13,13 @@ import java.io.File
  * somebody standing at a cabinet with a stopwatch waiting for a code to
  * expire.
  *
- * The last test is the one that matters most. The other end of this contract
- * is `src/cabinet/qr.js`, in another language, in another folder, built by
- * another half of the team. Nothing in a compiler connects the two, so the
- * test reads that file and fails if its format marker ever stops matching
- * this one.
+ * The other end of this contract is the **server** - `Sessions.format` writes
+ * what this file reads. `src/cabinet/qr.js` only carries the string between
+ * them, and the last test here is what holds it to that.
+ *
+ * The shape itself is compared against a real issued code in
+ * `scripts/checkserver.py`, which is the only place both ends are running at
+ * once.
  */
 class SessionCodeTest {
 
@@ -26,13 +28,13 @@ class SessionCodeTest {
 
     @Test
     fun `a code the cabinet drew a second ago is ours`() {
-        val read = readSessionCode("VGU1|vgu-gate-01|${now - 1}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now - 1}|R4nd0m", now)
         assertEquals(Scanned.Ours("vgu-gate-01", now - 1), read)
     }
 
     @Test
     fun `spaces around it are the camera's, not the cabinet's`() {
-        val read = readSessionCode("  VGU1|vgu-gate-01|$now\n", now)
+        val read = readSessionCode("  VGU1|vgu-gate-01|$now|R4nd0m\n", now)
         assertEquals(Scanned.Ours("vgu-gate-01", now), read)
     }
 
@@ -42,7 +44,7 @@ class SessionCodeTest {
      */
     @Test
     fun `a code from forty seconds ago is still ours`() {
-        val read = readSessionCode("VGU1|vgu-gate-01|${now - 40}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now - 40}|R4nd0m", now)
         assertEquals(Scanned.Ours("vgu-gate-01", now - 40), read)
     }
 
@@ -53,14 +55,14 @@ class SessionCodeTest {
     @Test
     fun `the last second of the window is still ours`() {
         val edge = CODE_GOOD_FOR_SECONDS + 15L
-        val read = readSessionCode("VGU1|vgu-gate-01|${now - edge}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now - edge}|R4nd0m", now)
         assertEquals(Scanned.Ours("vgu-gate-01", now - edge), read)
     }
 
     @Test
     fun `a second past the window is stale`() {
         val past = CODE_GOOD_FOR_SECONDS + 16L
-        val read = readSessionCode("VGU1|vgu-gate-01|${now - past}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now - past}|R4nd0m", now)
         assertEquals(Scanned.Stale("vgu-gate-01", past), read)
     }
 
@@ -70,7 +72,7 @@ class SessionCodeTest {
      */
     @Test
     fun `yesterday's screenshot is stale, not a stranger`() {
-        val read = readSessionCode("VGU1|vgu-gate-01|${now - 86_400}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now - 86_400}|R4nd0m", now)
         assertEquals(Scanned.Stale("vgu-gate-01", 86_400L), read)
     }
 
@@ -80,7 +82,7 @@ class SessionCodeTest {
      */
     @Test
     fun `a code from ten seconds in our future is ours`() {
-        val read = readSessionCode("VGU1|vgu-gate-01|${now + 10}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now + 10}|R4nd0m", now)
         assertEquals(Scanned.Ours("vgu-gate-01", now + 10), read)
     }
 
@@ -91,7 +93,7 @@ class SessionCodeTest {
      */
     @Test
     fun `a code dated next week is not ours`() {
-        val read = readSessionCode("VGU1|vgu-gate-01|${now + 604_800}", now)
+        val read = readSessionCode("VGU1|vgu-gate-01|${now + 604_800}|R4nd0m", now)
         assertEquals(Scanned.NotOurs, read)
     }
 
@@ -108,17 +110,19 @@ class SessionCodeTest {
             "   ",
             "https://vgu.edu.vn",
             "WIFI:S=VGU-Guest;T=WPA;P=letmein;;",
-            "VGU2|vgu-gate-01|$now",          // a format we have not written yet
-            "vgu1|vgu-gate-01|$now",          // marker is exact, not casual
+            "VGU2|vgu-gate-01|$now|R4nd0m",   // a format we have not written yet
+            "vgu1|vgu-gate-01|$now|R4nd0m",   // marker is exact, not casual
             "VGU1|vgu-gate-01",               // two fields
-            "VGU1|vgu-gate-01|$now|extra",    // four
-            "VGU1||$now",                     // no cabinet
-            "VGU1|vgu-gate-01|soon",          // a word where the clock goes
-            "VGU1|vgu-gate-01|0",
-            "VGU1|vgu-gate-01|-5",
-            "VGU1|../../etc/passwd|$now",     // an id that is trying something
-            "VGU1|vgu gate 01|$now",          // spaces are not in an id
-            "VGU1|${"a".repeat(65)}|$now",    // longer than any cabinet we name
+            "VGU1|vgu-gate-01|$now",          // three - the shape before the server issued these
+            "VGU1|vgu-gate-01|$now|R|extra",  // five
+            "VGU1|vgu-gate-01|$now|",         // the random field, empty
+            "VGU1||$now|R4nd0m",              // no cabinet
+            "VGU1|vgu-gate-01|soon|R4nd0m",   // a word where the clock goes
+            "VGU1|vgu-gate-01|0|R4nd0m",
+            "VGU1|vgu-gate-01|-5|R4nd0m",
+            "VGU1|../../etc/passwd|$now|R",   // an id that is trying something
+            "VGU1|vgu gate 01|$now|R",        // spaces are not in an id
+            "VGU1|${"a".repeat(65)}|$now|R",  // longer than any cabinet we name
         )
         strangers.forEach {
             assertEquals("read as something other than a stranger: $it", Scanned.NotOurs, readSessionCode(it, now))
@@ -128,105 +132,131 @@ class SessionCodeTest {
     /** Hyphens are in every id we hand out, so they had better pass. */
     @Test
     fun `a plain id with digits and hyphens is fine`() {
-        val read = readSessionCode("VGU1|vgu-library-2b|$now", now)
+        val read = readSessionCode("VGU1|vgu-library-2b|$now|R4nd0m", now)
         assertEquals(Scanned.Ours("vgu-library-2b", now), read)
     }
 
     /**
-     * The other end of the contract, in another language.
+     * The cabinet screen must **carry** a code, never compose one.
      *
-     * `qr.js` writes `FORMAT + "|" + cabinetId + "|" + seconds`. If somebody
-     * changes the marker or the separator there and not here, every scan in
-     * the building becomes "not ours" and nothing in either build says why.
-     * This is the only place the two halves are ever compared.
+     * It composed its own until 2026-08-15. That cannot survive the server
+     * checking codes: a code the server never issued is one the server must
+     * refuse, so a screen that invents them turns every scan in the building
+     * into a refusal, and nothing in either build says why.
+     *
+     * This does not check the *shape* any more - the server writes it now, and
+     * `scripts/checkserver.py` compares a real issued code against this
+     * reader. What is checked here is that the screen has not gone back to
+     * making them up.
      */
     @Test
-    fun `the cabinet screen writes the format this file reads`() {
+    fun `the cabinet screen asks the server for its code`() {
         val js = qrJs()
         assertTrue(
-            "the cabinet's qr.js no longer writes the VGU1 marker this reader expects",
-            js.contains("\"VGU1\""),
+            "the cabinet's qr.js no longer asks the server for a session code",
+            js.contains("/cabinet/session"),
         )
         assertTrue(
-            "the cabinet's qr.js no longer joins its fields with a pipe",
-            js.contains("FORMAT + \"|\" + cabinetId + \"|\" + seconds"),
-        )
-        // The 60 seconds this reader allows is the cabinet's own session
-        // length. Both are read from settings; the default must agree.
-        assertTrue(
-            "the cabinet's session length no longer defaults to the $CODE_GOOD_FOR_SECONDS " +
-                "seconds this reader allows",
-            js.contains("|| $CODE_GOOD_FOR_SECONDS"),
+            "the cabinet's qr.js is composing a payload again instead of carrying one",
+            !js.contains("FORMAT + \"|\""),
         )
     }
 
     // ---- what the app does about a code it has read ----
 
-    /** Both parcels are at the back gate, and nothing is at the library. */
-    private val yours = mapOf("vgu-back-gate" to listOf("04", "07"))
-
     @Test
-    fun `a live code at your cabinet opens your box`() {
-        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
-        assertEquals(Pickup.Open("04"), whatToDo(read, yours))
-    }
-
-    /** Two parcels there, and you already said which one you came for. */
-    @Test
-    fun `the box you tapped on Home is the one that opens`() {
-        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
-        assertEquals(Pickup.Open("07"), whatToDo(read, yours, want = "07"))
-    }
-
-    /** You tapped 07, then walked to a cabinet where only 04 is yours. */
-    @Test
-    fun `asking for a box that is not at this cabinet opens the one that is`() {
-        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
-        val onlyOne = mapOf("vgu-back-gate" to listOf("04"))
-        assertEquals(Pickup.Open("04"), whatToDo(read, onlyOne, want = "07"))
+    fun `a live code is worth asking the server about`() {
+        val raw = "VGU1|vgu-back-gate|$now|R4nd0m"
+        assertEquals(Pickup.Ask(raw), whatToDo(readSessionCode(raw, now), raw))
     }
 
     /**
-     * The fault this whole check exists for. Before the codes carried a real
-     * cabinet id, any live code opened box 04 - so standing at the library and
-     * scanning it announced a door at the back gate.
+     * The string goes on **untouched**.
+     *
+     * The server compares the whole code against what it issued, so anything
+     * this app rebuilt from the parts it understood would differ by whatever
+     * it did not - a longer random field, a fifth field added later - and
+     * would be refused with nothing on either side saying why.
      */
     @Test
-    fun `a cabinet with nothing of yours in it says so`() {
-        val read = readSessionCode("VGU1|vgu-library|$now", now)
-        assertEquals(Pickup.NoParcelHere, whatToDo(read, yours))
+    fun `the code sent on is the code that was scanned`() {
+        val raw = "VGU1|vgu-back-gate|$now|aVeryLongRandomFieldThatThisFileNeverInterprets"
+        val next = whatToDo(readSessionCode(raw, now), raw)
+        assertEquals(raw, (next as Pickup.Ask).code)
+    }
+
+    /**
+     * **The app no longer answers this one.**
+     *
+     * Until P5-03 a live code at a cabinet with nothing of yours in it was
+     * refused here, from a list of parcels the app was carrying. That check
+     * protected nothing - it ran on the caller's phone, and anybody willing to
+     * open a locker they do not own is willing to run a build without it - and
+     * the list was stale from the moment it was fetched.
+     *
+     * So the code goes to the server, and `NO_PARCEL_HERE` comes back from the
+     * one place that knows. Losing a check that never worked is the point of
+     * the change, not a regression.
+     */
+    @Test
+    fun `a cabinet with nothing of yours in it is still the server's answer`() {
+        val raw = "VGU1|vgu-library|$now|R4nd0m"
+        assertEquals(Pickup.Ask(raw), whatToDo(readSessionCode(raw, now), raw))
     }
 
     @Test
     fun `an expired code says scan again`() {
-        val read = readSessionCode("VGU1|vgu-back-gate|${now - 3_600}", now)
-        assertEquals(Pickup.ScanAgain, whatToDo(read, yours))
+        val raw = "VGU1|vgu-back-gate|${now - 3_600}|R4nd0m"
+        assertEquals(Pickup.ScanAgain, whatToDo(readSessionCode(raw, now), raw))
     }
 
     /**
-     * An expired code is told to scan again whichever cabinet it is from.
-     * Answering "no parcel for you here" would let somebody with a dead code
-     * work out where your parcels are without ever holding a live one.
+     * An expired code is told to scan again whichever cabinet it is from, and
+     * is never sent. Two reasons, and the second is the one that matters:
+     * a round trip in a corridor is slow, and an answer that differed by
+     * cabinet would let somebody with a dead code work out where your parcels
+     * are without ever holding a live one.
      */
     @Test
     fun `an expired code never says whether a parcel is there`() {
-        val mine = readSessionCode("VGU1|vgu-back-gate|${now - 3_600}", now)
-        val theirs = readSessionCode("VGU1|vgu-library|${now - 3_600}", now)
-        assertEquals(whatToDo(theirs, yours), whatToDo(mine, yours))
-        assertEquals(Pickup.ScanAgain, whatToDo(mine, yours))
+        val mine = "VGU1|vgu-back-gate|${now - 3_600}|R4nd0m"
+        val theirs = "VGU1|vgu-library|${now - 3_600}|R4nd0m"
+        assertEquals(
+            whatToDo(readSessionCode(theirs, now), theirs),
+            whatToDo(readSessionCode(mine, now), mine),
+        )
+        assertEquals(Pickup.ScanAgain, whatToDo(readSessionCode(mine, now), mine))
     }
 
     @Test
     fun `a stranger's QR is not answered at all`() {
-        val read = readSessionCode("https://vgu.edu.vn", now)
-        assertEquals(Pickup.KeepLooking, whatToDo(read, yours))
+        val raw = "https://vgu.edu.vn"
+        assertEquals(Pickup.KeepLooking, whatToDo(readSessionCode(raw, now), raw))
     }
 
-    /** Nothing waiting anywhere. Every cabinet is a cabinet with none of yours. */
+    /**
+     * Nothing the app decides is ever "a door opened".
+     *
+     * The one rule this file must never break, checked as a rule rather than
+     * as a case: no input produces an answer that moves metal, because no such
+     * answer exists any more.
+     */
     @Test
-    fun `with no parcels at all, a live code still opens nothing`() {
-        val read = readSessionCode("VGU1|vgu-back-gate|$now", now)
-        assertEquals(Pickup.NoParcelHere, whatToDo(read, emptyMap()))
+    fun `no scanned string makes this app open anything`() {
+        val everything = listOf(
+            "VGU1|vgu-back-gate|$now|R4nd0m",
+            "VGU1|vgu-library|${now - 3_600}|R4nd0m",
+            "VGU1|somewhere-else|$now|R4nd0m",
+            "https://vgu.edu.vn",
+            "",
+        )
+        everything.forEach { raw ->
+            val next = whatToDo(readSessionCode(raw, now), raw)
+            assertTrue(
+                "the app decided something other than asking, for $raw: $next",
+                next is Pickup.Ask || next is Pickup.ScanAgain || next is Pickup.KeepLooking,
+            )
+        }
     }
 
     /** `src/cabinet/qr.js`, found by walking up from wherever tests run. */

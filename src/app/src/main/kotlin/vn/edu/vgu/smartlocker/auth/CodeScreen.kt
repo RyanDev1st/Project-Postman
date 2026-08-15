@@ -62,11 +62,19 @@ private fun AuthDisplay(
  */
 @Composable
 fun CodeScreen(
-    onDone: () -> Unit,
+    /** The six digits, handed up to whoever can check them. This screen
+     * cannot: only the server knows what it sent. */
+    onDone: (String) -> Unit,
     onBack: () -> Unit = {},
     /** The number a code was asked for, local part — see [VnMobile]. */
     number: String = "",
     resendAt: String = "0:42",
+    /** What the server said, if it has said anything. A refusal, or a note
+     * that this build has nowhere to ask. Null while nothing is wrong. */
+    note: Int? = null,
+    /** True while the server is being asked. The button stops rather than
+     * sending the same code twice. */
+    busy: Boolean = false,
 ) {
     val t = LocalLockerTokens.current
     var code by remember { mutableStateOf("") }
@@ -128,16 +136,15 @@ fun CodeScreen(
                     onChange = { code = it },
                 )
             }
-            // Six digits, or nothing happens. There is no server to say
-            // whether they are the RIGHT six — see the note below.
+            // Six digits, and then the server says whether they are the right
+            // six. Disabled while it is being asked, so a second tap cannot
+            // spend the same code twice.
             GoButton(
-                text = stringResource(R.string.code_continue),
-                onClick = onDone,
-                enabled = code.length == 6,
+                text = stringResource(if (busy) R.string.working else R.string.code_continue),
+                onClick = { onDone(code) },
+                enabled = code.length == 6 && !busy,
             )
-            if (BuildConfig.DEBUG) {
-                DemoNote()
-            }
+            note?.let { Note(it) }
         }
 
         QuietButton(
@@ -149,23 +156,18 @@ fun CodeScreen(
 }
 
 /**
- * The label the working rules ask for on any stand-in for the real thing.
+ * A quiet line under the code box, for whatever the server just said.
  *
- * There is no server yet — P0-04 — so nothing can say whether a code is the
- * right code, and `Continue` opens the app on any six digits. That is a hole
- * where the check goes, and a hole has to be visible or somebody will take
- * this screen for a working sign-in.
- *
- * **Debug builds only**, so it cannot reach a real user: the caller wraps it
- * in `BuildConfig.DEBUG`, and a release build compiles the constant to false
- * and drops the branch. When endpoint 3 is wired (P2-03), this and the branch
- * around it go, and the check takes their place.
+ * It replaced a debug-only note reading *"any 6 digits will let you in"*, which
+ * was true while there was nothing to check a code against and became a lie
+ * the day there was. The sentence is chosen by the caller, because the caller
+ * is the one holding the answer.
  */
 @Composable
-private fun DemoNote() {
+private fun Note(@androidx.annotation.StringRes text: Int) {
     val t = LocalLockerTokens.current
     Text(
-        text = stringResource(R.string.demo_any_code),
+        text = stringResource(text),
         style = MaterialTheme.typography.labelSmall,
         color = t.ink3,
         modifier = Modifier.padding(horizontal = 2.dp),

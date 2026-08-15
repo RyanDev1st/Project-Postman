@@ -18,7 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import vn.edu.vgu.smartlocker.net.Backend
+import vn.edu.vgu.smartlocker.net.Http
 import vn.edu.vgu.smartlocker.auth.AddPhoneScreen
 import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
@@ -48,20 +53,6 @@ enum class Screen {
     HOME, CABINET, SETTINGS,
     SCAN, OPENED, TYPE_CODE,
 }
-
-/**
- * The parcels we are pretending are waiting for you, by cabinet.
- *
- * **The one thing in the scan flow that is still made up.** Boxes 04 and 07 at
- * the back gate are the same two the Home screen shows, and this is the list
- * the scanner checks a code against - so scanning the library cabinet says
- * there is nothing there for you, because there is not.
- *
- * The ids are the ones a real cabinet screen puts in its QR: see
- * `src/cabinet/config.js`. P4-04 fetches this list from the server and this
- * line goes.
- */
-private val YOUR_PARCELS = mapOf("vgu-back-gate" to listOf("04", "07"))
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -139,13 +130,34 @@ fun AppSkeleton(
     /** Debug-only starting screen — see [MainActivity.onCreate]. */
     start: Screen? = null,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // One of these, for the life of the process. It holds the token store and
+    // the settings, and both read files - remaking it on every recomposition
+    // would re-read them thirty times a second.
+    val backend = remember { Backend(context) }
+
     var screen by remember { mutableStateOf(start ?: Screen.SIGN_IN) }
     var lastMain by remember { mutableStateOf(Screen.HOME) }
-    var scanBox by remember { mutableStateOf("04") }
+
+    // Which box the server said it opened. Not a guess, and not a default:
+    // it is written the moment endpoint 6 answers and read only by the
+    // "Opened" screen. It used to start at "04", which is how that screen
+    // came to announce box 04 whatever had actually been unlocked.
+    var openedBox by remember { mutableStateOf("") }
 
     // A sentence for a code that was read and not acted on. Null nearly
     // always; the scan screen shows "Scan the cabinet" instead.
     var scanNote by remember { mutableStateOf<Int?>(null) }
+
+    // The same, for the two sign-in screens, plus whether a call is in flight.
+    var authNote by remember { mutableStateOf<Int?>(null) }
+    var busy by remember { mutableStateOf(false) }
+
+    // A build with nowhere to send a request says so on the first screen,
+    // rather than letting somebody type a number and wait for a timeout.
+    val noAddress = if (backend.hasAddress) null else R.string.no_server_address
 
     // The number being signed in with, local part — see `VnMobile`. Held here
     // rather than in SignInScreen because the code screen has to show it, and
@@ -164,10 +176,26 @@ fun AppSkeleton(
     // Arriving at the scanner always arrives at a clean one. A sentence left
     // over from a code somebody scanned five minutes ago is about a cabinet
     // they may not even be standing at now.
-    fun gotoScan(box: String = scanBox) {
-        scanBox = box
+    //
+    // It takes no box any more. Tapping a particular parcel on Home used to
+    // choose which door this screen would open; the server chooses now, from
+    // the cabinet the scanned code names.
+    fun gotoScan() {
         scanNote = null
         screen = Screen.SCAN
+    }
+
+    /**
+     * Turn one answer from the server into one sentence, or a way onward.
+     *
+     * [Http.Answer.Unclear] never counts as success. The request may well have
+     * arrived - the network dropped after it went out - so the honest answer
+     * is that we do not know, and rule 4 in `architecture.md` says to say so.
+     */
+    fun <T> sentenceFor(answer: Http.Answer<T>): Int = when (answer) {
+        is Http.Answer.Ok -> R.string.working
+        is Http.Answer.Unclear -> R.string.unclear_result
+        is Http.Answer.Refused -> answer.reason.message ?: R.string.refused_unknown
     }
 
     BackHandler(enabled = screen != Screen.SIGN_IN) {
@@ -197,13 +225,43 @@ fun AppSkeleton(
                 Screen.SIGN_IN -> SignInScreen(
                     number = number,
                     onNumberChange = { number = it },
-                    onSendCode = { screen = Screen.CODE },
+                    // Endpoint 1. The code screen is only reached if the
+                    // server says it sent something - going there on a failed
+                    // send would leave somebody waiting for a text that is
+                    // never coming, with six empty boxes in front of them.
+                    onSendCode = {
+                        if (!backend.hasAddress) return@SignInScreen
+                        busy = true
+                        authNote = null
+                        scope.launch {
+                            val answer = backend.requestCode(number)
+                            busy = false
+                            if (answer is Http.Answer.Ok) screen = Screen.CODE
+                            else authNote = sentenceFor(answer)
+                        }
+                    },
                     onGoogle = { screen = Screen.ADD_PHONE },
+                    note = authNote ?: noAddress,
+                    busy = busy,
                 )
                 Screen.CODE -> CodeScreen(
-                    onDone = { gotoMain(Screen.HOME) },
-                    onBack = { screen = Screen.SIGN_IN },
+                    // Endpoint 2. On success the token is already in the
+                    // phone's secure store - see Api.verifyCode - and nothing
+                    // here ever holds it.
+                    onDone = { typed ->
+                        busy = true
+                        authNote = null
+                        scope.launch {
+                            val answer = backend.verifyCode(number, typed)
+                            busy = false
+                            if (answer is Http.Answer.Ok) gotoMain(Screen.HOME)
+                            else authNote = sentenceFor(answer)
+                        }
+                    },
+                    onBack = { screen = Screen.SIGN_IN; authNote = null },
                     number = number,
+                    note = authNote,
+                    busy = busy,
                 )
 
                 Screen.ADD_PHONE -> AddPhoneScreen(
@@ -219,8 +277,8 @@ fun AppSkeleton(
                     onScan = { gotoScan() },
                     content = {
                         HomeScreen(
-                            onOpen = { gotoScan(it) },
-                            onOpenSecond = { gotoScan(it) },
+                            onOpen = { gotoScan() },
+                            onOpenSecond = { gotoScan() },
                             onMap = {},
                         )
                     },
@@ -234,7 +292,7 @@ fun AppSkeleton(
                     onScan = { gotoScan() },
                     content = {
                         CabinetScreen(
-                            onScan = { gotoScan(it) },
+                            onScan = { gotoScan() },
                             onTypeCode = { screen = Screen.TYPE_CODE },
                         )
                     },
@@ -261,28 +319,45 @@ fun AppSkeleton(
                     onTypeCode = { screen = Screen.TYPE_CODE },
                     onBack = { screen = lastMain },
                     note = scanNote,
-                    // Which cabinet you scanned decides what happens, the same
-                    // way it will when there is a server. Scanning a cabinet
-                    // with nothing of yours in it says so, rather than opening
-                    // a box at a different cabinet - which is what this did
-                    // until the codes started carrying a real cabinet id.
+                    // **The product.** A code is read, the app decides only
+                    // whether it is worth asking about, and the SERVER decides
+                    // whether a door moves and which one.
                     //
-                    // What is still imagined is only [YOUR_PARCELS]. P5-03
-                    // replaces that line with the server's answer, and until
-                    // it does, "Opened" is the demo saying what it read - not
-                    // a door reporting that it moved.
-                    onRead = { read ->
-                        when (val next = whatToDo(read, YOUR_PARCELS, scanBox)) {
-                            is Pickup.Open -> { scanBox = next.box; screen = Screen.OPENED }
+                    // Until P5-03 this branch chose the box itself, from a
+                    // list of parcels the app was carrying. That list is gone.
+                    // It could never have protected anything - it ran on the
+                    // caller's phone - and it was wrong as often as it was
+                    // stale.
+                    onRead = { read, raw ->
+                        when (val next = whatToDo(read, raw)) {
                             Pickup.ScanAgain -> scanNote = R.string.refused_session_expired
-                            Pickup.NoParcelHere -> scanNote = R.string.refused_no_parcel_here
                             Pickup.KeepLooking -> Unit
+                            is Pickup.Ask -> {
+                                // Exactly one request per code. `Aperture`
+                                // drops every later frame carrying the same
+                                // string, so this cannot fire twice for one
+                                // scan - and it is never retried, because a
+                                // retry can open a door nobody is standing at.
+                                scanNote = R.string.working
+                                scope.launch {
+                                    when (val answer = backend.collect(next.code)) {
+                                        is Http.Answer.Ok -> {
+                                            openedBox = answer.value.boxNumber
+                                            screen = Screen.OPENED
+                                        }
+                                        // Not "failed", and never "opened".
+                                        // The request may have arrived.
+                                        else -> scanNote = sentenceFor(answer)
+                                    }
+                                }
+                            }
                         }
                     },
                 )
 
                 Screen.OPENED -> OpenedScreen(
-                    box = scanBox,
+                    // The server's answer, never the app's guess.
+                    box = openedBox,
                     onDone = { screen = lastMain },
                     onBack = { screen = lastMain },
                 )

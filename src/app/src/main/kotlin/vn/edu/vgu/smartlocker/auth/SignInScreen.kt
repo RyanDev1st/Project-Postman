@@ -66,6 +66,11 @@ fun SignInScreen(
     onSendCode: () -> Unit,
     onGoogle: () -> Unit,
     onVgu: () -> Unit = {},
+    /** What the server said, if anything went wrong asking for a code. Also
+     * how this screen says the build has no server address at all. */
+    note: Int? = null,
+    /** True while the code is being asked for. */
+    busy: Boolean = false,
 ) {
     val t = LocalLockerTokens.current
     Column(modifier = Modifier.fillMaxSize()) {
@@ -119,10 +124,18 @@ fun SignInScreen(
                 // button used to be live against a fixed string, so it went
                 // on to the code screen whatever was — or was not — typed.
                 GoButton(
-                    text = stringResource(R.string.send_code),
+                    text = stringResource(if (busy) R.string.working else R.string.send_code),
                     onClick = onSendCode,
-                    enabled = VnMobile.isComplete(number),
+                    enabled = VnMobile.isComplete(number) && !busy,
                 )
+                note?.let {
+                    Text(
+                        text = stringResource(it),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = t.ink3,
+                        modifier = Modifier.padding(start = 2.dp),
+                    )
+                }
             }
 
             Divider()

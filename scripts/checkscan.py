@@ -1,7 +1,6 @@
 """Show the app a live cabinet code and watch what it does.
 
-    python scripts/checkscan.py               # a cabinet with a parcel of yours
-    python scripts/checkscan.py vgu-library   # a cabinet with nothing of yours
+    python scripts/checkscan.py
 
 Exit code 0 means the app gave the right answer. Anything else means read the
 output.
@@ -13,6 +12,24 @@ in a dark corridor, and no machine here can stand in for that. What a machine
 *can* do is run the rest of the loop: a real camera stream, the real ML Kit
 detector, the real rules in `pickup/SessionCode.kt`, and the real screen change
 at the end of it. That is what this drives.
+
+WHAT IT CHECKS NOW, AND WHY IT CHANGED
+
+This used to prove that scanning the back gate opened box 04 and that scanning
+the library said "Nothing waiting here". **The app decides neither of those any
+more.** Which door opens is the server's answer, from `Collect.byScan`, and the
+list of parcels the app used to check against is gone - it ran on the caller's
+phone and protected nothing.
+
+So what is left on this emulator is the half that is still the app's: it reads
+a code, judges whether it is worth sending, and sends it. There is no server
+address in this build, so the send cannot succeed - and the rule that matters
+is what the app does then. **It must say it could not tell, and it must never
+show the door screen.** That is rule 4 in architecture.md and task P5-06, and
+an emulator can prove it exactly.
+
+To watch a door actually open, run `scripts/checkserver.py`: that drives the
+same rules through the real server, over TLS, including the four attacks.
 
 HOW THE TIMING WORKS
 
@@ -63,6 +80,8 @@ CAMERA_FRAME = Path(tempfile.gettempdir()) / "checkscan-frame.png"
 # The cabinet the app believes a parcel of yours is in - MainActivity's
 # YOUR_PARCELS. Any other cabinet id should be refused instead.
 CABINET = "vgu-back-gate"
+# Stands in for the 32 random bytes the server puts in a real code.
+RANDOM_FIELD = "hQ2wE5rT8yU1iO4pA7sD0fG3hJ6kL9zX"
 
 # Long enough to cold boot, install, sign in and reach the scan screen, with
 # room to spare. The code is live for 90 seconds after this, so overshooting
@@ -90,7 +109,9 @@ def wording(name: str) -> list[str]:
     return found
 
 
-NOTHING_HERE = wording("refused_no_parcel_here")
+# The sentence for "we do not know what happened". A live code with no server
+# behind it must land here, never on the door screen.
+UNCLEAR = wording("unclear_result")
 OPENED = ["is open", "đã mở"]
 SCAN_SCREEN = ["scan the cabinet", "quét màn hình tủ"]
 NO_CAMERA = ["no camera", "không có máy ảnh"]
@@ -170,18 +191,18 @@ def main() -> int:
     if not usable():
         return 2
 
-    # Which cabinet the code claims to be from, and so which answer is right.
-    # A cabinet with a parcel of yours opens a door; any other cabinet of ours
-    # says there is nothing here for you, which is the half that had no check
-    # at all while every live code opened box 04.
-    cabinet = sys.argv[1] if len(sys.argv) > 1 else CABINET
-    opens = cabinet == CABINET
-    want = "the door screen" if opens else f'"{NOTHING_HERE[0]}"'
+    # The cabinet in the code. It no longer changes the right answer - the
+    # server decides that and there is no server here - but a real id is what
+    # a real screen would draw, and the app still refuses a malformed one.
+    cabinet = CABINET
 
     epoch = int(time.time()) + SETUP_SECONDS
-    payload = f"VGU1|{cabinet}|{epoch}"
+    # The fourth field is what the server puts there. Nothing in the app
+    # reads it - only the server can - but a code without one is refused
+    # before it is ever sent, so the picture has to carry one.
+    payload = f"VGU1|{cabinet}|{epoch}|{RANDOM_FIELD}"
     phone.say(f"code {payload} - live from {epoch - 15} to {epoch + 75}")
-    phone.say(f"expecting {want}")
+    phone.say(f'expecting "{UNCLEAR[0]}", and never the door screen')
 
     if not make_frame(payload) or not phone.boot(CAMERA_FRAME):
         return 1
@@ -198,24 +219,24 @@ def main() -> int:
     while time.time() < epoch + 80:
         shown = phone.on_screen()
         opened = any(s in shown for s in OPENED)
-        refused = any(s.lower() in shown for s in NOTHING_HERE)
-        if not opened and not refused:
+        unclear = any(s.lower() in shown for s in UNCLEAR)
+        if not opened and not unclear:
             time.sleep(2)
             continue
         when = f"{int(time.time()) - epoch:+d}s from the code's own timestamp"
-        if opened == opens:
-            phone.say(f"the app acted at {when}, and it said {want}")
-            phone.say("the scan loop works: camera, ML Kit, the code rules, the screen")
-            return 0
-        phone.say(f"the app acted at {when}, and it was the wrong answer")
-        phone.say(f"  expected {want}")
-        phone.say(f"  got      {'the door screen' if opened else NOTHING_HERE[0]}")
-        return 1
+
+        # The one that must never happen. A door screen here would mean the
+        # app announced an open it never got an answer about.
+        if opened:
+            phone.say(f"the app showed the door screen at {when}")
+            phone.say("  it had no server to ask, so nothing told it a door moved")
+            return 1
+
+        phone.say(f"the app acted at {when}, and said it could not tell")
+        phone.say("  camera, ML Kit, the code rules and the send all ran")
+        phone.say("  and an unreachable server was not drawn as success")
+        return 0
 
     phone.say("the app never acted on the code, and the camera was working")
     phone.say("the picture it was shown is at " + FRAME.relative_to(ROOT).as_posix())
     return 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())

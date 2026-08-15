@@ -49,9 +49,11 @@
     <string name="code_label">6-DIGIT CODE</string>
     <string name="code_continue">Continue</string>
     <string name="code_resend_in">Resend in %1$s</string>
-    <!-- Debug builds only. Shown under the code box while there is no server
-         to check the code against. Removed when P2-03 wires endpoint 3. -->
-    <string name="demo_any_code">Demo build — no server yet, so any 6 digits will let you in.</string>
+    <!-- Shown under the code box when this build has no server address. It
+         replaced "any 6 digits will let you in", which stopped being true the
+         day the server started checking codes - and a demo note that lies is
+         worse than no note. -->
+    <string name="no_server_address">This build has no server address, so signing in cannot work.</string>
 
     <!-- Cabinet names. Sample data until the server names its own cabinets,
          but a place name is read by a person and has to turn over with the
@@ -198,4 +200,7 @@
         either. Rule 4 in architecture.md.
     -->
     <string name="unclear_result">We could not tell if that worked. Check the cabinet first.</string>
+
+    <!-- While the server is being asked. Not a success and not a failure. -->
+    <string name="working">Working…</string>
 </resources>

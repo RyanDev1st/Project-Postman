@@ -39,7 +39,7 @@ class Sessions(private val db: Db, private val liveSeconds: Long) {
      */
     fun issue(cabinetId: String): Live {
         sweep()
-        val code = Ids.secret()
+        val code = format(cabinetId, now())
         val expiresAt = now() + liveSeconds * 1000
         db.exec(
             "INSERT INTO sessions (code, cabinet_id, issued_at, expires_at) VALUES (?, ?, ?, ?)",
@@ -89,7 +89,29 @@ class Sessions(private val db: Db, private val liveSeconds: Long) {
         db.exec("DELETE FROM session_use WHERE used_at <= ?", now() - ONE_DAY)
     }
 
-    private companion object {
-        const val ONE_DAY = 24L * 60 * 60 * 1000
+    companion object {
+        private const val ONE_DAY = 24L * 60 * 60 * 1000
+
+        /** The format marker. The app's `SessionCode.kt` reads the same word. */
+        const val FORMAT = "VGU1"
+
+        /**
+         * `VGU1|<cabinet-id>|<unix-seconds>|<random>`
+         *
+         * The first three fields are readable by the app before it has any
+         * signal, which is the point of them: standing in a corridor, it can
+         * say "that code is old, scan again" or "this is not one of ours"
+         * without a round trip. Those answers are a courtesy and **decide
+         * nothing** - the server checks all of it again in [cabinetFor].
+         *
+         * The fourth field is the one that matters. Without it the code would
+         * be a cabinet id and a clock reading, which anybody can type: an
+         * attacker would guess `VGU1|vgu-back-gate|<any second>` until one
+         * landed. 32 random bytes is what makes the code unguessable, and it
+         * is why the first three fields can be readable without costing
+         * anything.
+         */
+        fun format(cabinetId: String, atMillis: Long): String =
+            "$FORMAT|$cabinetId|${atMillis / 1000}|${Ids.secret()}"
     }
 }

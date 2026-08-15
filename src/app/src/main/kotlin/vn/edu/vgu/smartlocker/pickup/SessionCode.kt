@@ -4,17 +4,24 @@ package vn.edu.vgu.smartlocker.pickup
  * What the cabinet screen puts in its QR, and what the app is willing to
  * believe about it.
  *
- *     VGU1|<cabinet-id>|<unix-seconds>
+ *     VGU1|<cabinet-id>|<unix-seconds>|<random>
  *
- * Written by `src/cabinet/qr.js`. The two files are the two ends of one
- * contract, and neither may change shape without the other.
+ * **Issued by the server**, at endpoint 9, and drawn by `src/cabinet/qr.js`.
+ * The server's `Sessions.format` writes it; this reads it; the cabinet only
+ * carries it. All three are one contract and none may change shape alone.
  *
- * **This is not a key and reading it opens nothing.** It says which cabinet
- * and at what moment, and that is all it has ever said - P0-07, and
- * architecture.md section 6. Identity comes from the token in the app, so
- * whoever photographs the screen still has to be signed in as the person the
- * parcel belongs to. That is the property the whole design rests on, and it
- * is why the checks below are about *plausibility*, never about secrecy.
+ * The first three fields are here so the app can answer *before it has any
+ * signal*: standing in a corridor it can say "that one is old, scan again" or
+ * "not one of ours" with no round trip. **Those answers decide nothing.** The
+ * fourth field is 32 random bytes and is the only part that proves anything,
+ * and only the server can check it. Without that field the code would be a
+ * cabinet id and a clock reading, which anybody can type.
+ *
+ * **This is not a key and reading it opens nothing.** Identity comes from the
+ * token in the app, so whoever photographs the screen still has to be signed
+ * in as the person the parcel belongs to - P0-07, architecture.md section 6.
+ * That is the property the whole design rests on, and it is why the checks
+ * below are about *plausibility*, never about secrecy.
  *
  * Kept apart from the camera on purpose. A rule about the shape of a string
  * needs no lens to check, and every case below is a unit test rather than a
@@ -79,8 +86,13 @@ internal fun readSessionCode(raw: String?, now: Long): Scanned {
     if (text.isEmpty()) return Scanned.NotOurs
 
     val parts = text.split('|')
-    if (parts.size != 3) return Scanned.NotOurs
+    if (parts.size != 4) return Scanned.NotOurs
     if (parts[0] != FORMAT) return Scanned.NotOurs
+
+    // The random field. Its contents mean nothing here - only the server can
+    // say whether it issued this one - but a code without it is a code
+    // somebody typed, and there is no reason to carry that to the server.
+    if (parts[3].isEmpty()) return Scanned.NotOurs
 
     val cabinet = parts[1]
     if (cabinet.isEmpty()) return Scanned.NotOurs
@@ -117,48 +129,47 @@ internal fun readSessionCode(raw: String?, now: Long): Scanned {
  */
 internal sealed interface Pickup {
 
-    /** A cabinet you have a parcel at, and a live code. Open that box. */
-    data class Open(val box: String) : Pickup
+    /**
+     * Worth asking the server about. **Not** a door opening.
+     *
+     * This is as far as the app's own judgement goes, and the change is the
+     * point: until P5-03 this branch decided *which box opens*, from a list of
+     * parcels the app was carrying. It cannot decide that, and it never could
+     * - the list was a copy, the copy was stale the moment it was made, and an
+     * attacker running their own build would simply write a different one.
+     * Which door moves is the server's answer, in `Collect.byScan`.
+     */
+    data class Ask(val code: String) : Pickup
 
     /**
      * Ours, and expired. Normal, not a failure: the cabinet redraws every 30
      * seconds and anybody who walks up mid-cycle catches an old one.
+     *
+     * Answered here rather than by asking, only because it saves a round trip
+     * standing in a corridor. The server refuses the same code with
+     * `SESSION_EXPIRED` if it is ever sent, so nothing rests on this.
      */
     data object ScanAgain : Pickup
-
-    /**
-     * A cabinet of ours, a live code, and nothing here belongs to you.
-     *
-     * Checked *after* staleness on purpose. An expired code is told to scan
-     * again and nothing else, so standing in front of a cabinet with a dead
-     * code never reveals whether you have a parcel in it.
-     */
-    data object NoParcelHere : Pickup
 
     /** Somebody else's QR. Say nothing and keep looking. */
     data object KeepLooking : Pickup
 }
 
 /**
- * [yours] maps a cabinet id to the boxes waiting for you in it. [want] is the
- * box you tapped on Home, if you tapped one: scanning a cabinet where two
- * parcels are yours should open the one you asked for, and the first one
- * otherwise.
+ * Whether a scanned string is worth sending to the server.
  *
- * There is no server in this yet. When P5-03 lands, this decides *whether to
- * ask* and the server decides what actually opens - the app must never be the
- * thing that says a door moved.
+ * Three answers, and none of them opens anything. "Nothing here for you" is
+ * missing on purpose: only the server knows what is in a cabinet, and the app
+ * guessing at it was the last made-up thing in the pickup flow.
+ *
+ * [raw] is carried through rather than rebuilt from [read], because the server
+ * compares the **whole string** against what it issued. A code reassembled
+ * from the parts this file understood would differ by whatever this file did
+ * not, and would be refused.
  */
-internal fun whatToDo(read: Scanned, yours: Map<String, List<String>>, want: String? = null): Pickup =
+internal fun whatToDo(read: Scanned, raw: String): Pickup =
     when (read) {
         is Scanned.Stale -> Pickup.ScanAgain
         Scanned.NotOurs -> Pickup.KeepLooking
-        is Scanned.Ours -> {
-            val boxes = yours[read.cabinet].orEmpty()
-            when {
-                boxes.isEmpty() -> Pickup.NoParcelHere
-                want in boxes -> Pickup.Open(want!!)
-                else -> Pickup.Open(boxes.first())
-            }
-        }
+        is Scanned.Ours -> Pickup.Ask(raw)
     }
