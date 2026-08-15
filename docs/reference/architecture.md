@@ -106,7 +106,7 @@ D2 exists so a flat battery or a broken app does not trap a parcel. That is wort
                              ▼         ▼
                         ┌──────────────────┐        ┌────────────┐
                         │    API SERVER    │ ─────> │  DATABASE  │
-                        │  (Server team)   │        │  users     │
+                        │     (ours)       │        │  users     │
                         └────────┬─────────┘        │  boxes     │
                                  │                  │  parcels   │
                     ┌────────────┴────────────┐     │  history   │
@@ -140,9 +140,11 @@ It cannot open a box of its own accord, list parcels, or show a full name or a p
 
 **The cabinet has its own identity.** It signs in as a device, not as a person, with a key placed on it during setup. That key never sits in this repo. See task P0-05.
 
-## 3. API server — Server team
+## 3. API server — ours
 
 The only door between either front-end and the data. What each front-end may send is fixed in [api-contract.md](api-contract.md).
+
+We build it. It was going to be the Server team's, and it is not — [ADR 0019](../adr/0019-we-own-the-server.md).
 
 The server does all the work neither front-end may do:
 
@@ -154,9 +156,11 @@ The server does all the work neither front-end may do:
 - decide whether a scanning user has a parcel at that cabinet
 - send the notification
 
-## 4. Database — Server team
+## 4. Database — ours
 
 Remembers users, cabinets, boxes, parcels, and the full open and close history.
+
+**A parcel must know who it belongs to.** That row is what the pickup flow asks about, and no other table can answer it.
 
 ## 5. Login and token
 

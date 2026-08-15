@@ -13,12 +13,14 @@ This repo holds the **IT team work — two front-ends**:
 | **Phone app** | The receiver | Register, get told a parcel arrived, scan the cabinet, open the box. **Android first** — iOS deferred, see [ADR 0007](docs/adr/0007-android-first.md) |
 | **Cabinet screen** | The shipper | Find the receiver, drop the parcel. No login, no app to install |
 
-The Server team owns the API and the database. We call their API. We do not change it.
+**We own the server too.** The API, the database and every rule that opens a
+door are ours. The Server team keeps the cabinet hardware. Decided in
+[ADR 0019](docs/adr/0019-we-own-the-server.md).
 
 | In scope | Out of scope (unless the user says otherwise) |
 | --- | --- |
-| The phone app (Android first) and the cabinet screen | Server code, database design, cabinet hardware |
-| Work against the real Server-team API | Fake servers in shipped code. Test fakes are allowed, and carry a label |
+| The phone app (Android first) and the cabinet screen | Cabinet hardware — the ESP32, the relays, the wiring |
+| The API server, the database schema, and the rules that decide whether a door opens | Fake servers in shipped code. Test fakes are allowed, and carry a label |
 | | Secrets in the repo, in a commit, or in chat |
 
 ## The flow, in six steps
@@ -168,7 +170,7 @@ If a check fails, fix it. If you cannot fix it, report the command that failed a
 
 ## How agents run work
 
-- Work in this order: discuss, plan, build, check.
+- Work in this order: discuss, research with community's experience (advised to use last30days skill), plan, build, check.
 - Any task with more than one step gets a plan. Write the plan down before you write code.
 - Run at most 4 sub-agents at once. If two of them would write to the same folder, run them one at a time.
 - If the real work moves away from the plan, update the plan when the change is safe. If the change is risky, stop and ask.
