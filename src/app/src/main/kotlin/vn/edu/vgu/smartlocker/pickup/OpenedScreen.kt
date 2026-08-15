@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,7 +47,7 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
  */
 @Composable
 fun OpenedScreen(
-    box: String = "04",
+    box: String,
     onDone: () -> Unit,
     onBack: () -> Unit = {},
 ) {
@@ -52,7 +55,12 @@ fun OpenedScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DoorLight),
+            // Background first, insets after. The amber must reach all four
+            // edges - it is the signal you read from across a corridor - so
+            // the inset is applied to what is written on it, never to it.
+            .background(DoorLight)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
     ) {
         AppBar(
             brand = stringResource(R.string.cabinet_back_gate),
@@ -72,6 +80,10 @@ fun OpenedScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            // Blank here is not possible any more, and it used to be: this
+            // took a default of "04", and the typed-code path arrived without
+            // ever setting a number, so the screen announced an open door and
+            // named none. The default is gone and the caller must say which.
             Text(
                 text = box,
                 style = MaterialTheme.typography.displayLarge.copy(
@@ -122,11 +134,11 @@ fun OpenedScreen(
 @Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun OpenedPreview() {
-    PreviewTheme { OpenedScreen(onDone = {}) }
+    PreviewTheme { OpenedScreen(box = "04", onDone = {}) }
 }
 
 @Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
 private fun OpenedDarkPreview() {
-    PreviewTheme(dark = true) { OpenedScreen(onDone = {}) }
+    PreviewTheme(dark = true) { OpenedScreen(box = "04", onDone = {}) }
 }

@@ -70,7 +70,7 @@
     <string name="addphone_head_lead">Couriers find you</string>
     <string name="addphone_head_accent">by number</string>
 
-    <string name="home_nothing_waiting">Nothing waiting. Give a courier your number and any of the six is yours within the hour.</string>
+    <string name="home_nothing_waiting">Nothing waiting. Give a courier your number and a box here is yours within the hour.</string>
     <string name="box_label">Box %1$s</string>
 
     <!-- Words inside sample timestamps. The clock part is data; these are
@@ -125,8 +125,6 @@
     <!-- 8. Cabinet -->
     <string name="cab_full_title">Cabinet full</string>
     <string name="cab_full_sub">Nothing waiting, and no free box</string>
-    <string name="cab_free_title">%1$d boxes free</string>
-    <string name="cab_free_sub">Nothing waiting for you</string>
     <string name="cab_two_title">Two boxes are yours</string>
     <string name="cab_one_title">One box is yours</string>
     <string name="cab_doors_free">%1$d of 20 doors free</string>
@@ -146,6 +144,8 @@
          in that does not need one, rather than leaving a dark box. -->
     <string name="scan_no_camera">No camera. Use a code instead</string>
     <string name="scan_title">Scan the cabinet</string>
+    <string name="scan_pick_image">Use a picture</string>
+    <string name="scan_no_code_in_picture">No cabinet code in that picture.</string>
 
     <!-- 5. Opened -->
     <string name="opened_is_open">IS OPEN</string>
@@ -156,7 +156,6 @@
     <string name="type_title">Enter code</string>
     <string name="type_sub">From your parcel notice</string>
     <string name="type_wrong">Wrong code. Try again.</string>
-    <string name="type_open_box">Open box</string>
     <string name="type_scan_instead">Scan instead</string>
 
     <!-- 9. Settings -->
@@ -206,4 +205,5 @@
 
     <!-- While the server is being asked. Not a success and not a failure. -->
     <string name="working">Working…</string>
+    <string name="type_at_cabinet">Type this code on the cabinet\'s own screen. It works when your phone is flat, so it cannot be typed here.</string>
 </resources>

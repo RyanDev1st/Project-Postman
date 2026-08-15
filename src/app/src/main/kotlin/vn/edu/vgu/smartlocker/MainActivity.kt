@@ -28,6 +28,7 @@ import vn.edu.vgu.smartlocker.auth.AddPhoneScreen
 import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
+import vn.edu.vgu.smartlocker.cabinet.YourDoor
 import vn.edu.vgu.smartlocker.loading.LoadingScreen
 import vn.edu.vgu.smartlocker.parcels.HomeScreen
 import vn.edu.vgu.smartlocker.parcels.rememberHome
@@ -139,7 +140,15 @@ fun AppSkeleton(
     // would re-read them thirty times a second.
     val backend = remember { Backend(context) }
 
-    var screen by remember { mutableStateOf(start ?: Screen.SIGN_IN) }
+    // A phone that has signed in before opens on Home.
+    //
+    // `signedIn` existed and nothing read it, so every launch asked for a
+    // phone number again - including after an update - and the token store
+    // built in P1-06 may as well not have been there. If the token has since
+    // expired the first call says so, which is the honest failure.
+    var screen by remember {
+        mutableStateOf(start ?: if (backend.signedIn) Screen.HOME else Screen.SIGN_IN)
+    }
     var lastMain by remember { mutableStateOf(Screen.HOME) }
 
     // Which box the server said it opened. Not a guess, and not a default:
@@ -147,6 +156,9 @@ fun AppSkeleton(
     // "Opened" screen. It used to start at "04", which is how that screen
     // came to announce box 04 whatever had actually been unlocked.
     var openedBox by remember { mutableStateOf("") }
+
+    /** Which box the typed-code screen is about, chosen on the Cabinet tab. */
+    var codeBox by remember { mutableStateOf("") }
 
     // A sentence for a code that was read and not acted on. Null nearly
     // always; the scan screen shows "Scan the cabinet" instead.
@@ -219,8 +231,18 @@ fun AppSkeleton(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                // Every screen but one. "Opened" is the single full-bleed
+                // screen in the app - amber to all four edges is the whole
+                // point of it, readable across a corridor - so the shared
+                // gutter would leave it a coloured card floating on the
+                // ground, which is what it looked like. It keeps the system
+                // bars clear itself, on its content rather than its colour.
+                .then(
+                    if (screen == Screen.OPENED) Modifier
+                    else Modifier
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                ),
         ) {
             when (screen) {
                 Screen.SIGN_IN -> SignInScreen(
@@ -300,9 +322,17 @@ fun AppSkeleton(
                     onSelectTab = ::gotoMain,
                     onScan = { gotoScan() },
                     content = {
+                        // The same fetch Home makes, shown as doors. The tab
+                        // used to build two parcels of its own - box 04 and
+                        // box 07 - which is why it never named the box Home
+                        // named.
+                        val cab = rememberHome(backend, reloadKey = openedBox)
                         CabinetScreen(
                             onScan = { gotoScan() },
-                            onTypeCode = { screen = Screen.TYPE_CODE },
+                            onTypeCode = { codeBox = it; screen = Screen.TYPE_CODE },
+                            yours = cab.doors.map {
+                                YourDoor(it.box, it.at, it.left, it.pct, it.soon)
+                            },
                         )
                     },
                 )
@@ -324,7 +354,6 @@ fun AppSkeleton(
                 )
 
                 Screen.SCAN -> ScanScreen(
-                    onScanned = { screen = Screen.OPENED },
                     onTypeCode = { screen = Screen.TYPE_CODE },
                     onBack = { screen = lastMain },
                     note = scanNote,
@@ -371,8 +400,11 @@ fun AppSkeleton(
                     onBack = { screen = lastMain },
                 )
 
+                // No `onAccepted`. It went straight to the "opened" screen
+                // without a request, so the app announced a door it had never
+                // asked anybody to open. See TypeCodeScreen.
                 Screen.TYPE_CODE -> TypeCodeScreen(
-                    onAccepted = { screen = Screen.OPENED },
+                    box = codeBox,
                     onScan = { gotoScan() },
                     onBack = { screen = lastMain },
                 )

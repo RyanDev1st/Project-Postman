@@ -53,7 +53,11 @@ data class Claim(
 data class SmallClaim(
     val cabinet: String,
     val box: String,
+    /** "Dropped 21:40 yesterday" - a whole sentence, for the one-row ticket. */
     val detail: String,
+    /** "21:40 yesterday" - the same fact with no label, for callers that
+     *  print their own. The Cabinet tab does, and printed "Dropped Dropped". */
+    val at: String = "",
     val left: String,
     val pct: Float,
     val soon: Boolean,

@@ -58,53 +58,50 @@ enum class CabinetMode { TWO, ONE, EMPTY, FULL }
 @Composable
 fun CabinetScreen(
     onScan: (String) -> Unit,
-    onTypeCode: () -> Unit,
-    mode: CabinetMode = CabinetMode.TWO,
+    onTypeCode: (String) -> Unit,
+    /**
+     * The doors that are actually yours, from the server.
+     *
+     * These were two invented parcels - box 04 and box 07 - built in this
+     * function and drawn on every phone that opened this tab. The tab named a
+     * door nobody had been given, which is why it never agreed with Home.
+     */
+    yours: List<YourDoor>,
+    /**
+     * Free doors, when anybody knows. **Usually nothing.**
+     *
+     * A receiver's side of the contract has no endpoint that reports free
+     * boxes - only the cabinet screen may ask, with a cabinet key - so the
+     * phone genuinely does not know. It used to list six invented ones.
+     */
+    freeDoors: List<String> = emptyList(),
+    mode: CabinetMode = when {
+        yours.isEmpty() -> CabinetMode.EMPTY
+        yours.size == 1 -> CabinetMode.ONE
+        else -> CabinetMode.TWO
+    },
 ) {
     val t = LocalLockerTokens.current
-    var selected by remember { mutableStateOf("04") }
+    var selected by remember(yours) { mutableStateOf(yours.firstOrNull()?.n.orEmpty()) }
     var framed by remember { mutableStateOf<String?>(null) }
 
-    // Sample parcels. The clock readings are data and stay as they are; the
-    // words around them — today, yesterday, left — are ours, and were the
-    // English left standing in an otherwise Vietnamese screen.
-    val allMine = listOf(
-        YourDoor(
-            "04",
-            stringResource(R.string.time_at_today, "08:14"),
-            stringResource(R.string.time_hours_left, "6"),
-            0.12f,
-            soon = true,
-        ),
-        YourDoor(
-            "07",
-            stringResource(R.string.time_at_yesterday, "21:40"),
-            stringResource(R.string.time_hours_left, "31"),
-            0.65f,
-            soon = false,
-        ),
-    )
-    val freeDoors = listOf("02", "05", "11", "14", "17", "20")
-    val mine = when (mode) {
-        CabinetMode.TWO -> allMine
-        CabinetMode.ONE -> listOf(allMine.first())
-        CabinetMode.EMPTY, CabinetMode.FULL -> emptyList()
-    }
-    val effective = if (mode == CabinetMode.ONE) allMine.first().n else selected
+    val mine = if (mode == CabinetMode.EMPTY || mode == CabinetMode.FULL) emptyList() else yours
+    val effective = selected.ifEmpty { mine.firstOrNull()?.n.orEmpty() }
 
     // Heading carries the constants; per-door facts live in the panel.
+    // "0 of 20 doors free" is what an unknown count printed, and it is a lie
+    // in the other direction - the cabinet was nearly empty. Nothing on the
+    // receiver's side of the contract reports free boxes, so when nobody has
+    // said, the line is not drawn at all.
+    val freeLine = if (freeDoors.isEmpty()) "" else stringResource(R.string.cab_doors_free, freeDoors.size)
+
     val (title, sub) = when (mode) {
         CabinetMode.FULL ->
             stringResource(R.string.cab_full_title) to stringResource(R.string.cab_full_sub)
         CabinetMode.EMPTY ->
-            stringResource(R.string.cab_free_title, freeDoors.size) to
-                stringResource(R.string.cab_free_sub)
-        CabinetMode.TWO ->
-            stringResource(R.string.cab_two_title) to
-                stringResource(R.string.cab_doors_free, freeDoors.size)
-        CabinetMode.ONE ->
-            stringResource(R.string.cab_one_title) to
-                stringResource(R.string.cab_doors_free, freeDoors.size)
+            stringResource(R.string.cab_room_title) to stringResource(R.string.cab_room_sub)
+        CabinetMode.TWO -> stringResource(R.string.cab_two_title) to freeLine
+        CabinetMode.ONE -> stringResource(R.string.cab_one_title) to freeLine
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -169,7 +166,7 @@ fun CabinetScreen(
             if (mode == CabinetMode.EMPTY || mode == CabinetMode.FULL) {
                 StatusCard(mode)
             } else {
-                val d = mine.first { it.n == effective }
+                val d = mine.firstOrNull { it.n == effective } ?: mine.first()
                 SmallTicket(
                     claim = SmallClaim(
                         cabinet = stringResource(R.string.cabinet_back_gate),
@@ -204,7 +201,7 @@ fun CabinetScreen(
                     )
                     QuietButton(
                         text = stringResource(R.string.cab_use_code),
-                        onClick = onTypeCode,
+                        onClick = { onTypeCode(effective) },
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }

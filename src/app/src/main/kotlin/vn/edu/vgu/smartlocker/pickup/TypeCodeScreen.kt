@@ -39,25 +39,37 @@ import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
 
 /**
- * The typed backup code — the back door, refusing.
+ * The typed backup code - and where it is actually typed.
  *
- * The refusal wording is fixed by api-contract.md and shared with the
- * cabinet, so it is a contract change rather than a screen edit; this screen
- * shows the shortened form.
+ * **This screen cannot open a door, and it used to pretend it could.** Its
+ * button called straight through to the "opened" screen: no request, no
+ * server, no box number, amber and the words IS OPEN over a door that had not
+ * moved. That is the one failure this project's rules name outright - never
+ * show a success that was not confirmed.
+ *
+ * It cannot be fixed by wiring the button up, either. Endpoint 13
+ * (`/cabinet/collect-by-code`) is answered only for a caller holding a cabinet
+ * key, and a phone must never hold one. The code is typed on the **cabinet's
+ * own screen** - which is the point of it: it is the way in when the phone is
+ * flat, and a flat phone cannot type anything.
+ *
+ * So this screen says where the code goes. See P5-08, whose own Verify reads
+ * "typed on the real cabinet".
  */
 @Composable
 fun TypeCodeScreen(
-    onAccepted: () -> Unit,
+    /** The box this is about. It was the literal string "04". */
+    box: String,
     onScan: () -> Unit,
     onBack: () -> Unit = {},
-    error: Boolean = true,
+    error: Boolean = false,
 ) {
     val t = LocalLockerTokens.current
-    var code by remember { mutableStateOf("82") }
+    val code = ""
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(
-            brand = stringResource(R.string.box_label, "04"),
+            brand = stringResource(R.string.box_label, box),
             leading = {
                 AppBarBead(
                     icon = AppIcons.Back,
@@ -87,7 +99,7 @@ fun TypeCodeScreen(
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
         ) {
-            OtpCells(code = code, caretIndex = 2)
+            OtpCells(code = code, caretIndex = -1)
             if (error) {
                 Row(
                     modifier = Modifier
@@ -117,8 +129,16 @@ fun TypeCodeScreen(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            GoButton(text = stringResource(R.string.type_open_box), onClick = onAccepted)
-            QuietButton(text = stringResource(R.string.type_scan_instead), onClick = onScan)
+            // No "open the box" button. There is nothing this screen could
+            // call that would open one, and a button that navigates to a
+            // success screen without asking anybody is worse than no button.
+            Text(
+                text = stringResource(R.string.type_at_cabinet),
+                style = MaterialTheme.typography.bodyLarge,
+                color = t.ink2,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+            GoButton(text = stringResource(R.string.type_scan_instead), onClick = onScan)
         }
     }
 }
@@ -126,11 +146,11 @@ fun TypeCodeScreen(
 @Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun TypeCodePreview() {
-    PreviewTheme { TypeCodeScreen({}, {}) }
+    PreviewTheme { TypeCodeScreen(box = "04", onScan = {}) }
 }
 
 @Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
 private fun TypeCodeDarkPreview() {
-    PreviewTheme(dark = true) { TypeCodeScreen({}, {}) }
+    PreviewTheme(dark = true) { TypeCodeScreen(box = "04", onScan = {}) }
 }

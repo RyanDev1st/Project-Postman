@@ -25,6 +25,8 @@ data class HomeData(
     val parcels: List<Claim>,
     val second: List<SmallClaim>,
     val ledger: List<LedgerEntry>,
+    /** Every waiting parcel as a door row, for the Cabinet tab. */
+    val doors: List<SmallClaim> = emptyList(),
     /** The last failure, for the caller to turn into a sentence. Null if none. */
     val trouble: Answer<*>? = null,
 )
@@ -60,6 +62,7 @@ fun rememberHome(backend: Backend, reloadKey: Any?): HomeData {
                 data = data.copy(
                     parcels = listOfNotNull(big),
                     second = rest,
+                    doors = doors(answer.value, window, now, zone, say),
                     trouble = null,
                 )
             }

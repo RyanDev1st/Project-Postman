@@ -66,7 +66,10 @@ import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
  */
 @Composable
 fun ScanScreen(
-    onScanned: () -> Unit,
+    // `onScanned` is gone. It was never called from in here - the comment
+    // above said so - but the caller still passed it a handler that jumped
+    // straight to the "opened" screen, so a dead parameter was one wiring
+    // mistake away from announcing a door nobody had opened.
     onTypeCode: () -> Unit,
     onBack: () -> Unit = {},
     /** What a read code turns out to be, **and the string it was read from**.
@@ -92,6 +95,21 @@ fun ScanScreen(
     val ask = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { allowed = it }
+
+    // What the last chosen picture turned out to be. This screen's own note,
+    // kept apart from `note`, which belongs to the caller and answers the
+    // server. Cleared the moment a picture does work.
+    var picked by remember { mutableStateOf<Int?>(null) }
+    val pick = rememberPickedQr(
+        onCode = { raw ->
+            picked = null
+            // The same reader the camera uses, and the same handler. A picture
+            // is another way of seeing the cabinet screen, not another way of
+            // opening a door - there is one of those and the server owns it.
+            onRead(readSessionCode(raw, System.currentTimeMillis() / 1000), raw)
+        },
+        onNoCode = { picked = R.string.scan_no_code_in_picture },
+    )
 
     // Asked once, when the screen appears, because the screen exists only to
     // point a camera at something. Refused, nothing is asked again - the
@@ -126,7 +144,7 @@ fun ScanScreen(
             Aperture(modifier = Modifier.fillMaxWidth(), live = allowed, onRead = onRead)
             Text(
                 text = stringResource(
-                    note ?: if (allowed) R.string.scan_title else R.string.scan_no_camera,
+                    picked ?: note ?: if (allowed) R.string.scan_title else R.string.scan_no_camera,
                 ),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 color = t.ink,
@@ -134,6 +152,13 @@ fun ScanScreen(
             )
         }
 
+        // The way in for a phone whose camera cannot be used. It sits above
+        // "Use a code" because it opens this door, and the code opens the
+        // cabinet's own screen instead - a different place to stand.
+        QuietButton(
+            text = stringResource(R.string.scan_pick_image),
+            onClick = pick,
+        )
         QuietButton(
             text = stringResource(R.string.cab_use_code),
             onClick = onTypeCode,

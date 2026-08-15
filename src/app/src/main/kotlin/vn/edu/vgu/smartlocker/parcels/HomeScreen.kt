@@ -134,7 +134,7 @@ fun HomeScreen(
             ClaimTicket(
                 claim = Claim(
                     cabinet = stringResource(R.string.cabinet_back_gate),
-                    box = freeCount?.let { "%02d".format(it) } ?: "\u2014",
+                    box = freeCount?.let { "%02d".format(it) } ?: "-",
                     dropped = "",
                     collectBy = "",
                     left = if (note == null) stringResource(R.string.home_nearest) else "",

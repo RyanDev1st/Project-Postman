@@ -45,7 +45,7 @@
     <string name="addphone_head_lead">Người giao tìm bạn</string>
     <string name="addphone_head_accent">qua số này</string>
 
-    <string name="home_nothing_waiting">Chưa có gì. Đưa số của bạn cho người giao, một trong sáu ô sẽ là của bạn trong vòng một giờ.</string>
+    <string name="home_nothing_waiting">Chưa có gì. Đưa số của bạn cho người giao, một ô ở đây sẽ là của bạn trong vòng một giờ.</string>
     <string name="box_label">Ô %1$s</string>
 
     <string name="time_at_today">%1$s hôm nay</string>
@@ -94,8 +94,6 @@
     <!-- Tủ -->
     <string name="cab_full_title">Tủ đã đầy</string>
     <string name="cab_full_sub">Không có hàng chờ, cũng không còn hộp trống</string>
-    <string name="cab_free_title">%1$d hộp trống</string>
-    <string name="cab_free_sub">Không có hàng nào chờ bạn</string>
     <string name="cab_two_title">Bạn có hai hộp</string>
     <string name="cab_one_title">Bạn có một hộp</string>
     <string name="cab_doors_free">%1$d trên 20 hộp còn trống</string>
@@ -113,6 +111,8 @@
     <!-- Quét -->
     <string name="scan_no_camera">Không có máy ảnh. Hãy nhập mã</string>
     <string name="scan_title">Quét màn hình tủ</string>
+    <string name="scan_pick_image">Dùng ảnh</string>
+    <string name="scan_no_code_in_picture">Ảnh này không có mã của tủ.</string>
 
     <!-- Đã mở -->
     <string name="opened_is_open">ĐÃ MỞ</string>
@@ -123,7 +123,6 @@
     <string name="type_title">Nhập mã</string>
     <string name="type_sub">Có trong thông báo nhận hàng</string>
     <string name="type_wrong">Sai mã. Thử lại.</string>
-    <string name="type_open_box">Mở hộp</string>
     <string name="type_scan_instead">Quét thay vì nhập</string>
 
     <!-- Cài đặt -->
@@ -151,4 +150,5 @@
     <string name="unclear_result">Chưa rõ thao tác có thành công không. Kiểm tra tủ trước.</string>
 
     <string name="working">Đang xử lý…</string>
+    <string name="type_at_cabinet">Nhập mã này trên màn hình của tủ. Mã dùng khi điện thoại hết pin, nên không thể nhập ở đây.</string>
 </resources>

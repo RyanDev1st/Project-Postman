@@ -49,6 +49,22 @@ fun waiting(
 }
 
 /**
+ * Every waiting parcel as one row, most urgent first.
+ *
+ * The Cabinet tab draws a door per parcel and the ticket draws only the first,
+ * so this is the same list the ticket is built from rather than a second
+ * fetch - one answer from the server, two ways of showing it.
+ */
+fun doors(
+    parcels: List<Parcel>,
+    window: Window,
+    now: Instant,
+    zone: ZoneId,
+    say: Phrases,
+): List<SmallClaim> =
+    parcels.sortedBy { arrival(it) ?: Instant.MAX }.map { small(it, window, now, zone, say) }
+
+/**
  * The sentences the ticket needs, handed in rather than looked up.
  *
  * They are `stringResource` calls at the call site, and `stringResource` is a
@@ -116,6 +132,9 @@ fun small(
         box = full.box,
         detail = arrived
             ?.let { say.dropped(clock(it, zone), dayOf(it, now, zone), date(it, zone)) }
+            .orEmpty(),
+        at = arrived
+            ?.let { say.at(clock(it, zone), dayOf(it, now, zone), date(it, zone)) }
             .orEmpty(),
         left = full.left,
         pct = full.pct,
