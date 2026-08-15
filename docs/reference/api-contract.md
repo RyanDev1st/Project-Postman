@@ -189,7 +189,23 @@ Path D2 in [architecture.md](architecture.md). It exists so a flat battery does 
 | Travels how | With the notice, by push. Adjustable |
 | Reused across parcels | **Never.** A new parcel gets a new code. *Fixed — not a setting* |
 
-The scanned path (endpoint 6) needs none of this, because its QR is not a key — it only says *which cabinet, right now*, and the token proves who is standing there.
+The scanned path needs none of *these* rules, because its QR is not a key. It needs its own, and they are below.
+
+## The scanned code — what protects it
+
+Path D1. The QR is not a secret and is not meant to be: photograph the cabinet screen and you have *which cabinet, at what moment*, which opens nothing. The token proves who is asking. That much was always the design — [ADR 0003](../adr/0003-parcel-locker-product.md).
+
+What was missing from this file is what the **server** must check, and it matters more than it sounds. The app checks the code's age and its cabinet before it ever calls endpoint 6, and **none of those checks protect anything**: they run on the caller's phone, and an attacker does not run our app. They call `POST /parcels/collect` directly. Every rule below therefore has to be enforced on the server, or it is not enforced.
+
+| Rule | Why |
+| --- | --- |
+| The session code must be one **this server issued** at endpoint 9, and still inside its window, **timed by the server's clock** | Otherwise the code can be invented. The server has to remember what it handed out; the code cannot be self-describing |
+| The parcel must be **at the cabinet the code names** | Without this, a code from any cabinet opens any box of yours, and being at the locker stops being necessary at all |
+| The parcel must belong to **the token in the same request** | This is the one that stops somebody opening another person's box. It is also the only rule the QR itself can never carry |
+| One open per session code, per parcel | A captured request is otherwise replayable for as long as the code lives |
+| A refusal never says **why** beyond the reasons below | "No parcel here" and "not yours" must read the same to somebody probing |
+
+**What this means if the server skips the first two.** A valid token plus any string would collect a parcel — from a sofa, at any hour, with no cabinet involved. The scan would be decoration. Nothing in the app can prevent that, which is why it is written down here rather than left to be obvious.
 
 ## Refusal reasons
 

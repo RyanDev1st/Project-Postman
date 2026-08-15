@@ -2,7 +2,7 @@
 
 **Goal:** the receiver walks to the cabinet and the right door opens — by scanning, or by typing a code.
 
-**Progress: 0 / 9.**
+**Progress: 0 / 10.**
 
 **This is the product.** Everything in Phases 0 to 4 exists to make this phase possible.
 
@@ -97,6 +97,11 @@ Two ways in. **Scanning is the main path** — P5-01 to P5-07. **Typing a code i
       - Owner: _unassigned_ · Needs: P5-08 · Blocks: —
       - Verify: three checks, all on the real cabinet — (1) a used code refuses, (2) an old code refuses, (3) repeated wrong codes lock that box, and the screen says when it unlocks
       - Notes: a wrong code must never say whether that code exists. "Not right" and "not right yet" read the same
+
+- [ ] **P5-10** — A scan opens only your box, only at the cabinet you are standing at
+      - Owner: _unassigned_ · Needs: P5-03 · Blocks: —
+      - Verify: four attempts against the real server, all refused — (1) a made-up session code, (2) a real code from the Library used to collect a parcel at the Back Gate, (3) another person's parcel with your own token, (4) the same code and parcel collected twice. Each refusal is read from the server log, not from the app
+      - Notes: every one of these is refused by the app today, and **none of those refusals count.** The app's checks run on the caller's phone; an attacker calls `POST /parcels/collect` directly and never runs our code. This task is the only place the rules are actually tested. The rules are `api-contract.md`, "The scanned code — what protects it"
 
 ## Safety rules for this phase
 
