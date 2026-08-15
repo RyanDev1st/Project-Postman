@@ -24,6 +24,9 @@ A parcel nobody knows about is a parcel nobody collects.
 - [ ] **P4-04** — "My parcels" screen lists what is waiting
       - Owner: _unassigned_ · Needs: P2-05, P4-01 · Blocks: P4-05, P5-02
       - Verify: a real waiting parcel shows the cabinet name, the box number, and when it arrived
+      - Notes: **Built and checked by machine; not ticked.** Home reads endpoints 5 and 7 through `rememberHome`, and the sample parcel it used to draw — Back Gate, box 04 — is gone. The lists are required parameters now, so no screen can quietly fall back to an invented parcel again.
+        The countdown is worked out from `arrived_at` plus `pickup_code_hours`, because endpoint 5 sends no deadline. `WaitingTest` holds the arithmetic to the design's own two samples, and `python scripts/checkserver.py` proves the server sends a cabinet name on every history line.
+        What is missing is the Verify itself: **no phone has ever seen it.** `server_base_url` is blank, so this has never drawn a parcel that came down a wire
 
 - [ ] **P4-05** — Tapping the notice opens the parcel screen
       - Owner: _unassigned_ · Needs: P4-03, P4-04 · Blocks: —
