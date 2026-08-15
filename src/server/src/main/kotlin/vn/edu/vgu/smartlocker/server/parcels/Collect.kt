@@ -28,6 +28,8 @@ class Collect(
     private val db: Db,
     private val sessions: Sessions,
     private val commands: Commands,
+    /** How long an unconfirmed open is believed. See [recoverStranded]. */
+    private val openTimeoutSeconds: Long = 120,
 ) {
 
     sealed interface Result {
@@ -40,6 +42,9 @@ class Collect(
     }
 
     fun byScan(receiverId: String, sessionCode: String): Result = db.transaction {
+
+        // 0. Give back anything stranded mid-collect. See [recoverStranded].
+        recoverStranded()
 
         // 1. A code this server issued, still inside its window, by this
         //    server's clock. Anything else is expired, including invented.
@@ -76,7 +81,10 @@ class Collect(
         //    log entry are one transaction: a crash between them would open a
         //    door the log never mentions.
         val commandId = commands.open(cabinetId, parcel.boxNumber)
-        db.exec("UPDATE parcels SET state = 'opening' WHERE id = ?", parcel.id)
+        db.exec(
+            "UPDATE parcels SET state = 'opening', opening_since = ? WHERE id = ?",
+            now(), parcel.id,
+        )
         db.exec(
             """INSERT INTO events (id, at, receiver_id, cabinet_id, box_number, parcel_id, action, detail)
                VALUES (?, ?, ?, ?, ?, ?, 'collect-opened', ?)""",
@@ -85,6 +93,32 @@ class Collect(
 
         Result.Opening(parcel.boxNumber, parcel.cabinetName)
     }
+
+    /**
+     * Give back a parcel whose door was opened and never reported shut.
+     *
+     * A scan moves a parcel to `opening`, and only a door-closed moves it on.
+     * There is no sensor — [ADR 0006] — so that report is a person tapping a
+     * screen, and it may simply never come: they walk off, the screen is
+     * asleep, the cabinet reboots.
+     *
+     * Before this, such a parcel stayed `opening` for good. Step 2 only ever
+     * matches `waiting`, so its owner scanned again and was told **nothing is
+     * waiting here** — locked out of their own parcel, in a box the server
+     * still believed was theirs. The typed backup code was gone too, so both
+     * ways in were closed at once.
+     *
+     * So an open that nobody confirmed expires, and the parcel goes back to
+     * `waiting`. The box stays `taken`, because the parcel really is still in
+     * it. The worst this can do is open the same door twice for the same
+     * person, which is what they were trying to achieve.
+     */
+    private fun recoverStranded() = db.exec(
+        """UPDATE parcels SET state = 'waiting', opening_since = NULL
+            WHERE state = 'opening'
+              AND (opening_since IS NULL OR opening_since < ?)""",
+        now() - openTimeoutSeconds * 1000,
+    )
 
     private data class Found(
         val id: String,

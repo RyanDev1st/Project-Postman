@@ -39,8 +39,28 @@ class Db(file: File) : AutoCloseable {
         // which is how a delivery ends up pointing at a parcel that is gone.
         exec("PRAGMA foreign_keys=ON")
         exec("PRAGMA busy_timeout=5000")
-        Schema.create(this)
+        Schema.migrate(this)
     }
+
+    /**
+     * Which migrations this file has had, kept in SQLite's own header.
+     *
+     * `user_version` is four bytes SQLite reserves for exactly this and never
+     * touches itself. A table would do the same job and would need a migration
+     * of its own to create, which is the one thing that cannot be migrated.
+     */
+    fun userVersion(): Int =
+        row("PRAGMA user_version") { it.getInt(1) } ?: 0
+
+    /**
+     * Interpolated, not bound.
+     *
+     * SQLite will not take a parameter in a PRAGMA. It is safe here because
+     * the value is an [Int] from our own list and can never be anything else -
+     * but it is the one place in this file that builds SQL from a value, so it
+     * is worth saying why.
+     */
+    fun setUserVersion(version: Int) = exec("PRAGMA user_version = $version")
 
     /**
      * Run a statement whose answer nobody wants.

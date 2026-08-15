@@ -40,6 +40,12 @@ class Config private constructor(
     val boxLockMinutes get() = num("box_lock_minutes", 15)
 
     /**
+     * How long an open nobody confirmed is believed before the parcel is
+     * given back. There is no sensor, so a door-closed report may never come.
+     */
+    val openTimeoutSeconds get() = num("open_timeout_seconds", 120)
+
+    /**
      * What endpoint 15 sends back.
      *
      * **`server_base_url` is removed.** The app has to know the address before

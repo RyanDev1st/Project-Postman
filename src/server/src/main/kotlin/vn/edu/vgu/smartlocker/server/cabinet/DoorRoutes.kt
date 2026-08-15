@@ -46,9 +46,12 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
 
         db.transaction {
             if (asked.purpose == "collect") {
+                // The door shut on an open we asked for, so the parcel is
+                // gone and the code with it. This is where "works once"
+                // actually lands - a collection, not an attempt.
                 db.exec(
                     """UPDATE parcels SET state = 'collected', collected_at = ?,
-                         pickup_code_hash = NULL
+                         pickup_code_hash = NULL, opening_since = NULL
                        WHERE cabinet_id = ? AND box_number = ? AND state = 'opening'""",
                     now(), me, box,
                 )
@@ -100,11 +103,20 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
 
         val (parcelId, receiverId) = parcel
         db.transaction {
-            // The code works once. It dies here, before the door moves, so a
-            // crash mid-open cannot leave it usable.
+            // The code is NOT destroyed here, and that is deliberate.
+            //
+            // It used to be, on the reading that a code works once. But an
+            // open is not a collection: with no sensor the door-closed report
+            // may never arrive, and the parcel then goes back to `waiting`
+            // after a timeout. Killing the code at this point meant somebody
+            // whose phone is flat - the only people who use this path - had
+            // their one way in destroyed by an open that never happened.
+            //
+            // `opening` is what stops it being used twice in the meantime, and
+            // the code dies for real when the door reports shut.
             db.exec(
-                "UPDATE parcels SET state = 'opening', pickup_code_hash = NULL WHERE id = ?",
-                parcelId,
+                "UPDATE parcels SET state = 'opening', opening_since = ? WHERE id = ?",
+                now(), parcelId,
             )
             boxes.clearTries(me, box)
             val commandId = commands.open(me, box)

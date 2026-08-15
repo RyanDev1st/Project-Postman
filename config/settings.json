@@ -13,6 +13,8 @@
   "wrong_tries_before_lock": 5,
   "box_lock_minutes": 15,
 
+  "open_timeout_seconds": 120,
+
   "uncollected_chase_days": 3,
 
   "notification_route": "push",

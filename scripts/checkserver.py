@@ -24,6 +24,13 @@ What it proves, in the order it proves it:
   9. Another person's parcel, with your own valid token.
  10. The same code and parcel collected twice.
 
+  Then the two things that only bite a database that has lived a while:
+
+ 11. An open nobody ever confirmed gives the parcel back, instead of stranding
+     its owner outside their own box forever.
+ 12. The schema migrates by number, and a second start on the same file does
+     not try to add the column again.
+
 TLS is verified against config/dev-cert/locker.crt - the checker does not
 disable certificate checking, because a check that passes on a broken
 certificate would hide the one thing the front-ends refuse to do without.
@@ -35,6 +42,7 @@ import json
 import os
 import re
 import socket
+import sqlite3
 import ssl
 import subprocess
 import sys
@@ -160,7 +168,7 @@ class Server:
         self.proc: subprocess.Popen | None = None
         self.db = Path(tempfile.mkdtemp(prefix="checkserver-")) / "locker.db"
 
-    def start(self) -> dict[str, str]:
+    def start(self, fresh: bool = True) -> dict[str, str]:
         jars = ROOT / "src" / "server" / "build" / "install" / "server" / "lib"
         if not jars.is_dir():
             sys.exit(f"nothing built at {jars} - run: ./gradlew :server:installDist")
@@ -193,8 +201,8 @@ class Server:
         )
         threading.Thread(target=self._drain, daemon=True).start()
 
-        keys = self._wait_for_keys()
-        say("OK  ", f"server up on {BASE}, fresh database")
+        keys = self._wait_for_keys(fresh)
+        say("OK  ", f"server up on {BASE}, {'fresh' if fresh else 'existing'} database")
         return keys
 
     def _drain(self) -> None:
@@ -202,8 +210,14 @@ class Server:
         for line in self.proc.stdout:
             self.lines.append(line.rstrip())
 
-    def _wait_for_keys(self) -> dict[str, str]:
-        """Read the cabinet keys it prints on a fresh database."""
+    def _wait_for_keys(self, fresh: bool = True) -> dict[str, str]:
+        """Wait until it answers, reading the cabinet keys on the way.
+
+        Keys are printed once, when a cabinet is created. A restart on a
+        database that already has its cabinets prints none, so a second start
+        waits only for the server to be up.
+        """
+        wanted = 2 if fresh else 0
         keys: dict[str, str] = {}
         deadline = time.time() + 90
         current = None
@@ -213,7 +227,7 @@ class Server:
                     current = match.group(1)
                 if (match := re.search(r"CABINET KEY: (\S+)", line)) and current:
                     keys[current] = match.group(1)
-            if len(keys) >= 2 and any("Application started" in ln for ln in self.lines):
+            if len(keys) >= wanted and any("Application started" in ln for ln in self.lines):
                 return keys
             if self.proc and self.proc.poll() is not None:
                 print("\n".join(self.lines[-25:]))
@@ -274,6 +288,36 @@ def register(server: Server, phone: str) -> str:
     if status != 200 or not body.get("token"):
         sys.exit(f"verifying {phone} answered {status} {body}")
     return body["token"]
+
+
+# --- looking at the file itself -------------------------------------------
+#
+# Three checks below read the database directly. Everything else in this file
+# goes through the wire on purpose, but a migration and a timeout are both
+# facts about the FILE, and there is no endpoint that reports either.
+
+MIGRATIONS_EXPECTED = ["the tables", "opening_since"]
+
+
+def sql(db: Path, statement: str, *args):
+    """One statement against the live database. The server is idle here."""
+    with sqlite3.connect(str(db), timeout=5) as conn:
+        return conn.execute(statement, args).fetchall()
+
+
+def user_version(db: Path) -> int:
+    return sql(db, "PRAGMA user_version")[0][0]
+
+
+def parcel_state(db: Path) -> str:
+    rows = sql(db, "SELECT state FROM parcels ORDER BY arrived_at DESC LIMIT 1")
+    return rows[0][0] if rows else ""
+
+
+def age_the_open(db: Path, seconds: int) -> None:
+    """Make the open look older than it is, so the timeout is reachable."""
+    sql(db, "UPDATE parcels SET opening_since = ? WHERE state = 'opening'",
+        int(time.time() * 1000) - seconds * 1000)
 
 
 def main() -> int:
@@ -399,8 +443,52 @@ def main() -> int:
         _, his = call("GET", "/parcels/history", token=bob)
         check(his.get("events") == [], "and it is not in his history")
 
+        print("\nAn open nobody confirmed must not strand the parcel")
+
+        # The door was told to open at line 342 and no `door-closed` ever came
+        # - the shipper walked off, or the screen slept. Before `opening_since`
+        # the parcel stayed `opening` for good, and step 2 of Collect only ever
+        # matches `waiting`, so Alice was told NOTHING IS WAITING HERE about
+        # her own parcel, in a box the server still held for her.
+        check(parcel_state(server.db) == "opening",
+              f"her parcel is mid-open, waiting for a door-closed that never comes: {parcel_state(server.db)}")
+
+        _, s1 = call("GET", "/cabinet/session", key=back_gate)
+        answer = call("POST", "/parcels/collect", {"session_code": s1["session_code"]}, token=alice)
+        check(refusal(answer) == "NO_PARCEL_HERE",
+              f"scanning again straight away still refuses - the open is believed for now: {refusal(answer)}")
+
+        # Wind the clock on that one row rather than waiting two real minutes.
+        # The recovery itself is not faked: the server does the deciding, on
+        # its own clock, in the same query a real timeout would run.
+        age_the_open(server.db, seconds=600)
+
+        _, s2 = call("GET", "/cabinet/session", key=back_gate)
+        status, back = call("POST", "/parcels/collect", {"session_code": s2["session_code"]}, token=alice)
+        check(status == 200 and back.get("box_number") == box,
+              f"after the timeout she gets her own parcel back, box {back.get('box_number')!r}")
+
+        print("\nThe schema knows which version it is on")
+        check(user_version(server.db) == len(MIGRATIONS_EXPECTED),
+              f"the database is stamped version {user_version(server.db)}")
+
     finally:
         server.stop()
+
+    # Starting again on the SAME file is the whole point of numbered steps.
+    # `ALTER TABLE ... ADD COLUMN` run twice is an error, so a second start is
+    # the only thing that proves a migration is skipped rather than re-run.
+    print("\nAnd starting again on the same database changes nothing")
+    second = Server()
+    second.db = server.db
+    try:
+        second.start(fresh=False)
+        status, still = call("GET", "/parcels", token=alice)
+        check(status == 200, "the server starts a second time on a database it already migrated")
+        check(user_version(server.db) == len(MIGRATIONS_EXPECTED),
+              f"still version {user_version(server.db)} - the steps ran once, not twice")
+    finally:
+        second.stop()
 
     print()
     if failures:

@@ -20,7 +20,58 @@ package vn.edu.vgu.smartlocker.server
  */
 object Schema {
 
-    fun create(db: Db) = TABLES.forEach(db::exec)
+    /**
+     * Bring a database file up to date, whatever state it is in.
+     *
+     * **Every schema change from here on is a new entry in [MIGRATIONS], never
+     * an edit to an existing one.** `CREATE TABLE IF NOT EXISTS` was enough
+     * while every database was thrown away between runs; the moment one holds
+     * a real parcel it is not. Adding a column to the list below without a
+     * migration would leave the running database without it, and the server
+     * would start cleanly and fail on the first query that used it.
+     *
+     * A migration already applied is skipped by number, so this is safe to run
+     * on every start - which it is, from [Db].
+     */
+    fun migrate(db: Db) {
+        val from = db.userVersion()
+        MIGRATIONS.forEachIndexed { index, steps ->
+            val version = index + 1
+            if (version <= from) return@forEachIndexed
+            db.transaction {
+                steps.forEach(db::exec)
+                db.setUserVersion(version)
+            }
+        }
+    }
+
+    /**
+     * One entry per version, in order. Never reordered, never rewritten.
+     *
+     * Entry 1 is the baseline. It is every `CREATE TABLE IF NOT EXISTS` the
+     * schema started with, so a database created before migrations existed -
+     * which has the tables but `user_version = 0` - runs it as a no-op and
+     * lands on version 1 with nothing changed.
+     */
+    private val MIGRATIONS: List<List<String>> by lazy {
+        listOf(
+            TABLES,
+
+            // 2 — `opening_since`, so a parcel cannot be stranded mid-collect.
+            //
+            // A scan moves a parcel to `opening` and only a door-closed moves
+            // it on. There is no sensor (ADR 0006), so that report is a tap
+            // that may never come - and until this column existed there was
+            // nothing to say how long a parcel had been waiting for it, so it
+            // stayed `opening` forever and its owner was locked out.
+            listOf(
+                "ALTER TABLE parcels ADD COLUMN opening_since INTEGER",
+                // Anything already stranded is stamped, so the timeout can
+                // pick it up rather than leaving it stuck for good.
+                "UPDATE parcels SET opening_since = 0 WHERE state = 'opening'",
+            ),
+        )
+    }
 
     private val TABLES = listOf(
 

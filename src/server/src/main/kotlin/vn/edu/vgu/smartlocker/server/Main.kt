@@ -106,7 +106,7 @@ fun Application.locker(db: Db, config: Config) {
     val sessions = Sessions(db, config.qrSessionSeconds)
     val commands = Commands(db)
     val boxes = Boxes(db, config.wrongTriesBeforeLock, config.boxLockMinutes)
-    val collect = Collect(db, sessions, commands)
+    val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
 
     tokens.sweep()
 
