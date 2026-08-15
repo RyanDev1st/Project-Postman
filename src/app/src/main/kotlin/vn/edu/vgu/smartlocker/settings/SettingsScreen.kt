@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.parcels.SectionLabel
+import vn.edu.vgu.smartlocker.BuildConfig
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.CardMaterial
@@ -162,6 +163,17 @@ fun SettingsScreen(
             SettingsRow(icon = AppIcons.Moon, title = stringResource(R.string.set_dark_mode)) {
                 ThemeSwitch(checked = dark, onCheckedChange = { onToggleDark() })
             }
+            // Which build this is. Not decoration: without it nobody holding
+            // the phone can tell a build that failed to install from a fix
+            // that failed to work, and every report about it is ambiguous.
+            // Six releases went out on one version number before anyone
+            // noticed. The build file has claimed the app shows this for a
+            // while; until now it did not.
+            SettingsRow(
+                icon = AppIcons.Badge,
+                title = stringResource(R.string.set_version),
+                value = BuildConfig.VERSION_NAME,
+            )
         }
 
         // Room to scroll the last row out from under the floating nav.

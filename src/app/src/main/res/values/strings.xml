@@ -165,6 +165,8 @@
     <string name="set_app">App</string>
     <string name="set_language">Language</string>
     <string name="set_dark_mode">Dark mode</string>
+    <!-- Which build this is, so a report about it can name one. -->
+    <string name="set_version">Version</string>
 
     <!--
         The language names are deliberately NOT translated. A person looking

@@ -135,6 +135,7 @@
     <string name="set_app">Ứng dụng</string>
     <string name="set_language">Ngôn ngữ</string>
     <string name="set_dark_mode">Nền tối</string>
+    <string name="set_version">Phiên bản</string>
 
     <!--
         Từ chối — đúng câu chữ trong api-contract.md.
