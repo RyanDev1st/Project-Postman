@@ -18,4 +18,5 @@ Build, release and helper scripts.
 | `checkscan.py` | Puts a live cabinet code in front of the app's camera on an emulator, and checks the app says it *could not tell* rather than showing a door that never opened | When you change the scanner. **Not** P5-02's Verify — there is no lens and no cabinet, and that check needs a real phone |
 | `emulator.py` | Boots an emulator, taps things, and reads what is on the screen. Not a check | Never directly. `checkscan.py` uses it |
 | `qrimage.py` | Draws a QR with the encoder the cabinet actually ships. Also a command: `python scripts/qrimage.py "<payload>" out.png` | `checkqr.py` and `checkscan.py` both use it, so both draw the same picture. Run it directly to make a code for a real phone to scan |
+| `appicon.py` | Draws every launcher icon size from `appicon-logo.png`, plus a 512x512 for the store listing | When the mark changes. Never edit one of the generated PNGs by hand - the next run overwrites it |
 | `cabinet-sim/` | Builds the Blender cabinet and opens its doors. **Never evidence** — [ADR 0008](../docs/adr/0008-cabinet-simulator.md) | When you need to see the cabinet without having one |

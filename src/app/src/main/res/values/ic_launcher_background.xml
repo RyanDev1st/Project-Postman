@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The ground the launcher mark sits on. White, and white in dark mode too:
+     a launcher icon does not follow the app's theme, and an icon that changed
+     colour with the wallpaper would be a different icon on every phone. -->
+<resources>
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+</resources>

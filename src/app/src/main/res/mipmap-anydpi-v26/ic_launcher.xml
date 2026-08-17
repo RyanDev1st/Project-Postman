@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The launcher icon on Android 8 and later.
+
+    Two layers, because the launcher masks them to whatever shape the phone
+    uses - a circle, a squircle, a rounded square - and shifts them apart
+    when the icon is touched. A single flat picture cannot do either.
+
+    The white is a colour, not a picture. A white PNG behind the mark would
+    slide with the foreground and show a white edge against the wallpaper.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>
