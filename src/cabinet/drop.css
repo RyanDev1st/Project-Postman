@@ -1,0 +1,191 @@
+/* The shipper's half of the cabinet screen: the keypad, the two buttons,
+ * and the box number.
+ *
+ * Split out of screen.css when that file passed 300 lines - the cap in
+ * CLAUDE.md. It reads the same custom properties, so the two files share
+ * one palette and one --unit and cannot drift apart.
+ */
+/* --- the shipper's half ------------------------------------------------ */
+
+/* Two columns on the real screen, one on anything too narrow for two.
+ *
+ * 1024x600 is landscape and short (ADR 0021). The old single column put the
+ * QR under the drop flow, which on 600px of height means one of them is off
+ * the screen - and both have to work at once, because a receiver can walk up
+ * to collect while a shipper is still typing. */
+.halves {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: calc(var(--unit) * 4);
+  align-items: center;
+  min-height: 0;
+}
+
+@media (max-width: 720px) {
+  .halves {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drop {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* One step at a time. `hidden` alone is not enough once display is set. */
+.step[hidden] {
+  display: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Every value in this step is measured against 600px of height, not
+   * chosen. See the note on .key. */
+  gap: calc(var(--unit) * 1);
+}
+
+.ask {
+  margin: 0;
+  font-size: calc(var(--unit) * 2.2);
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+}
+
+/* Big enough to read from a step back, tabular so the digits do not shuffle
+ * sideways as they are typed. */
+.typed {
+  margin: 0;
+  font-size: calc(var(--unit) * 3.2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.who {
+  margin: 0;
+  font-size: calc(var(--unit) * 3.4);
+  font-weight: 600;
+  color: var(--accent);
+  text-align: center;
+}
+
+/* The box number is the one thing on this screen somebody has to read while
+ * holding a parcel and looking at a wall of doors. */
+.boxno {
+  margin: 0;
+  font-size: calc(var(--unit) * 9);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- keys -------------------------------------------------------------- */
+
+/* A shipper is holding a parcel with one hand, so the keys are bigger than
+ * the 48px floor - that floor is for a phone held in two hands.
+ *
+ * They are not as big as they could be, and that is the screen's fault, not
+ * a preference. At 1024x600 the first attempt drew a 67px key and put the
+ * bottom row 38px THROUGH the footer, measured in the browser. 56px is what
+ * fits four rows, a heading and a footer into 600px of height. Anything on
+ * this screen that grows has to take those 600px from something else. */
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--unit) * 1);
+  width: min(100%, calc(var(--unit) * 40));
+}
+
+.key {
+  min-height: max(52px, calc(var(--unit) * 5.8));
+  font-size: calc(var(--unit) * 2.8);
+  font-family: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 2px solid var(--line);
+  border-radius: calc(var(--unit) * 1.2);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.key:active {
+  background: var(--line);
+}
+
+.key.find {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: calc(var(--unit) * 2.2);
+}
+
+.key:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --- the two real buttons ---------------------------------------------- */
+
+.go {
+  min-height: max(72px, calc(var(--unit) * 8));
+  padding: 0 calc(var(--unit) * 5);
+  font-family: inherit;
+  font-size: calc(var(--unit) * 2.8);
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: calc(var(--unit) * 1.4);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.go:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ghost {
+  min-height: max(72px, calc(var(--unit) * 8));
+  padding: 0 calc(var(--unit) * 4);
+  font-family: inherit;
+  font-size: calc(var(--unit) * 2.4);
+  color: var(--ink);
+  background: transparent;
+  border: 2px solid var(--line);
+  border-radius: calc(var(--unit) * 1.4);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.go-sub {
+  margin: 0;
+  font-size: calc(var(--unit) * 1.8);
+  color: var(--muted);
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  gap: calc(var(--unit) * 1.6);
+}
+
+/* The real screen has no spare height, and the keypad is the last thing that
+ * should give any up. On anything this short the page frame gets tighter
+ * instead: a narrower margin costs nobody anything, a key too small to hit
+ * with one hand costs a shipper the delivery.
+ *
+ * 640px rather than exactly 600, so a browser with a toolbar over a 600px
+ * screen is caught too - which is how this is developed. */
+@media (max-height: 640px) {
+  .screen {
+    padding: calc(var(--unit) * 2.5);
+    gap: calc(var(--unit) * 1.2);
+  }
+}

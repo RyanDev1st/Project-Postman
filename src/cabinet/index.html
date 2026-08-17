@@ -19,6 +19,7 @@
 -->
 
 <link rel="stylesheet" href="screen.css">
+<link rel="stylesheet" href="drop.css">
 </head>
 <body>
 
@@ -32,27 +33,81 @@
   </div>
 
   <!--
-    A skeleton is honest about being a skeleton. A public terminal showing a
-    dead "Deliver a parcel" button teaches a shipper it is broken. This says
-    what it is until P3-01 puts the real button here.
+    Two columns, because the screen is 1024x600 - landscape and SHORT
+    (ADR 0021). Stacking the shipper's flow above the QR would push one of
+    them off a 600px screen, and both have to be usable at once: a receiver
+    can walk up to collect while a shipper is still typing.
+
+    The columns fold to one on a screen too narrow for two, so this still
+    opens in a desktop browser, which is where it is built.
   -->
-  <div class="slot">
-    <p class="waiting">Not in service yet</p>
-    <p class="hint">Chưa hoạt động</p>
+  <div class="halves">
+
+    <!--
+      P3-01 to P3-03, P3-06 - the shipper's whole journey. One step is
+      visible at a time; drop.js hides the rest.
+
+      Nothing here decides anything. It asks the server for the name and
+      asks the server for a box. Rule 2 in architecture.md.
+    -->
+    <section class="drop" id="drop">
+
+      <div class="step" data-step="idle">
+        <button class="go" id="start" type="button">Deliver a parcel</button>
+        <p class="go-sub">Gửi hàng</p>
+      </div>
+
+      <div class="step" data-step="number" hidden>
+        <p class="ask">Receiver's phone number</p>
+        <!--
+          What the shipper is typing, shown back to them. The rule against
+          showing a phone number on this screen is about the RECEIVER's
+          stored details, which a stranger must not be able to read off a
+          public terminal. This is the shipper's own keystrokes, and a
+          number they cannot check is a number they cannot correct. It is
+          cleared the moment this step is left.
+        -->
+        <p class="typed" id="typed">+84</p>
+        <div class="pad" id="pad"></div>
+      </div>
+
+      <div class="step" data-step="confirm" hidden>
+        <p class="ask">Is this the right person?</p>
+        <p class="who" id="who">—</p>
+        <div class="row">
+          <button class="ghost" id="no" type="button">No</button>
+          <button class="go" id="yes" type="button">Yes, open a box</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="open" hidden>
+        <p class="ask">Put the parcel in</p>
+        <p class="boxno" id="boxno">—</p>
+        <p class="go-sub">Close the door when you are done.</p>
+        <button class="go" id="shut" type="button">The door is shut</button>
+      </div>
+
+      <div class="step" data-step="trouble" hidden>
+        <p class="ask" id="trouble-say">—</p>
+        <button class="ghost" id="again" type="button">Start again</button>
+      </div>
+
+    </section>
+
+    <!--
+      P5-01: the QR session code. The receiver's phone scans this - never the
+      other way round (ADR 0003).
+
+      It is not a key. It says which cabinet and at what moment, and nothing
+      else, so a photograph of this screen opens no door. See qr.js.
+    -->
+    <section class="qr-panel">
+      <canvas id="qr" width="264" height="264" aria-label="Scan this code with the VGU Smart Locker app"></canvas>
+      <p class="qr-say">Scan to collect · Quét để nhận hàng</p>
+      <p class="qr-note"><span id="qr-note">New code in</span> <b id="qr-count">—</b></p>
+    </section>
+
   </div>
-
-  <!--
-    P5-01: the QR session code. The receiver's phone scans this - never the
-    other way round (ADR 0003).
-
-    It is not a key. It says which cabinet and at what moment, and nothing
-    else, so a photograph of this screen opens no door. See qr.js.
-  -->
-  <section class="qr-panel">
-    <canvas id="qr" width="264" height="264" aria-label="Scan this code with the VGU Smart Locker app"></canvas>
-    <p class="qr-say">Scan to collect · Quét để nhận hàng</p>
-    <p class="qr-note"><span id="qr-note">New code in</span> <b id="qr-count">—</b></p>
-  </section>
 
   <footer class="foot">
     <span class="cabinet-id">Cabinet <b id="cabinet-id">—</b></span>
@@ -85,6 +140,7 @@
 -->
 <script src="vendor/qrcode.js"></script>
 <script src="qr.js"></script>
+<script src="drop.js"></script>
 <script src="screen.js"></script>
 </body>
 </html>

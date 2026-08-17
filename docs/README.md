@@ -31,6 +31,7 @@ Edit these in place. No date in the name.
 | [reference/releasing.md](reference/releasing.md) | How a build gets onto the team's phones. Firebase App Distribution |
 | [reference/how-it-works.html](reference/how-it-works.html) | **One chart** of the whole process, for anyone. Open it in a browser |
 | [reference/glossary.md](reference/glossary.md) | Plain-English meaning of every term used in this repo |
+| [reference/cabinet-hardware.md](reference/cabinet-hardware.md) | What the software on the cabinet's Pi has to do. Three calls, and what the item sensors change |
 | [reference/bug-log.md](reference/bug-log.md) | Running list of bugs found on real devices |
 
 ## ADR — why we chose something
@@ -60,6 +61,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0018-ml-kit-and-play-services.md](adr/0018-ml-kit-and-play-services.md) | The QR reader is ML Kit, bundled model. There is no Google-free build of it, so the pickup path depends on Play Services. No key, no card. zxing-cpp is the named way out | accepted |
 | [adr/0019-we-own-the-server.md](adr/0019-we-own-the-server.md) | We build the API and the database. The Server team keeps the cabinet hardware. Their schema cannot say who a parcel belongs to, and nothing they wrote is authenticated | accepted, reverses the split in CLAUDE.md |
 | [adr/0020-the-server-is-kotlin.md](adr/0020-the-server-is-kotlin.md) | The server is Kotlin, Ktor and SQLite, not FastAPI and MySQL — the repo had already half-decided it. The ESP32 polls for commands because nothing can dial it | accepted, reverses one row of 0019 |
+| [adr/0021-build-for-the-proposed-hardware.md](adr/0021-build-for-the-proposed-hardware.md) | Build to the bill of materials the hardware team costed: a 1024x600 screen, 25 boxes, and an item sensor in every one. The Pi polls, not the ESP32. The sensors answer what [ADR 0006](adr/0006-no-sensor.md) gave up on | accepted |
 
 ## Findings — dated reports
 
