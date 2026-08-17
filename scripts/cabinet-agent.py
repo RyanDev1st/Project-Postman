@@ -1,6 +1,12 @@
 """Stand in for the cabinet's ESP32: poll the server, open a box, report back.
 
-    python scripts/cabinet-agent.py --cabinet vgu-back-gate --key <cabinet key>
+    python -u scripts/cabinet-agent.py
+    python -u scripts/cabinet-agent.py --key <cabinet key>
+
+With no `--key` it reads the one in `src/cabinet/config.js`, which is the same
+cabinet this laptop's screen is already running as. That file is git-ignored
+and is where the key belongs; typing it on a command line puts it in the shell
+history of whoever ran it.
 
 Run it on the laptop that is pretending to be the cabinet. It is a TEST
 STAND-IN, not shipped code - ADR 0008's rule about the Blender cabinet applies
@@ -35,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import ssl
 import sys
 import time
@@ -127,17 +134,38 @@ def ask(box: str) -> str:
             return "drop"
 
 
+def key_from_screen() -> str | None:
+    """The key the cabinet screen on this laptop is already using.
+
+    Same cabinet, same key, and it is one file rather than one more thing to
+    keep in step. Returns None if there is no config yet, which is a clearer
+    thing to report than a crash.
+    """
+    config = ROOT / "src/cabinet/config.js"
+    if not config.exists():
+        return None
+    found = re.search(r'\bKEY\s*:\s*"([^"]+)"', config.read_text(encoding="utf-8"))
+    return found.group(1) if found else None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--server", default="https://127.0.0.1:8443")
-    parser.add_argument("--key", required=True, help="the cabinet key, from `cabinet add` or `cabinet rotate`")
+    parser.add_argument("--key", help="the cabinet key. Default: the one in src/cabinet/config.js")
     args = parser.parse_args()
 
     if not CERT.exists():
         sys.exit(f"no certificate at {CERT} - start the server once to make one")
 
+    key = args.key or key_from_screen()
+    if not key:
+        sys.exit(
+            "no key. Either pass --key, or put one in src/cabinet/config.js:\n"
+            '  ./gradlew :server:run --args="cabinet add vgu-back-gate \'VGU Back Gate\' 25"',
+        )
+
     try:
-        serve(args.server.rstrip("/"), args.key)
+        serve(args.server.rstrip("/"), key)
     except KeyboardInterrupt:
         print("\nstopped.")
 
