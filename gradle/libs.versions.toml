@@ -80,6 +80,9 @@ ktor-network-tls-certificates = { group = "io.ktor", name = "ktor-network-tls-ce
 # Catches the exception a refusal throws to stop a route, and turns anything
 # unexpected into a 500 with no stack trace on the wire.
 ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
+# The cabinet screen is a page on the Pi calling a server somewhere else, so
+# every call it makes is cross-origin and a browser blocks it without this.
+ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
 
 # Ktor logs through slf4j and needs a binding, or every line is swallowed and
 # the server's log is the evidence a door opened. Checked on Maven Central

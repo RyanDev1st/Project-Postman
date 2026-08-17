@@ -76,6 +76,15 @@ object Cabinets {
 }
 
 /**
+ * The header a cabinet proves itself with.
+ *
+ * Named here rather than written twice: the CORS setup in `Main.kt` has to
+ * allow exactly this header, and two spellings of it would fail as a browser
+ * silently dropping every cabinet call.
+ */
+const val CABINET_KEY_HEADER = "X-Cabinet-Key"
+
+/**
  * Which cabinet is calling, or refuse.
  *
  * The header is `X-Cabinet-Key`, which is what `src/cabinet/net.js` sends and
@@ -83,7 +92,7 @@ object Cabinets {
  * thing, because telling them apart says whether a guess was close.
  */
 suspend fun ApplicationCall.cabinetId(db: Db): String {
-    val key = request.header("X-Cabinet-Key")?.trim()?.takeIf(String::isNotEmpty)
+    val key = request.header(CABINET_KEY_HEADER)?.trim()?.takeIf(String::isNotEmpty)
         ?: refuse(Refusal.CABINET_UNKNOWN)
     return Cabinets.idForKey(db, key) ?: refuse(Refusal.CABINET_UNKNOWN)
 }

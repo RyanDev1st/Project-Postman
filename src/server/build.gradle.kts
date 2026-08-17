@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.server.cors)
 
     // Serves TLS in development. Both front-ends refuse plain HTTP.
     implementation(libs.ktor.network.tls.certificates)

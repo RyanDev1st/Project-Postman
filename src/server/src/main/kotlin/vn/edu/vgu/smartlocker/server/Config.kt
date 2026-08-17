@@ -26,6 +26,7 @@ class Config private constructor(
     val certDir: File,
     val speedSmsToken: String?,
     val seedDemo: Boolean,
+    val cabinetOrigins: List<String>,
 ) {
 
     /** A number from `settings.json`, or the fallback if somebody removed it. */
@@ -76,10 +77,34 @@ class Config private constructor(
                 // console. Never a silent fallback when a real send fails.
                 speedSmsToken = env("SPEEDSMS_TOKEN"),
                 seedDemo = env("LOCKER_SEED") == "1",
+                // Where the cabinet screen is served from. It is a page on the
+                // Pi calling a server somewhere else, so every call it makes
+                // is cross-origin and a browser blocks it unless the server
+                // names the origin back.
+                //
+                // Not in settings.json on purpose: that file is shipped to
+                // the app and served at endpoint 15, and which machines run a
+                // cabinet screen is not the app's business.
+                //
+                // **Include the port.** An origin is scheme, host AND port,
+                // so `127.0.0.1` does not match `http://127.0.0.1:8137` and
+                // the browser is refused with no useful message. Found by
+                // getting a 403 where a 200 was expected.
+                //
+                //     LOCKER_CABINET_ORIGINS=cabinet.vgu.edu.vn,localhost:8137
+                //
+                // The default is localhost only, which is what a Pi serving
+                // its own screen looks like. A deployment that serves the
+                // screen from anywhere else has to say so out loud.
+                cabinetOrigins = (env("LOCKER_CABINET_ORIGINS") ?: DEFAULT_ORIGINS)
+                    .split(",").map(String::trim).filter(String::isNotEmpty),
             )
         }
 
         private fun env(name: String) = System.getenv(name)?.trim()?.takeIf(String::isNotEmpty)
+
+        /** A Pi serving its own screen, on the ports a static server picks. */
+        private const val DEFAULT_ORIGINS = "localhost,127.0.0.1"
     }
 }
 

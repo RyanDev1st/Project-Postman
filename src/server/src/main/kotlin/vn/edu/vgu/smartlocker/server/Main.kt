@@ -1,5 +1,7 @@
 package vn.edu.vgu.smartlocker.server
 
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -8,6 +10,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.sslConnector
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
@@ -21,6 +24,7 @@ import vn.edu.vgu.smartlocker.server.auth.SpeedSms
 import vn.edu.vgu.smartlocker.server.auth.Tokens
 import vn.edu.vgu.smartlocker.server.auth.authRoutes
 import vn.edu.vgu.smartlocker.server.cabinet.Boxes
+import vn.edu.vgu.smartlocker.server.cabinet.CABINET_KEY_HEADER
 import vn.edu.vgu.smartlocker.server.cabinet.Cabinets
 import vn.edu.vgu.smartlocker.server.cabinet.Commands
 import vn.edu.vgu.smartlocker.server.cabinet.Sessions
@@ -85,6 +89,31 @@ fun Application.locker(db: Db, config: Config) {
 
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true; encodeDefaults = true })
+    }
+
+    /**
+     * The cabinet screen is a web page, and a web page calling a server on a
+     * different host is a cross-origin request. Without this the browser
+     * refuses every call before it is sent, and the screen shows a cabinet
+     * that cannot reach a server that is running perfectly well.
+     *
+     * **Named origins, never `anyHost()`.** The default is localhost, which
+     * is a Pi serving its own screen; anything else is set on the machine
+     * that runs the server, in `LOCKER_CABINET_ORIGINS`.
+     *
+     * This is not what keeps a stranger out - that is the cabinet key, and a
+     * page on another origin cannot set `X-Cabinet-Key` any more than it
+     * could guess it. CORS is about which pages the browser will hand a
+     * reply to, and naming them costs nothing.
+     *
+     * The phone app is unaffected either way: it is not a browser and has no
+     * origin.
+     */
+    install(CORS) {
+        config.cabinetOrigins.forEach { allowHost(it, schemes = listOf("http", "https")) }
+        allowHeader(HttpHeaders.ContentType)
+        allowHeader(CABINET_KEY_HEADER)
+        allowMethod(HttpMethod.Post)
     }
 
     install(StatusPages) {
