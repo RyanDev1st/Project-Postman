@@ -2,7 +2,7 @@
 
 **Goal:** the system survives real phones, real networks and real people, and installs from a signed release build.
 
-**Progress: 0 / 10.**
+**Progress: 0 / 12.**
 
 Device testing starts at the end of **every** phase, not only here. This phase is the final sweep.
 
@@ -47,7 +47,7 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Verify: at the largest system text size, every button is still reachable
 
 - [ ] **P8-09** — Build the release version and install it on a clean phone
-      - Owner: _unassigned_ · Needs: P8-04, P8-07 · Blocks: P8-10
+      - Owner: _unassigned_ · Needs: P8-04, P8-07 · Blocks: P8-10, P8-11
       - Verify: the release build installs and runs on a phone that never had the app
       - Notes: a clean phone finds bugs a developer phone hides
 
@@ -56,9 +56,23 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Verify: a person who did not build the app can follow the page and release it
       - Notes: one page. Include what to do if the release turns out bad, and how to reach a stuck cabinet
 
+- [ ] **P8-11** — Get a Play Console account, verified, and sign the release with a key we keep
+      - Owner: _unassigned_ · Needs: P8-09 · Blocks: P8-12
+      - Verify: a signed `.aab` uploads to an internal testing track and installs on a phone from Play, not from a cable
+      - Notes: Ryan decided on 2026-08-17 that the app is listed publicly — VGU has three to five thousand students and that is the population it has to survive. Four things, in this order: the $25 account, identity verification, an upload key, and Play App Signing.
+        **The upload key is the one thing that cannot be replaced by trying again.** Lose it and no future version can be uploaded under this listing. `.gitignore` already refuses `*.jks` and `*.keystore`, so it must live somewhere a person owns and can find in a year.
+        Two dates worth knowing: from 31 August 2026 a new app must target Android 16, and this app already does (`targetSdk = 36`). Developer verification starts enforcing on 30 September 2026 in four countries, none of them Vietnam, and goes worldwide in 2027
+
+- [ ] **P8-12** — Pass the closed test and get the listing live
+      - Owner: _unassigned_ · Needs: P8-11 · Blocks: —
+      - Verify: the app installs from a public Play listing on a phone that was never a tester
+      - Notes: **the long pole is fourteen days, not the code.** A personal account opened after 13 November 2023 must run a closed test with twelve opted-in testers for fourteen unbroken days before it may apply for production. Testers have to install and stay opted in; dropping below twelve resets the count. Twelve of three thousand students is the easy part — starting the clock late is not.
+        Needs three things written before the fourteen days start: a privacy policy on a URL, a Data Safety form that matches what the app really collects (a phone number and a parcel history — say so), and store text that matches what the app really does. A form that disagrees with the app is the most common rejection there is
+
 ## Exit check
 
-- [ ] All ten tasks ticked
+- [ ] All twelve tasks ticked
+- [ ] The app installs from the public Play listing, on a phone that was never a tester
 - [ ] The release build runs on a clean Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs from a fresh install
 - [ ] The bug log has zero `open` rows

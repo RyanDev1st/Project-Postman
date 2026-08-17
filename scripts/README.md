@@ -19,4 +19,5 @@ Build, release and helper scripts.
 | `emulator.py` | Boots an emulator, taps things, and reads what is on the screen. Not a check | Never directly. `checkscan.py` uses it |
 | `qrimage.py` | Draws a QR with the encoder the cabinet actually ships. Also a command: `python scripts/qrimage.py "<payload>" out.png` | `checkqr.py` and `checkscan.py` both use it, so both draw the same picture. Run it directly to make a code for a real phone to scan |
 | `appicon.py` | Draws every launcher icon size from `appicon-logo.png`, plus a 512x512 for the store listing | When the mark changes. Never edit one of the generated PNGs by hand - the next run overwrites it |
+| `cabinet-agent.py` | Stands in for the cabinet's ESP32: polls for open commands, says it worked, and waits for a person to confirm the door shut | When you want the whole loop on one laptop. **Not evidence a door moved** - it prints what a cabinet would do, it does not move metal |
 | `cabinet-sim/` | Builds the Blender cabinet and opens its doors. **Never evidence** — [ADR 0008](../docs/adr/0008-cabinet-simulator.md) | When you need to see the cabinet without having one |
