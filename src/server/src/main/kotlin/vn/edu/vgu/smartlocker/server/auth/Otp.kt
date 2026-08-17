@@ -16,6 +16,8 @@ import vn.edu.vgu.smartlocker.server.str
  *   confirm, the row is removed. Otherwise a broken SMS gateway becomes a way
  *   in for anybody who can guess six digits at leisure.
  * - **Five tries, then it is gone.** Not five tries per minute - five, ever.
+ *   The spent row stays behind holding `last_sent_at`, because that is what
+ *   the cooldown is counted from; deleting it handed the guesser five more.
  * - **One live code per number.** Asking again replaces the old one, so two
  *   codes are never valid at once.
  * - **Wrong, expired and already spent all answer `WRONG_CODE`.** Telling them
@@ -78,15 +80,27 @@ class Otp(
 
         val (storedHash, expiresAt, triesLeft) = row
 
+        // **A spent code is emptied, never deleted.**
+        //
+        // The row is also where `last_sent_at` lives, and `request` reads that
+        // to hold the one-code-a-minute cooldown. Deleting it here deleted the
+        // cooldown with it, so burning the five tries bought five more
+        // immediately: request, guess five, request, guess five, with nothing
+        // in the way. Five tries *ever* became five tries per request and
+        // requests were free.
+        //
+        // A six-digit code is a million guesses. At the rate this server was
+        // measured at that is minutes, and the prize is somebody else's
+        // account and their parcels. Found by probing on 2026-08-18; the row
+        // now stays, tries at zero, until the cooldown lets a new code replace
+        // it. Five tries a minute is four years for a million.
         if (expiresAt <= now() || triesLeft <= 0) {
-            db.exec("DELETE FROM otp WHERE phone = ?", phone)
+            db.exec("UPDATE otp SET tries_left = 0 WHERE phone = ?", phone)
             return@transaction false
         }
 
         if (!Ids.same(storedHash, Ids.hash(typed))) {
-            val left = triesLeft - 1
-            if (left <= 0) db.exec("DELETE FROM otp WHERE phone = ?", phone)
-            else db.exec("UPDATE otp SET tries_left = ? WHERE phone = ?", left, phone)
+            db.exec("UPDATE otp SET tries_left = ? WHERE phone = ?", triesLeft - 1, phone)
             return@transaction false
         }
 

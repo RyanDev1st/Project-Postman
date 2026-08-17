@@ -182,6 +182,20 @@ def main() -> None:
     real = recover_code(other)
     step(status != 200 or real == "000000", "3b. a wrong code is refused", f"HTTP {status}")
 
+    # 3c. Five wrong tries must not buy five more.
+    #
+    # `verify` used to delete the row when the tries ran out, and that row is
+    # where the one-a-minute cooldown is counted from - so burning the five
+    # let a new code be asked for immediately, with five fresh tries and
+    # nothing in the way. A six-digit code is a million guesses; at this
+    # server's measured rate that was minutes. BUG-013.
+    burn = "+849" + "".join(random.choice("0123456789") for _ in range(8))
+    call("/auth/request-code", {"phone_number": burn})
+    for n in range(5):
+        call("/auth/verify-code", {"phone_number": burn, "code": f"{n:06d}"})
+    status, _ = call("/auth/request-code", {"phone_number": burn})
+    step(status == 429, "3c. burning the five tries does not buy five more", f"HTTP {status}")
+
     # 4. The shipper finds the receiver. The name must come back masked.
     status, who = call(f"/cabinet/receiver?phone_number={urllib.parse.quote(phone)}", key=key)
     masked = who.get("masked_name", "")
