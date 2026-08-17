@@ -32,6 +32,7 @@ Edit these in place. No date in the name.
 | [reference/how-it-works.html](reference/how-it-works.html) | **One chart** of the whole process, for anyone. Open it in a browser |
 | [reference/glossary.md](reference/glossary.md) | Plain-English meaning of every term used in this repo |
 | [reference/cabinet-hardware.md](reference/cabinet-hardware.md) | What the software on the cabinet's Pi has to do. Three calls, and what the item sensors change |
+| [reference/real-world-test.md](reference/real-world-test.md) | The ten-step run on a real phone, and what to look at for each. What it proves, and the three things it does not |
 | [reference/bug-log.md](reference/bug-log.md) | Running list of bugs found on real devices |
 
 ## ADR — why we chose something

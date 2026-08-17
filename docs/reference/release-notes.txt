@@ -1,58 +1,55 @@
-0.11.0 — the scanner has a camera in it now
+0.12.0 — there is a server now, and the parcels in this build are real
 
-CHECK THIS FIRST: Settings → Version should say 0.11.0. If it says anything
-else, or there is no Version row at all, the install did not take and nothing
-below will be there. That row is new in this build, and it exists because
-until now there was no way to tell which build you were holding.
+CHECK THIS FIRST: Settings → Version should say 0.12.0. If it says anything
+else the install did not take, and nothing below will be there.
 
-THE SCAN SCREEN WAS A PICTURE OF A SCANNER
+WHAT CHANGED
 
-You said the QR scanning was a black screen that never asked for the camera.
-That is exactly what it was. The screen had a dark box, four orange corners
-and a sweep travelling down it, and nothing behind any of it — no camera, no
-reader, no permission request. It looked finished and did nothing, which is
-the worst way for a screen to be unfinished. The button that opens it from the
-Home bar was also wired to nothing.
+Every build before this one was talking to nothing. Signing in took any six
+digits. The parcels on the Home screen were invented by the app — boxes 04 and
+07 at the back gate, which existed only inside the phone. A good QR moved you
+to a door screen and no metal was ever asked to move.
 
-Both are real now. The app asks for the camera when you open the scan screen,
-shows what the camera sees, and reads the QR off it.
+All of that is gone. There is a real server now, and this build talks to it.
 
-WHAT TO TRY
+  - The number you type gets a real one-time code, and a wrong code is refused.
+  - Home lists the parcels the server is actually holding for you. If the
+    server has none, it says so instead of inventing two.
+  - Scanning a cabinet asks the server to open a box, and the server decides
+    whether it will.
 
-There are four codes to point it at, and each should give a different answer.
-They are laid out on a page with what to expect from each:
+WHAT IS STILL NOT REAL
 
-  https://claude.ai/code/artifact/c4d08547-d225-4ef3-aada-ce0deed2a14f
+  - NO DOOR MOVES. A laptop stands in for the cabinet's electronics and prints
+    what it would have done. That is the honest limit of this build.
+  - NO NOTICE ARRIVES. Nothing pushes a message to the phone yet, so when a
+    parcel is dropped for you the phone does not ring. Open the app and it is
+    there. That is the next phase, not a fault.
+  - The one-time code is printed in the laptop's terminal, not sent by SMS.
 
-The live one has to come from the cabinet screen, because a code stops being
-true after 60 seconds:
+BEFORE IT WILL REACH ANYTHING
 
-  cd "src\cabinet"
-  python -m http.server 8080
+The server runs on a laptop, on the wifi, with a certificate it made itself.
+Two things follow, and both are one-time:
 
-Then open http://localhost:8080 on a laptop and point the phone at it. It
-draws a new code every 30 seconds.
+  1. The phone must be on the SAME WIFI as the laptop.
+  2. The phone must install config/dev-cert/locker.crt once, under
+     Settings → Security → Encryption & credentials → Install a certificate
+     → CA certificate.
 
-WHICH CABINET YOU SCANNED NOW DECIDES WHAT HAPPENS
+Without step 2 every screen will say it cannot reach the server. The app is
+right to refuse: nothing signed that certificate until you say so.
 
-  a live code where a parcel is yours     the door screen, box 04
-  a live code at any other cabinet        "Nothing waiting here."
-  an expired code, either cabinet         "Code expired. Scan again."
-  anything else, a poster or a website    nothing at all, it keeps looking
+THE WHOLE RUN, IN ORDER
 
-The expired case says the same sentence whichever cabinet it names. That is
-deliberate: the other way round, somebody with a dead code could work out
-where your parcels are without ever holding a live one.
+docs/reference/real-world-test.md has the ten steps and what to look at for
+each. The short version: register on the phone, drop a parcel to your own
+number on the cabinet screen, then collect it by scanning the cabinet's QR.
 
-A refusal does not stop the camera. The sentence appears, the viewfinder keeps
-running, and the cabinet draws a fresh code every 30 seconds — so "scan again"
-is advice the screen lets you follow.
+WHAT IS WORTH REPORTING
 
-WHAT IS STILL PRETEND
-
-Boxes 04 and 07 at the back gate. There is no server yet, so the app cannot
-ask anything about real parcels, and a good code moves you to the door screen
-without any metal moving. Signing in still takes any six digits.
-
-If the camera preview is black in THIS build, that is a real fault and worth
-reporting — say which phone.
+Anything the app says that a person outside this team would not understand.
+How long the one-time code took. Whether the QR read on the first try, and
+from how far away. Whether any part of a real name or phone number was
+readable on the cabinet screen — that one matters most, because that screen is
+public and anybody can stand behind you.
