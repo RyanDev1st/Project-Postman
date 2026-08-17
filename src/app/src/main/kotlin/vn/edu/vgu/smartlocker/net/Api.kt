@@ -54,8 +54,13 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
      * The token is written to the secure store here rather than handed to the
      * caller, so no screen ever holds one and none can log it by accident.
      */
-    fun verifyCode(phoneNumber: String, code: String): Answer<Unit> {
-        val body = JSONObject().put("phone_number", phoneNumber).put("code", code)
+    fun verifyCode(phoneNumber: String, code: String, fullName: String = ""): Answer<Unit> {
+        val body = JSONObject()
+            .put("phone_number", phoneNumber)
+            .put("code", code)
+            // Taken only when the account has no name yet. Without a name the
+            // cabinet shows the shipper `***`, which confirms nothing.
+            .put("full_name", fullName)
         return when (val answer = post("/auth/verify-code", body, withToken = false)) {
             is Answer.Ok -> {
                 tokens.write(Session.from(answer.value).token)

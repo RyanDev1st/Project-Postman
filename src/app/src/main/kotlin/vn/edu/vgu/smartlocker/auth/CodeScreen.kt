@@ -62,9 +62,10 @@ private fun AuthDisplay(
  */
 @Composable
 fun CodeScreen(
-    /** The six digits, handed up to whoever can check them. This screen
-     * cannot: only the server knows what it sent. */
-    onDone: (String) -> Unit,
+    /** The six digits and the name, handed up to whoever can check them.
+     * This screen cannot: only the server knows what it sent, and only the
+     * server knows whether this account already has a name. */
+    onDone: (code: String, fullName: String) -> Unit,
     onBack: () -> Unit = {},
     /** The number a code was asked for, local part — see [VnMobile]. */
     number: String = "",
@@ -78,6 +79,7 @@ fun CodeScreen(
 ) {
     val t = LocalLockerTokens.current
     var code by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(
@@ -136,12 +138,33 @@ fun CodeScreen(
                     onChange = { code = it },
                 )
             }
+            // The name, which nothing else in the app ever asks for. Left
+            // empty it changes nothing: the server takes it only when the
+            // account has no name yet, so signing in on a second phone does
+            // not have to retype it. Without it the cabinet shows the shipper
+            // `***` and there is nothing to confirm.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.name_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = t.ink2,
+                    modifier = Modifier.padding(start = 2.dp),
+                )
+                NameField(name = name, onChange = { name = it })
+                Text(
+                    text = stringResource(R.string.name_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = t.ink3,
+                    modifier = Modifier.padding(start = 2.dp),
+                )
+            }
+
             // Six digits, and then the server says whether they are the right
             // six. Disabled while it is being asked, so a second tap cannot
             // spend the same code twice.
             GoButton(
                 text = stringResource(if (busy) R.string.working else R.string.code_continue),
-                onClick = { onDone(code) },
+                onClick = { onDone(code, name) },
                 enabled = code.length == 6 && !busy,
             )
             note?.let { Note(it) }
@@ -174,80 +197,14 @@ private fun Note(@androidx.annotation.StringRes text: Int) {
     )
 }
 
-/**
- * The "one more thing" after Google or VGU — the shipper finds a receiver
- * by typing a phone number on the cabinet, and social sign-in has an email,
- * not a number. The heading carries the reason, the label carries the ask,
- * and the consequence sits under Skip, where the decision is made.
- */
-@Composable
-fun AddPhoneScreen(
-    onSaved: () -> Unit,
-    onSkip: () -> Unit,
-) {
-    val t = LocalLockerTokens.current
-    var number by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        AppBar(brand = "VGU Locker")
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            verticalArrangement = Arrangement.Bottom,
-        ) {
-            AuthDisplay(
-                first = stringResource(R.string.addphone_head_lead),
-                accent = stringResource(R.string.addphone_head_accent),
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.phone_number),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = t.ink2,
-                    modifier = Modifier.padding(start = 2.dp),
-                )
-                PhoneField(number = number, onChange = { number = it })
-            }
-            GoButton(
-                text = stringResource(R.string.code_save_number),
-                onClick = onSaved,
-                enabled = VnMobile.isComplete(number),
-            )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            QuietButton(text = stringResource(R.string.code_skip), onClick = onSkip)
-            Text(
-                text = stringResource(R.string.code_need_number),
-                style = MaterialTheme.typography.labelLarge,
-                color = t.ink3,
-                modifier = Modifier.padding(horizontal = 2.dp),
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun CodePreview() {
-    PreviewTheme { CodeScreen({}) }
+    PreviewTheme { CodeScreen({ _, _ -> }) }
 }
 
 @Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
 private fun CodeDarkPreview() {
-    PreviewTheme(dark = true) { CodeScreen({}) }
+    PreviewTheme(dark = true) { CodeScreen({ _, _ -> }) }
 }

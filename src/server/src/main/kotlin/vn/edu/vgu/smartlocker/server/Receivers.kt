@@ -19,14 +19,38 @@ object Receivers {
      * parcels where they left them - there is nothing else to remember and so
      * nothing else to lose.
      */
-    fun findOrCreate(db: Db, phone: String): String = db.transaction {
-        find(db, phone) ?: Ids.id().also { id ->
+    fun findOrCreate(db: Db, phone: String, fullName: String = ""): String = db.transaction {
+        val name = tidyName(fullName)
+        val existing = find(db, phone)
+        if (existing != null) {
+            // Filled in only while it is empty. A person can name an account
+            // they never named, and nobody can rename one that is already
+            // named - including the person themselves, who would have to ask.
+            // Silent renaming is how the shipper ends up confirming a name
+            // that no longer belongs to whoever is collecting.
+            if (name.isNotEmpty() && this.name(db, existing).isEmpty()) {
+                db.exec("UPDATE receivers SET full_name = ? WHERE id = ?", name, existing)
+            }
+            return@transaction existing
+        }
+        Ids.id().also { id ->
             db.exec(
                 "INSERT INTO receivers (id, phone, full_name, created_at) VALUES (?, ?, ?, ?)",
-                id, phone, "", now(),
+                id, phone, name, now(),
             )
         }
     }
+
+    /**
+     * What is safe to keep out of a name somebody typed on a phone.
+     *
+     * Capped at 60 characters, and control characters removed. The cabinet
+     * screen draws this with `textContent`, so there is no markup to escape -
+     * this is about a name that would break the layout of a public screen, and
+     * about a database row that grows without limit.
+     */
+    private fun tidyName(raw: String): String =
+        raw.filter { it.code >= 0x20 }.trim().replace(Regex("\\s+"), " ").take(60)
 
     fun find(db: Db, phone: String): String? =
         db.row("SELECT id FROM receivers WHERE phone = ?", phone) { it.str("id") }

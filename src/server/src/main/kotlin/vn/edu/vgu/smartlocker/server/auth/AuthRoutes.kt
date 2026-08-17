@@ -49,7 +49,7 @@ fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens) {
 
         if (!otp.verify(phone, asked.code)) call.refuse(Refusal.WRONG_CODE)
 
-        val issued = tokens.mint(Receivers.findOrCreate(db, phone))
+        val issued = tokens.mint(Receivers.findOrCreate(db, phone, asked.fullName))
         call.respond(SessionResponse(issued.token, issued.expiresAt.toString()))
     }
 
@@ -80,6 +80,16 @@ data class PhoneRequest(@SerialName("phone_number") val phoneNumber: String = ""
 data class VerifyRequest(
     @SerialName("phone_number") val phoneNumber: String = "",
     val code: String = "",
+    /**
+     * The name the shipper will be shown, masked, at the cabinet.
+     *
+     * Optional, and it defaults to empty so an older build keeps working. It
+     * is taken only when the account has no name yet - see
+     * [Receivers.findOrCreate]. Nothing else in the contract collects one, so
+     * without this every account masks to `***` and the shipper is asked to
+     * confirm a person the screen cannot name.
+     */
+    @SerialName("full_name") val fullName: String = "",
 )
 
 /**

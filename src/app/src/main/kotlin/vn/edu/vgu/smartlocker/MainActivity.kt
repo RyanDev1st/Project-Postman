@@ -24,7 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import vn.edu.vgu.smartlocker.net.Backend
 import vn.edu.vgu.smartlocker.net.Http
-import vn.edu.vgu.smartlocker.auth.AddPhoneScreen
 import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
@@ -51,7 +50,7 @@ import vn.edu.vgu.smartlocker.ui.theme.SmartLockerTheme
  * them and the pickup flow reachable from Home or Cabinet.
  */
 enum class Screen {
-    SIGN_IN, CODE, ADD_PHONE,
+    SIGN_IN, CODE,
     HOME, CABINET, SETTINGS,
     SCAN, OPENED, TYPE_CODE,
 }
@@ -213,7 +212,7 @@ fun AppSkeleton(
 
     BackHandler(enabled = screen != Screen.SIGN_IN) {
         screen = when (screen) {
-            Screen.CODE, Screen.ADD_PHONE -> Screen.SIGN_IN
+            Screen.CODE -> Screen.SIGN_IN
             Screen.HOME, Screen.CABINET, Screen.SETTINGS -> Screen.SIGN_IN
             Screen.SCAN, Screen.TYPE_CODE -> lastMain
             Screen.OPENED -> lastMain
@@ -263,7 +262,6 @@ fun AppSkeleton(
                             else authNote = sentenceFor(answer)
                         }
                     },
-                    onGoogle = { screen = Screen.ADD_PHONE },
                     note = authNote ?: noAddress,
                     busy = busy,
                 )
@@ -271,11 +269,11 @@ fun AppSkeleton(
                     // Endpoint 2. On success the token is already in the
                     // phone's secure store - see Api.verifyCode - and nothing
                     // here ever holds it.
-                    onDone = { typed ->
+                    onDone = { typed, fullName ->
                         busy = true
                         authNote = null
                         scope.launch {
-                            val answer = backend.verifyCode(number, typed)
+                            val answer = backend.verifyCode(number, typed, fullName)
                             busy = false
                             if (answer is Http.Answer.Ok) gotoMain(Screen.HOME)
                             else authNote = sentenceFor(answer)
@@ -285,11 +283,6 @@ fun AppSkeleton(
                     number = number,
                     note = authNote,
                     busy = busy,
-                )
-
-                Screen.ADD_PHONE -> AddPhoneScreen(
-                    onSaved = { gotoMain(Screen.HOME) },
-                    onSkip = { gotoMain(Screen.HOME) },
                 )
 
                 Screen.HOME -> MainShell(

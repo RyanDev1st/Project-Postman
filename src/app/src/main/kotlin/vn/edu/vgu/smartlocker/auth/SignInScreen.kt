@@ -1,6 +1,5 @@
 package vn.edu.vgu.smartlocker.auth
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,22 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,10 +32,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
-import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Recess
-import vn.edu.vgu.smartlocker.ui.SocialButton
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
@@ -64,8 +54,6 @@ fun SignInScreen(
     number: String,
     onNumberChange: (String) -> Unit,
     onSendCode: () -> Unit,
-    onGoogle: () -> Unit,
-    onVgu: () -> Unit = {},
     /** What the server said, if anything went wrong asking for a code. Also
      * how this screen says the build has no server address at all. */
     note: Int? = null,
@@ -138,30 +126,25 @@ fun SignInScreen(
                 }
             }
 
-            Divider()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SocialButton(
-                    label = stringResource(R.string.sign_in_google),
-                    onClick = onGoogle,
-                    modifier = Modifier.weight(1f),
-                ) { GoogleMark() }
-                SocialButton(
-                    label = stringResource(R.string.sign_in_vgu),
-                    onClick = onVgu,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        imageVector = AppIcons.Shield,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = t.ink,
-                    )
-                }
-            }
+            // The Google and VGU buttons were here. Both are removed until
+            // there is something behind them.
+            //
+            // Google went to a screen that took a phone number, threw it away,
+            // and went to Home - no code, no token, no server call at all. So
+            // whatever number was typed, the app opened with whichever account
+            // was already in the secure store. Found on Ryan's phone,
+            // 2026-08-17: "It always logs me into one account despite that I
+            // typed a different number." BUG-011.
+            //
+            // VGU was worse in a quieter way: `onVgu` defaulted to `{}` and
+            // nothing ever passed one, so the button did nothing and looked
+            // broken.
+            //
+            // Endpoint 19 in api-contract.md is the real Google path and it is
+            // designed correctly - it never makes an account, because a Google
+            // account has no phone number and a shipper finds people by
+            // number. It is task P2-08, blocked on an OAuth client id. When
+            // that exists, this row comes back wired to it.
         }
 
         // Terms are not a control, and they are not in the box with the
@@ -242,48 +225,14 @@ private fun AuthHero() {
     }
 }
 
-@Composable
-private fun Divider() {
-    val t = LocalLockerTokens.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(t.hair))
-        Text(
-            text = stringResource(R.string.divider_or),
-            style = MaterialTheme.typography.labelSmall,
-            color = t.ink3,
-        )
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(t.hair))
-    }
-}
-
-/** The Google G, drawn from its own brand paths. */
-@Composable
-private fun GoogleMark() {
-    Canvas(modifier = Modifier.size(18.dp)) {
-        val s = size.width / 24f
-        withTransform({ scale(s, s, pivot = Offset.Zero) }) {
-            drawPath(parse("M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"), Color(0xFF4285F4))
-            drawPath(parse("M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"), Color(0xFF34A853))
-            drawPath(parse("M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"), Color(0xFFFBBC05))
-            drawPath(parse("M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.1l3.8 3c.9-2.7 3.4-4.3 6.4-4.3z"), Color(0xFFEA4335))
-        }
-    }
-}
-
-private fun parse(d: String) = androidx.compose.ui.graphics.vector.PathParser().parsePathString(d).toPath()
-
 @Preview(showBackground = true, heightDp = 780)
 @Composable
 private fun SignInPreview() {
-    PreviewTheme { SignInScreen("912345678", {}, {}, {}) }
+    PreviewTheme { SignInScreen("912345678", {}, {}) }
 }
 
 @Preview(showBackground = true, heightDp = 780, name = "dark")
 @Composable
 private fun SignInDarkPreview() {
-    PreviewTheme(dark = true) { SignInScreen("912345678", {}, {}, {}) }
+    PreviewTheme(dark = true) { SignInScreen("912345678", {}, {}) }
 }

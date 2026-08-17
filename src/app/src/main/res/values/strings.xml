@@ -38,14 +38,14 @@
     <string name="signin_sub">Any VGU locker, from your phone.</string>
     <string name="phone_number">PHONE NUMBER</string>
     <string name="send_code">Send code</string>
-    <string name="divider_or">OR</string>
-    <string name="sign_in_google" translatable="false">Google</string>
-    <string name="sign_in_vgu">VGU account</string>
     <string name="privacy">PRIVACY</string>
     <string name="terms">TERMS</string>
 
     <!-- 2. One-time code -->
     <string name="code_sent_to">Sent to %1$s</string>
+    <string name="name_label">Your name</string>
+    <string name="name_hint">First time only. The courier sees Nguyen V. M***</string>
+    <string name="name_placeholder">Nguyen Van Minh</string>
     <string name="code_label">6-DIGIT CODE</string>
     <string name="code_continue">Continue</string>
     <string name="code_resend_in">Resend in %1$s</string>
@@ -67,8 +67,6 @@
          in both languages. -->
     <string name="code_head_lead">Enter</string>
     <string name="code_head_accent">the code</string>
-    <string name="addphone_head_lead">Couriers find you</string>
-    <string name="addphone_head_accent">by number</string>
 
     <string name="home_nothing_waiting">Nothing waiting. Give a courier your number and a box here is yours within the hour.</string>
     <string name="box_label">Box %1$s</string>
@@ -84,9 +82,6 @@
     <string name="date_2_aug">2 Aug</string>
     <string name="date_28_jul">28 Jul</string>
     <string name="date_21_jul">21 Jul</string>
-    <string name="code_save_number">Save number</string>
-    <string name="code_skip">Skip for now</string>
-    <string name="code_need_number">Parcels need a number.</string>
 
     <!-- Tabs, and the app bar -->
     <string name="tab_home">HOME</string>

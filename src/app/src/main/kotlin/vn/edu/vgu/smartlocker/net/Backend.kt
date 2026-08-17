@@ -47,8 +47,8 @@ class Backend(context: Context) {
         io { api.requestCode(number) }
 
     /** On success the token is already stored. Nothing is handed back. */
-    suspend fun verifyCode(number: String, code: String): Answer<Unit> =
-        io { api.verifyCode(number, code) }
+    suspend fun verifyCode(number: String, code: String, fullName: String = ""): Answer<Unit> =
+        io { api.verifyCode(number, code, fullName) }
 
     suspend fun logOut(): Answer<Unit> = io { api.logout() }
 
