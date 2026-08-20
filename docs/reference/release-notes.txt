@@ -1,55 +1,77 @@
-0.12.0 — there is a server now, and the parcels in this build are real
+0.13.0 — the login is a real login now, and you have a name
 
-CHECK THIS FIRST: Settings → Version should say 0.12.0. If it says anything
+CHECK THIS FIRST: Settings → Version should say 0.13.0. If it says anything
 else the install did not take, and nothing below will be there.
 
-WHAT CHANGED
+THE TWO THINGS YOU FOUND
 
-Every build before this one was talking to nothing. Signing in took any six
-digits. The parcels on the Home screen were invented by the app — boxes 04 and
-07 at the back gate, which existed only inside the phone. A good QR moved you
-to a door screen and no metal was ever asked to move.
+You said: "It always logs me into one account despite that I typed a different
+number. Also the name."
 
-All of that is gone. There is a real server now, and this build talks to it.
+Both were real, both are fixed.
 
-  - The number you type gets a real one-time code, and a wrong code is refused.
-  - Home lists the parcels the server is actually holding for you. If the
-    server has none, it says so instead of inventing two.
-  - Scanning a cabinet asks the server to open a box, and the server decides
-    whether it will.
+1. THE LOGIN COULD BE SKIPPED
+
+The "Google" button went to a screen that took a phone number, threw it away,
+and went straight to Home. No code, no token, no call to the server at all.
+So whatever number you typed, the app opened as whichever account was already
+saved on the phone. That is why it was always the same one.
+
+The button beside it, "VGU account", did nothing at all — it was wired to
+nothing.
+
+Both are gone. There is one way in now and it is the real one: your number,
+a code, and the server deciding. Google comes back when there is something
+behind it (it needs a Google client id, which only you can create).
+
+2. NOBODY HAD A NAME
+
+An account was made by proving a phone number and nothing else. Nothing in the
+app ever asked for a name, so everyone's was empty — and the cabinet showed
+the courier "***", which confirms nothing. That is the step that stops a
+parcel going to the wrong student.
+
+The code screen now asks for your name, once. Leave it blank on a second
+phone; the server only takes it if the account has not got one yet.
+
+3. SOMETHING YOU DID NOT FIND
+
+Anyone could have taken over any account by guessing. The code is six digits
+and five wrong tries were meant to end it — but running out of tries also
+cleared the one-code-a-minute limit, so you could ask for a new code straight
+away and guess five more, forever. Minutes of work to break into an account.
+
+Found by attacking the server rather than reading it. Fixed, and the attack
+is now a permanent test.
 
 WHAT IS STILL NOT REAL
 
   - NO DOOR MOVES. A laptop stands in for the cabinet's electronics and prints
-    what it would have done. That is the honest limit of this build.
-  - NO NOTICE ARRIVES. Nothing pushes a message to the phone yet, so when a
-    parcel is dropped for you the phone does not ring. Open the app and it is
-    there. That is the next phase, not a fault.
+    what it would have done.
+  - NO NOTICE ARRIVES. Nothing pushes a message to the phone yet. Open the app
+    and the parcel is there. That is the next phase, not a fault.
   - The one-time code is printed in the laptop's terminal, not sent by SMS.
+    Zalo and WhatsApp were both researched and neither will take a student's
+    registration — see docs/findings/2026-08-18-otp-channels.md.
 
 BEFORE IT WILL REACH ANYTHING
-
-The server runs on a laptop, on the wifi, with a certificate it made itself.
-Two things follow, and both are one-time:
 
   1. The phone must be on the SAME WIFI as the laptop.
   2. The phone must install config/dev-cert/locker.crt once, under
      Settings → Security → Encryption & credentials → Install a certificate
      → CA certificate.
 
-Without step 2 every screen will say it cannot reach the server. The app is
-right to refuse: nothing signed that certificate until you say so.
+Run `python scripts/checktest.py` on the laptop first. It checks the six ways
+this fails silently and prints the fix for each. The laptop's address changed
+overnight, so this one matters.
 
 THE WHOLE RUN, IN ORDER
 
-docs/reference/real-world-test.md has the ten steps and what to look at for
-each. The short version: register on the phone, drop a parcel to your own
-number on the cabinet screen, then collect it by scanning the cabinet's QR.
+docs/reference/real-world-test.md — ten steps, and what to look at for each.
 
 WHAT IS WORTH REPORTING
 
 Anything the app says that a person outside this team would not understand.
-How long the one-time code took. Whether the QR read on the first try, and
-from how far away. Whether any part of a real name or phone number was
-readable on the cabinet screen — that one matters most, because that screen is
-public and anybody can stand behind you.
+How long the code took. Whether the QR read first try, and from how far.
+Whether any part of a real name or number was readable on the cabinet screen —
+that one matters most, because that screen is public.

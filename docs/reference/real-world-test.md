@@ -30,11 +30,18 @@ notification. Step 6 below is written that way on purpose.
 ## Before you start
 
 ```
-python scripts/checktest.py
+python scripts/checktest.py     is a phone test even possible right now
+python scripts/checkloop.py     does the whole journey still work, with no phone
 ```
 
-Seven checks, each one a way this test dies without saying why. Every failure
-prints its own fix. Do not start until it says `ready for a phone`.
+`checktest.py` is seven checks, each one a way this test dies without saying
+why. Every failure prints its own fix. Do not start until it says `ready for a
+phone`.
+
+`checkloop.py` is the journey itself — register, drop, work the cabinet,
+list, scan, collect — against the real endpoints with no device in the room.
+If it fails, the fault is in the rules and no amount of tapping will show you
+anything a terminal has not already said. Run it first; it takes seconds.
 
 The one worth understanding: **the certificate names one address.** It is
 written once and then reused. Join a different wifi, the laptop's address
@@ -67,6 +74,26 @@ Open `http://127.0.0.1:8137/index.html` in a browser and put the window at
 **1024x600**. That is the screen in the bill of materials, and the layout was
 measured at exactly that size. Full-screen on a bigger monitor is not the same
 test.
+
+**First, teach the browser the certificate — or the screen will say the server
+cannot be reached.** The page is served over plain HTTP but it calls the
+server over HTTPS, and that certificate is self-signed. The browser refuses it
+silently: every call fails, the screen says *"The server could not be
+reached"*, and the server log stays completely empty, which reads exactly like
+a dead server. Seen on Ryan's screen on 2026-08-17, with the server running
+perfectly well the whole time.
+
+Once, in the same browser:
+
+    open https://127.0.0.1:8443/health
+    Advanced  ->  Continue to 127.0.0.1 (unsafe)
+
+You should see `{"ok":true}`. Now go back to the cabinet screen. It works for
+as long as that browser remembers, which is the session.
+
+To stop doing it every time, install `config/dev-cert/locker.crt` into
+**Windows -> Manage user certificates -> Trusted Root Certification
+Authorities**. Same file the phone gets, and the same one-time job.
 
 **3. The cabinet's electronics.**
 
@@ -102,9 +129,10 @@ you just tapped, but the place the evidence actually is.
 
 | # | Do this | Look here | Pass |
 | --- | --- | --- | --- |
-| 1 | Open the app on the phone | The phone | It opens, and asks for a phone number |
+| 1 | Open the app on the phone | The phone | It opens and asks for a phone number. **There is no Google or VGU button any more** - both skipped the login entirely (BUG-011) |
 | 2 | Type your real number, tap send | **The server terminal** | A six-digit code is printed there |
-| 3 | Type that code in | The phone | The app reaches Home |
+| 3 | Type that code in, **and your name** | The phone | The app reaches Home |
+| 3b | - | - | The name field is new. Nothing else in the app ever asks for one, and without it the cabinet shows the shipper `***` (BUG-012). It is taken only the first time |
 | 4 | On the cabinet screen, tap "Deliver a parcel", type **your own number**, tap Find | The cabinet screen | A masked name, such as `Nguyen V. M***`. **No full name. No phone number.** |
 | 5 | Tap "Yes, open a box" | **The cabinet-agent terminal** | `RELAY nn ON`, then `told the server: ok` |
 | 6 | In the agent terminal, press `d` for a drop | The agent terminal | It reports the door shut |
