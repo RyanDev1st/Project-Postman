@@ -34,7 +34,7 @@ python scripts/checktest.py     is a phone test even possible right now
 python scripts/checkloop.py     does the whole journey still work, with no phone
 ```
 
-`checktest.py` is seven checks, each one a way this test dies without saying
+`checktest.py` is eight checks, each one a way this test dies without saying
 why. Every failure prints its own fix. Do not start until it says `ready for a
 phone`.
 
