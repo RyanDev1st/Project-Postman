@@ -8,7 +8,7 @@
  * - which is the whole point of P1-03, and of the rollback page in P8-10.
  */
 window.CABINET_BUILD = {
-  VERSION: "0.1.0",
+  VERSION: "0.3.0",
 
   /* Which cabinet this is. Placed on the device at setup, never built in -
    * the same rule as the cabinet key. Until a real cabinet exists there is
