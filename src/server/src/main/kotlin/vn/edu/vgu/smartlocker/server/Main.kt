@@ -138,6 +138,7 @@ fun Application.locker(db: Db, config: Config) {
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
 
     tokens.sweep()
+    otp.sweep()
 
     routing {
         authRoutes(db, otp, tokens)

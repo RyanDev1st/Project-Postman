@@ -109,6 +109,27 @@ class Otp(
         true
     }
 
+    /**
+     * Drop the codes that are past being useful.
+     *
+     * Needed because [verify] stopped deleting rows. It had to stop - the row
+     * carries `last_sent_at`, and deleting it handed a guesser five more tries
+     * (BUG-013) - but the deleting was also the only thing keeping this table
+     * down, by accident. Without a sweep it grew to 88,524 rows, every one of
+     * them expired, found by Ryan asking where the data was kept.
+     *
+     * **Only rows whose code has expired.** A row's job outlives its code by
+     * exactly the cooldown, and a code lives five minutes against a
+     * sixty-second cooldown - so by the time `expires_at` has passed, the
+     * cooldown it was holding is long spent and the row is safe to drop.
+     * Sweeping any harder would reopen the hole it was written to close.
+     *
+     * At startup, like [Tokens.sweep]. The table is keyed by phone number, so
+     * on a campus it is bounded by the number of people anyway - this is about
+     * the numbers that asked once and never came back.
+     */
+    fun sweep() = db.exec("DELETE FROM otp WHERE expires_at <= ?", now())
+
     /** Vietnamese, because the people typing it are. */
     private fun text(code: String) =
         "Mã xác thực của bạn là $code. Có hiệu lực trong $liveMinutes phút."
