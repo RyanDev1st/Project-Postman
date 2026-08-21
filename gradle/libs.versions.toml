@@ -83,6 +83,11 @@ ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages
 # The cabinet screen is a page on the Pi calling a server somewhere else, so
 # every call it makes is cross-origin and a browser blocks it without this.
 ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
+# Per-caller request limits. The money guard is in Otp; this is the one that
+# keeps a single host from occupying the server. See Hardening.kt.
+ktor-server-rate-limit = { group = "io.ktor", name = "ktor-server-rate-limit", version.ref = "ktor" }
+# HSTS, nosniff, and the rest, on every response.
+ktor-server-default-headers = { group = "io.ktor", name = "ktor-server-default-headers", version.ref = "ktor" }
 
 # Ktor logs through slf4j and needs a binding, or every line is swallowed and
 # the server's log is the evidence a door opened. Checked on Maven Central

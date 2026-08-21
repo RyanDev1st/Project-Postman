@@ -35,7 +35,7 @@ class Otp(
     private val triesAllowed: Int = 5,
     private val cooldownSeconds: Long = 60,
     /** Codes sent an hour, across everybody. The money guard - see [request]. */
-    private val maxPerHour: Int = 200,
+    private val maxPerHour: Int = 1000,
 ) {
 
     private val log = LoggerFactory.getLogger("otp")

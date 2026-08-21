@@ -34,6 +34,16 @@ class Config private constructor(
     fun num(key: String, fallback: Long): Long =
         (settings[key] as? JsonPrimitive)?.content?.toLongOrNull() ?: fallback
 
+    /**
+     * A true/false from `settings.json`, or the fallback.
+     *
+     * Only exactly `true` is true. Anything else - absent, misspelled, a
+     * number, a string somebody meant as yes - reads as the fallback, and
+     * every flag here defaults to the safe side.
+     */
+    fun flag(key: String, fallback: Boolean): Boolean =
+        (settings[key] as? JsonPrimitive)?.content?.let { it == "true" } ?: fallback
+
     val qrSessionSeconds get() = num("qr_session_seconds", 60)
     val receiverTokenDays get() = num("receiver_token_days", 30)
     val pickupCodeDigits get() = num("pickup_code_digits", 6).toInt()
@@ -45,7 +55,16 @@ class Config private constructor(
      * person - the per-number cooldown never sees a caller that changes the
      * number every time, and each code is a real message somebody pays for.
      */
-    val otpMaxPerHour get() = num("otp_max_per_hour", 200).toInt()
+    val otpMaxPerHour get() = num("otp_max_per_hour", 1000).toInt()
+
+    /** Per-caller ceilings. Argued in `Hardening.kt`, not here. */
+    val authPerMinute get() = num("auth_per_minute", 300).toInt()
+    val readPerMinute get() = num("read_per_minute", 120).toInt()
+    val cabinetPerMinute get() = num("cabinet_per_minute", 600).toInt()
+    val maxRequestBytes get() = num("max_request_bytes", 16384)
+
+    /** See the note in `Hardening.kt`. Off until a real domain exists. */
+    val sendHsts get() = flag("send_hsts", false)
     val boxLockMinutes get() = num("box_lock_minutes", 15)
 
     /**

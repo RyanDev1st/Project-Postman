@@ -11,6 +11,7 @@ import io.ktor.server.engine.sslConnector
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
@@ -67,6 +68,21 @@ fun main(args: Array<String>) {
     embeddedServer(
         Netty,
         configure = {
+            // **Slow requests, which no rate limit catches.**
+            //
+            // A caller that opens a connection and then sends one byte a
+            // minute costs almost nothing to make and holds a worker the whole
+            // time. A thousand of them is one machine on a phone network, and
+            // the request count stays near zero, so every per-caller ceiling
+            // sees a quiet client. The defence is a clock, not a counter.
+            //
+            // Ten seconds to finish sending a request: the largest honest one
+            // here is a few hundred bytes and the phones are on campus wifi.
+            // Thirty to receive the answer, because a phone that walks behind
+            // a wall mid-reply is a real person, not an attack.
+            requestReadTimeoutSeconds = 10
+            responseWriteTimeoutSeconds = 30
+
             sslConnector(
                 keyStore = keyStore,
                 keyAlias = Tls.ALIAS,
@@ -116,6 +132,10 @@ fun Application.locker(db: Db, config: Config) {
         allowMethod(HttpMethod.Post)
     }
 
+    // Everything about being on a public network - headers, per-caller
+    // ceilings, a body-size floor. Argued in Hardening.kt.
+    harden(config)
+
     install(StatusPages) {
         // A refusal has already written its response. This only stops the
         // exception that ended the route from being logged as a fault.
@@ -141,10 +161,15 @@ fun Application.locker(db: Db, config: Config) {
     otp.sweep()
 
     routing {
-        authRoutes(db, otp, tokens)
-        parcelRoutes(db, tokens, collect)
-        cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)
-        doorRoutes(db, boxes, commands)
+        // Grouped by what a flood of it would cost. `auth` is the paid path,
+        // `cabinet` is a trusted device that polls constantly, `read` is
+        // everything a signed-in phone does.
+        rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens) }
+        rateLimit(READ_LIMIT) { parcelRoutes(db, tokens, collect) }
+        rateLimit(CABINET_LIMIT) {
+            cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)
+            doorRoutes(db, boxes, commands)
+        }
 
         /**
          * 15. The numbers, for a phone that is already installed.
@@ -154,9 +179,18 @@ fun Application.locker(db: Db, config: Config) {
          * both front-ends - and demanding a token here would mean a phone
          * could not correct a wrong timeout until after it had logged in.
          */
-        get("/settings") { call.respond(config.settingsForClients()) }
+        rateLimit(READ_LIMIT) {
+            get("/settings") { call.respond(config.settingsForClients()) }
+        }
 
-        /** Is it up. Says nothing about what is on it. */
+        /**
+         * Is it up. Says nothing about what is on it.
+         *
+         * Deliberately outside every limit. It touches no database and it is
+         * what `checktest.py`, the cabinet and a person with curl all use to
+         * ask whether the server is alive - a health check that answers 429 is
+         * a health check that lies during exactly the incident it exists for.
+         */
         get("/health") { call.respond(mapOf("ok" to true)) }
     }
 }

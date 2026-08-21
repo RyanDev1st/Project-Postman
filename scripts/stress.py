@@ -32,6 +32,7 @@ stalls, and a stall is what a person actually feels.
 from __future__ import annotations
 
 import argparse
+import atexit
 import base64
 import hashlib
 import http.client
@@ -236,6 +237,31 @@ def writing():
     return one
 
 
+def tidy(since_ms: int) -> None:
+    """Delete what this run made, and nothing else.
+
+    **Not optional politeness.** Every `request-code` this tool sends leaves a
+    row in `otp`, and `otp` is what the hourly cap counts (BUG-015). A write
+    run at 300 leaves eleven thousand of them, so the cap - sized for a real
+    cohort - reads as spent and refuses real people for the rest of the hour.
+    The first time it happened the load test broke the check that runs straight
+    after it, which is the tool breaking the thing it was measuring.
+
+    Bounded by time, not by phone prefix: the numbers are random and share
+    `+849` with every real Vietnamese mobile, so a prefix delete would take
+    real rows with it.
+    """
+    db = sqlite3.connect(DB)
+    n = db.execute("DELETE FROM otp WHERE last_sent_at >= ?", (since_ms,)).rowcount
+    r = db.execute(
+        "DELETE FROM receivers WHERE full_name = 'Load Test User' AND created_at >= ?",
+        (since_ms,),
+    ).rowcount
+    db.commit()
+    db.close()
+    print(f"cleaned up: {n} codes and {r} test accounts this run made")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--at", type=int, action="append", help="one concurrency level; repeatable")
@@ -247,6 +273,9 @@ def main() -> None:
     status, _, _ = call("/health")
     if status != 200:
         sys.exit("the server is not answering - ./gradlew :server:run")
+
+    started = int(time.time() * 1000)
+    atexit.register(tidy, started)
 
     if args.writes:
         print(f"{'at':>6} {'req':>8} {'req/s':>9} {'p50 ms':>9} {'p95 ms':>9} {'p99 ms':>9} {'worst':>9} {'errors':>8}")

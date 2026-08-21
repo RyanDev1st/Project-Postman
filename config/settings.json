@@ -13,8 +13,19 @@
   "collect_soon_hours": 12,
   "wrong_tries_before_lock": 5,
 
-  "_otp_max_per_hour": "Codes sent an hour, across everybody. Guards the SMS bill: the per-number cooldown does nothing against a caller that changes the number every time, and every code sent is money. Raise it if a real cohort ever hits it.",
-  "otp_max_per_hour": 200,
+  "_otp_max_per_hour": "Codes sent an hour, across everybody. Guards the SMS bill: the per-number cooldown does nothing against a caller that changes the number every time, and every code sent is money. Sized to the cohort this is built for, not to a guess: 300 students registering with two retries each is 900, and steady state is a fraction of that because registering happens once per person. It is a circuit breaker, not a throttle - the per-address ceiling and the per-number cooldown do the fine-grained work. It was 200, which a single orientation day would have exhausted, refusing real students for the rest of the hour.",
+  "otp_max_per_hour": 1000,
+
+  "_per_caller_limits": "Requests a minute from one caller, by kind. A caller is the signed-in person for reads and the cabinet for door traffic - not the address, because a university NAT is one address for a whole building and address-keyed reads would make a full lecture theatre look like an attack. Only asking for a code is keyed by address, because nobody has a token yet. A campus behind one NAT is a single address, so these sit well above a real cohort and far below a flood - one laptop running scripts/stress.py reached about 114,000 a minute. See Hardening.kt.",
+  "auth_per_minute": 300,
+  "read_per_minute": 120,
+  "cabinet_per_minute": 600,
+
+  "_max_request_bytes": "Biggest request body accepted. Every call this API takes is a few short fields; the largest honest one is a few hundred bytes.",
+  "max_request_bytes": 16384,
+
+  "_send_hsts": "Send Strict-Transport-Security. OFF here on purpose: HSTS is remembered per host and not per port, so sending it from 127.0.0.1:8443 makes the browser force HTTPS on the cabinet screen at 127.0.0.1:8137 too, which serves plain HTTP and would go dead for a year on that machine. Turn it on in the same change that puts a real certificate and a real domain in front of the server.",
+  "send_hsts": false,
   "box_lock_minutes": 15,
 
   "open_timeout_seconds": 120,
