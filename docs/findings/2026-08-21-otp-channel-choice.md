@@ -11,14 +11,22 @@ wrong, on one point of fact: it assumed sending under a brandname meant
 registering a brandname. It does not, and that assumption was the only thing
 standing between this project and a code that reaches a real phone.
 
+
 ## Status
 
-**Decided: SpeedSMS, shared brandname `Notify`** — `sms_type` 4. Already the
-provider in `Sms.kt`.
+**Decided: SpeedSMS.** Already the provider in `Sms.kt`.
 
-**Nothing has been sent for real** — nobody has a token, and buying one is
-Ryan's call. What *has* been tested is the provider refusing, against the live
-endpoint, which cost nothing and found two faults in our own code.
+**Which SpeedSMS path changed on 2026-08-22.** The plan was `sms_type` 4,
+their shared `Notify` brandname, on the belief that it needed no brandname of
+our own. The live API says otherwise and said so twelve times, and their
+documentation names the alternative: `sms_type` **5** sends from a personal
+SIM through their Android app and takes that app's `deviceId` instead of a
+brandname. No registration, no company, no card. That is now the recommended
+path, and the type is configuration rather than a constant.
+
+**Nothing has been sent for real.** What *has* been tested, with a real token
+against the live endpoint, is the provider refusing — which cost nothing and
+found three faults in our own code and one in the account.
 
 Zalo ZNS is not rejected. It is second, and it stays second until VGU answers
 about its Official Account.
@@ -31,6 +39,37 @@ English landing page says. Delivery rates were not measured — nothing here has
 sent a message.
 
 ## Evidence
+### What the account still needs, re-tested 2026-08-22
+
+Ryan added his name to the SpeedSMS profile. That is a different field and it
+changed nothing: every combination of `sms_type` 2, 4 and 5 against `sender`
+empty, `Verify`, `Notify` and `SpeedSMS` — twelve sends — still answered
+`{"status":"error","message":"sender not found"}`. Balance unchanged at
+2,000 VND. So the request is well formed and the account has no sender of any
+kind on it.
+
+Their own documentation, read the same day at `speedsms.vn/sms-api/`, names
+the two ways to get one:
+
+| `sms_type` | What it is | What `sender` must be | What it costs to set up |
+| --- | --- | --- | --- |
+| 4 | Their shared `Notify` brandname | a brandname registered on the account | brandname registration, which in Vietnam wants a company behind it |
+| **5** | *"tin nhắn gửi bằng app android sử dụng số di động cá nhân"* — sent from a personal SIM through their Android app | **the `deviceId` that app reports** | install the app, sign in, read the deviceId. No brandname, no paperwork |
+
+The documented rule is *"sender: tên thương hiệu đã được đăng ký hoặc deviceId
+của app android, tham số này bắt buộc phải được set nếu sms_type = 3 hoặc 5"*
+— a registered brandname **or** an Android deviceId, required for types 3 and
+5. Type 5 is the path that fits a student project with 2,000 VND on it.
+
+**The dashboard is `connect.speedsms.vn`, not `speedsms.vn`.** The marketing
+site has a profile page that does nothing for the API; the account, the token
+and the senders all live on `connect`.
+
+The server no longer hardcodes the type. `SPEEDSMS_TYPE` picks it and
+`SPEEDSMS_SENDER` carries the brandname or the deviceId, so switching between
+the two paths is two environment variables and no code change.
+
+
 
 ### The mistake in the 2026-08-18 finding
 

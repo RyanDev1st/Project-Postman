@@ -67,10 +67,21 @@ class LogSms : Sms {
  * is registered in their dashboard, which is not a code change. See
  * docs/findings/2026-08-21-otp-channel-choice.md.
  *
- * @param sender the brandname to send from. Required by the API even for
- *   sms_type 4, whatever the SDKs imply.
+ * @param sender a registered brandname, or the `deviceId` of their Android
+ *   gateway app. Required by the API even for sms_type 4, whatever the SDKs
+ *   imply.
+ * @param smsType which kind of message. 4 is their shared `Notify` brandname
+ *   and needs one registered on the account; 5 sends from a personal SIM
+ *   through their Android app and needs that app's `deviceId` as [sender].
+ *   Their own documentation, read on 2026-08-22: *"5: là tin nhắn gửi bằng
+ *   app android sử dụng số di động cá nhân"*, and *"sender: tên thương hiệu
+ *   đã được đăng ký hoặc deviceId của app android"*.
  */
-class SpeedSms(private val token: String, private val sender: String = "") : Sms {
+class SpeedSms(
+    private val token: String,
+    private val sender: String = "",
+    private val smsType: Int = 4,
+) : Sms {
 
     private val log = LoggerFactory.getLogger("sms.speedsms")
 
@@ -96,8 +107,16 @@ class SpeedSms(private val token: String, private val sender: String = "") : Sms
         // `sender not found` on an account with no brandname registered. So it
         // comes from configuration and there is nothing sensible to default it
         // to.
+        //
+        // **The type is configuration, not a constant.** It was 4 - their
+        // shared `Notify` brandname - which needs a brandname on the account,
+        // and this account has none. Type 5 sends from a personal SIM through
+        // their Android app, needs no brandname and no paperwork, and takes
+        // that app's `deviceId` as the sender. Which of those a deployment can
+        // actually use is an account fact, so it is `SPEEDSMS_TYPE` rather
+        // than an edit here.
         val body = """{"to":"$to","content":${asciiJson(text)},""" +
-            """"sms_type":4,"type":4,"sender":${asciiJson(sender)}}"""
+            """"sms_type":$smsType,"type":$smsType,"sender":${asciiJson(sender)}}"""
 
         return try {
             val conn = (URI(ENDPOINT).toURL().openConnection() as HttpURLConnection).apply {

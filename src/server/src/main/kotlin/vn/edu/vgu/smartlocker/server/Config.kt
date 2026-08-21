@@ -26,6 +26,7 @@ class Config private constructor(
     val certDir: File,
     val speedSmsToken: String?,
     val speedSmsSender: String,
+    val speedSmsType: Int,
     val seedDemo: Boolean,
     val cabinetOrigins: List<String>,
 ) {
@@ -115,6 +116,11 @@ class Config private constructor(
                 // sms_type including 4. Registered in the SpeedSMS dashboard,
                 // not here. Empty until somebody has.
                 speedSmsSender = env("SPEEDSMS_SENDER").orEmpty(),
+                // 4 is their shared `Notify` brandname, which needs a
+                // brandname registered on the account. 5 sends from a
+                // personal SIM through their Android gateway app, which needs
+                // none - and takes that app's deviceId as SPEEDSMS_SENDER.
+                speedSmsType = env("SPEEDSMS_TYPE")?.toIntOrNull() ?: 4,
                 seedDemo = env("LOCKER_SEED") == "1",
                 // Where the cabinet screen is served from. It is a page on the
                 // Pi calling a server somewhere else, so every call it makes
