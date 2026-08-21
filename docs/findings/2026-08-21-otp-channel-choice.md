@@ -167,6 +167,64 @@ spellings are sent now. Costs nothing and removes the guess.
 `sender` is now sent as an empty string, as every SDK does. Type 4 does not
 use it; only 3, 5, 7 and 8 require one.
 
+### The live API, with a real token — 2026-08-21
+
+Ryan supplied a token. `/user/info` answered:
+
+    {"status":"success","code":"00","data":{"email":"...","balance":2000,"currency":"VND"}}
+
+2,000 VND of credit, and **nothing was spent** — every send below was refused,
+and a refusal is free. The balance was 2,000 before and after.
+
+**Three faults in our request, none visible without a token.**
+
+**1. The success spelling. This one was fatal.** The check accepted only
+`"status":1`, taken from a write-up. A real success is `"status":"success"`.
+Every delivered message would have been reported as a failure — the SMS
+arrives, the app says it did not, the code is deleted as unsent, nobody
+registers. It had already been widened to accept both on the strength of
+their SDK; the live answer confirms which one is real.
+
+**2. Vietnamese text made the send fail outright.** Same account, same
+everything, only the content differing:
+
+    "content":"Mã xác thực 123456"           -> {"status":"error","code":"101",
+                                                 "message":"Invalid or missing
+                                                 parameters"}
+    "content":"Mã xác thực ..."  -> past parameter validation
+
+Their API refuses raw UTF-8 in the body. Every code this server sends is
+Vietnamese, so **no code could ever have been delivered**, and the reason came
+back as "invalid parameters" — which points at the phone number or the type,
+not at the message. This is exactly what PHP's `json_encode` does by default,
+which is why their own SDK never hits it and their documentation never
+mentions it. `asciiJson` now escapes everything above ASCII.
+
+**3. `sender` is required, and the SDKs imply it is not.** They demand one only
+for types 3, 5, 7 and 8, and type 4 is meant to use SpeedSMS's own `Notify`.
+The live API disagrees. Every `sms_type` from 1 to 5, with `sender` empty or
+set to `Notify`, `Verify`, `SpeedSMS` or `VGU`, answered the same:
+
+    {"status":"error","message":"sender not found"}
+
+`to` was tried as a string and as an array; both behave identically, so ours
+stays a string.
+
+**Where it stands.** The server's own endpoint, running the real Kotlin,
+against the live API:
+
+    WARN sms.speedsms - SpeedSMS refused: HTTP 200 {"status":"error","message":"sender not found"}
+
+`sender not found`, not `code 101` — so the request is now well-formed and the
+one thing left is on the account, not in this repo. It is `SPEEDSMS_SENDER`,
+read in `Config.kt`.
+
+**So the "no paperwork, works immediately" claim earlier in this file is too
+strong.** A sender has to exist on the account before anything sends. Whether
+the shared `Notify` can simply be switched on for a personal account, or
+whether it needs a request to their support, is not established — nobody has
+been able to log in to the dashboard and look.
+
 ### The threat the community warns about first
 
 Every Vietnamese write-up on OTP leads with SMS pumping — draining somebody's

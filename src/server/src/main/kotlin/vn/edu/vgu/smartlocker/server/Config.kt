@@ -25,6 +25,7 @@ class Config private constructor(
     val dbFile: File,
     val certDir: File,
     val speedSmsToken: String?,
+    val speedSmsSender: String,
     val seedDemo: Boolean,
     val cabinetOrigins: List<String>,
 ) {
@@ -83,6 +84,11 @@ class Config private constructor(
                 // Unset means the demo provider, which prints the code to the
                 // console. Never a silent fallback when a real send fails.
                 speedSmsToken = env("SPEEDSMS_TOKEN"),
+                // The brandname the message arrives from. Required: the live
+                // API answers `sender not found` without one, for every
+                // sms_type including 4. Registered in the SpeedSMS dashboard,
+                // not here. Empty until somebody has.
+                speedSmsSender = env("SPEEDSMS_SENDER").orEmpty(),
                 seedDemo = env("LOCKER_SEED") == "1",
                 // Where the cabinet screen is served from. It is a page on the
                 // Pi calling a server somewhere else, so every call it makes

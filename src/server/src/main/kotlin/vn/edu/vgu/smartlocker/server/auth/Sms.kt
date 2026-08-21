@@ -60,11 +60,17 @@ class LogSms : Sms {
  * a code from a random long number as the thing spam looks like, and a
  * brandname is what a bank's code arrives as.
  *
- * **Never sent for real yet.** Nobody on this team has a SpeedSMS token, so
- * every line below is read from their documentation, not measured. The first
- * real send is the test - see docs/findings/2026-08-21-otp-channel-choice.md.
+ * **Nothing has ever been delivered by this class.** A real token was probed
+ * against the live API on 2026-08-21 and found three faults in the request
+ * below, all fixed here, none of them visible from their documentation. It
+ * still cannot send: the account answers `sender not found` until a brandname
+ * is registered in their dashboard, which is not a code change. See
+ * docs/findings/2026-08-21-otp-channel-choice.md.
+ *
+ * @param sender the brandname to send from. Required by the API even for
+ *   sms_type 4, whatever the SDKs imply.
  */
-class SpeedSms(private val token: String) : Sms {
+class SpeedSms(private val token: String, private val sender: String = "") : Sms {
 
     private val log = LoggerFactory.getLogger("sms.speedsms")
 
@@ -72,21 +78,26 @@ class SpeedSms(private val token: String) : Sms {
         // SpeedSMS wants the number without the plus.
         val to = toE164.removePrefix("+")
 
-        // **Both spellings of the type field, on purpose.**
+        // **Both spellings of the type field, on purpose.** Their own SDKs
+        // disagree - SpeedSMSAPI.js and the 2020 PHP SDK send `sms_type`, the
+        // 2020 C# SDK sends `type` - and the API accepts a body carrying both.
+        // Sending one and guessing wrong is not a clean failure: an unknown
+        // field is ignored, and the PHP SDK's default when `sms_type` is
+        // absent is 2, the customer-care long code. The message would go out
+        // from a random number, the shape carriers filter, looking sent.
         //
-        // Their own SDKs disagree, and we cannot test which is right without
-        // an account. Read from the official downloads on 2026-08-21:
-        // SpeedSMSAPI.js and SpeedSMSAPI_PHP_2020 send `sms_type`;
-        // SpeedSMSAPI-CSharp_2020 sends `type`. Sending both costs nothing and
-        // removes the guess. The wrong one is an unknown field, which their
-        // API ignores; sending only the wrong one silently falls back to
-        // sms_type 2, the customer-care long code - a message that looks sent,
-        // arrives from a random number, and is the shape carriers filter.
+        // `to` may be a string or an array; both were tried against the live
+        // API and neither is preferred, so it stays a string.
         //
-        // `sender` is empty because type 4 does not use it. Only types 3, 5, 7
-        // and 8 require one, and every SDK sends the field regardless.
-        val body =
-            """{"to":"$to","content":${quote(text)},"sms_type":4,"type":4,"sender":""}"""
+        // **`sender` is required, whatever the SDKs imply.** They only demand
+        // one for types 3, 5, 7 and 8, and type 4 is supposed to use SpeedSMS's
+        // own `Notify`. The live API disagrees: every sms_type from 1 to 5,
+        // with sender empty or set to Notify, Verify, SpeedSMS or VGU, answered
+        // `sender not found` on an account with no brandname registered. So it
+        // comes from configuration and there is nothing sensible to default it
+        // to.
+        val body = """{"to":"$to","content":${asciiJson(text)},""" +
+            """"sms_type":4,"type":4,"sender":${asciiJson(sender)}}"""
 
         return try {
             val conn = (URI(ENDPOINT).toURL().openConnection() as HttpURLConnection).apply {
@@ -118,23 +129,6 @@ class SpeedSms(private val token: String) : Sms {
     private fun basic(): String =
         Base64.getEncoder().encodeToString("$token:x".toByteArray(Charsets.UTF_8))
 
-    /** Minimal JSON string escaping. The text is ours, but it is Vietnamese. */
-    private fun quote(s: String): String =
-        buildString {
-            append('"')
-            s.forEach {
-                when (it) {
-                    '"' -> append("\\\"")
-                    '\\' -> append("\\\\")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    '\t' -> append("\\t")
-                    else -> append(it)
-                }
-            }
-            append('"')
-        }
-
     private companion object {
         const val ENDPOINT = "https://api.speedsms.vn/index.php/sms/send"
     }
@@ -147,25 +141,27 @@ class SpeedSms(private val token: String) : Sms {
  * is real, and because every other way of checking it costs 350 VND. A unit
  * test can ask it a hundred times for nothing.
  *
- * **A whitelist, and it stays one.** Only a body that says success in a
- * spelling we know counts. Anything else - an error, a maintenance page, a
- * captive portal, an empty body, a shape they change next year - is a code
- * that may never have arrived, and a code nobody received must never open an
- * account. Two spellings because their documentation shows both and this team
- * has never seen a real success.
+ * **A whitelist, and it stays one.** Only a body that says success counts.
+ * Anything else - an error, a maintenance page, a captive portal, an empty
+ * body, a shape they change next year - is a code that may never have arrived,
+ * and a code nobody received must never open an account.
  *
- * The refusal below is not from documentation. It is what the live endpoint
- * answered a bogus token on 2026-08-21:
+ * None of the shapes below are from documentation. All three were answered by
+ * the live API on 2026-08-21:
  *
- *     {"name":"Unauthorized","message":"...","code":0,"status":401}
+ *     success   {"status":"success","code":"00","data":{...}}
+ *     bad token {"name":"Unauthorized","message":"...","code":0,"status":401}
+ *     bad body  {"status":"error","code":"101","message":"Invalid or missing
+ *                parameters"}         <- HTTP 200, so the code matters, not the
+ *                                        status line
  *
- * Note `"status":401` - their errors put an HTTP code in the same field a
- * success uses, so "the field is present" would have been the wrong test.
+ * The success is `"status":"success"`. This first accepted only `"status":1`,
+ * read from a write-up, which every real send would have failed - the message
+ * delivered, the user told it was not, nobody able to register at all. `1` is
+ * still accepted because it costs nothing to.
  *
- * If a real success turns out to be a third spelling, this returns false and
- * the failure is loud and safe: the SMS arrives, the user is told it did not,
- * and `SpeedSMS refused` appears in the log with the exact body. Fix it then,
- * with the body in hand, rather than guessing wider now.
+ * Their errors also put an HTTP code in the same `status` field a success uses,
+ * so "the field is present" would have been the wrong test entirely.
  */
 internal fun speedSmsAccepted(httpCode: Int, body: String): Boolean =
     httpCode in 200..299 && SPEEDSMS_SUCCESS.containsMatchIn(body)
@@ -179,3 +175,43 @@ internal fun speedSmsAccepted(httpCode: Int, body: String): Boolean =
  * Caught by the test beside this, not by reading it.
  */
 private val SPEEDSMS_SUCCESS = Regex("\"status\"\\s*:\\s*(\"1\"|\"success\"|1(?![0-9]))")
+
+/**
+ * A JSON string with nothing in it above plain ASCII.
+ *
+ * **The one that stops a Vietnamese code being sent at all.** SpeedSMS refuses
+ * a body with raw UTF-8 in it. Measured against the live API on 2026-08-21,
+ * same account, same everything but the content:
+ *
+ *     "content":"Mã xác thực 123456"          -> {"status":"error","code":"101",
+ *                                                 "message":"Invalid or missing
+ *                                                 parameters"}
+ *     "content":"M\u00e3 x\u00e1c th\u1ef1c"  -> past parameter validation
+ *
+ * Every code this server sends is Vietnamese - `Mã xác thực của bạn là ...` -
+ * so raw UTF-8 meant every single send failed, and the reason came back as
+ * "invalid parameters", which points at the phone number or the type and not
+ * at the message. It cost nothing to find only because a refusal is free.
+ *
+ * This is what PHP's `json_encode` does by default, which is why their own SDK
+ * never hit it and why nothing in their documentation mentions it.
+ *
+ * Escaped per UTF-16 code unit, so anything outside the basic plane comes out
+ * as the surrogate pair JSON already expects.
+ */
+internal fun asciiJson(s: String): String =
+    buildString {
+        append('"')
+        s.forEach {
+            when {
+                it == '"' -> append("\\\"")
+                it == '\\' -> append("\\\\")
+                it == '\n' -> append("\\n")
+                it == '\r' -> append("\\r")
+                it == '\t' -> append("\\t")
+                it.code in 0x20..0x7E -> append(it)
+                else -> append("\\u%04x".format(it.code))
+            }
+        }
+        append('"')
+    }
