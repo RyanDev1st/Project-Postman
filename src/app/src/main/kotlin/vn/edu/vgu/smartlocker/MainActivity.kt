@@ -204,9 +204,20 @@ fun AppSkeleton(
      * arrived - the network dropped after it went out - so the honest answer
      * is that we do not know, and rule 4 in `architecture.md` says to say so.
      */
-    fun <T> sentenceFor(answer: Http.Answer<T>): Int = when (answer) {
+    fun <T> sentenceFor(
+        answer: Http.Answer<T>,
+        // What "we do not know" means here. The default is written for the
+        // door: an open may have happened, so go and look before trying again.
+        //
+        // On the sign-in screens that sentence is nonsense - there is no
+        // cabinet anywhere near asking for a code - and Ryan read it on
+        // 2026-08-18 while the app was aimed at an address that had stopped
+        // existing. Unclear is still the honest answer there; it just has a
+        // different thing to say.
+        unclear: Int = R.string.unclear_result,
+    ): Int = when (answer) {
         is Http.Answer.Ok -> R.string.working
-        is Http.Answer.Unclear -> R.string.unclear_result
+        is Http.Answer.Unclear -> unclear
         is Http.Answer.Refused -> answer.reason.message ?: R.string.refused_unknown
     }
 
@@ -259,7 +270,7 @@ fun AppSkeleton(
                             val answer = backend.requestCode(number)
                             busy = false
                             if (answer is Http.Answer.Ok) screen = Screen.CODE
-                            else authNote = sentenceFor(answer)
+                            else authNote = sentenceFor(answer, R.string.unclear_no_server)
                         }
                     },
                     note = authNote ?: noAddress,
@@ -276,7 +287,7 @@ fun AppSkeleton(
                             val answer = backend.verifyCode(number, typed, fullName)
                             busy = false
                             if (answer is Http.Answer.Ok) gotoMain(Screen.HOME)
-                            else authNote = sentenceFor(answer)
+                            else authNote = sentenceFor(answer, R.string.unclear_no_server)
                         }
                     },
                     onBack = { screen = Screen.SIGN_IN; authNote = null },

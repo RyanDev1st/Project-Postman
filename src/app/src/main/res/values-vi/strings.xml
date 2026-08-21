@@ -144,6 +144,7 @@
     <string name="refused_unknown">Có lỗi xảy ra. Thử lại.</string>
 
     <string name="unclear_result">Chưa rõ thao tác có thành công không. Kiểm tra tủ trước.</string>
+    <string name="unclear_no_server">Không kết nối được máy chủ. Kiểm tra wifi rồi thử lại.</string>
 
     <string name="working">Đang xử lý…</string>
     <string name="type_at_cabinet">Nhập mã này trên màn hình của tủ. Mã dùng khi điện thoại hết pin, nên không thể nhập ở đây.</string>

@@ -197,6 +197,7 @@
         either. Rule 4 in architecture.md.
     -->
     <string name="unclear_result">We could not tell if that worked. Check the cabinet first.</string>
+    <string name="unclear_no_server">Could not reach the server. Check your wifi and try again.</string>
 
     <!-- While the server is being asked. Not a success and not a failure. -->
     <string name="working">Working…</string>
