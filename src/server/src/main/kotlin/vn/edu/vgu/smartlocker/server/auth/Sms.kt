@@ -43,12 +43,16 @@ class LogSms : Sms {
  * `POST https://api.speedsms.vn/index.php/sms/send`, basic auth with the
  * access token as the username.
  *
- * **Type 4, the shared brandname.** The message arrives from `Verify` rather
- * than from a phone number. It was type 2, the long code, chosen on the belief
- * that a brandname meant a term of paperwork - which is true of *your own*
- * brandname and not of SpeedSMS's shared ones. `Verify` and `Notify` are
- * theirs, already carrier-registered, and need no business licence and no
- * template approval from us. That belief was the main reason this project
+ * **Type 4, the shared brandname `Notify`.** Their own SDKs name it:
+ * `TYPE_BRANDNAME_NOTIFY = 4  // Gửi sms sử dụng brandname Notify`. The message
+ * arrives from `Notify` rather than from a phone number, and it is SpeedSMS's
+ * brandname, not ours - so it needs no business licence and no registration
+ * from us.
+ *
+ * It was type 2, the customer-care long code, chosen on the belief that any
+ * brandname meant a term of paperwork. That is true of **your own** brandname
+ * - 200,000 VND to create and 200,000 VND a month to keep, on their price list
+ * - and not of theirs. That one wrong belief was the main reason this project
  * thought it had no way to send a code (see the 2026-08-18 finding, now in
  * docs/legacy).
  *
@@ -67,7 +71,22 @@ class SpeedSms(private val token: String) : Sms {
     override fun send(toE164: String, text: String): Boolean {
         // SpeedSMS wants the number without the plus.
         val to = toE164.removePrefix("+")
-        val body = """{"to":"$to","content":${quote(text)},"type":4}"""
+
+        // **Both spellings of the type field, on purpose.**
+        //
+        // Their own SDKs disagree, and we cannot test which is right without
+        // an account. Read from the official downloads on 2026-08-21:
+        // SpeedSMSAPI.js and SpeedSMSAPI_PHP_2020 send `sms_type`;
+        // SpeedSMSAPI-CSharp_2020 sends `type`. Sending both costs nothing and
+        // removes the guess. The wrong one is an unknown field, which their
+        // API ignores; sending only the wrong one silently falls back to
+        // sms_type 2, the customer-care long code - a message that looks sent,
+        // arrives from a random number, and is the shape carriers filter.
+        //
+        // `sender` is empty because type 4 does not use it. Only types 3, 5, 7
+        // and 8 require one, and every SDK sends the field regardless.
+        val body =
+            """{"to":"$to","content":${quote(text)},"sms_type":4,"type":4,"sender":""}"""
 
         return try {
             val conn = (URI(ENDPOINT).toURL().openConnection() as HttpURLConnection).apply {

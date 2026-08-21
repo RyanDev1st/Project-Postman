@@ -13,8 +13,8 @@ standing between this project and a code that reaches a real phone.
 
 ## Status
 
-**Decided: SpeedSMS, shared brandname `Verify`.** Already the provider in
-`Sms.kt`; the change today is one digit.
+**Decided: SpeedSMS, shared brandname `Notify`** — `sms_type` 4. Already the
+provider in `Sms.kt`.
 
 **Nothing has been sent for real** — nobody has a token, and buying one is
 Ryan's call. What *has* been tested is the provider refusing, against the live
@@ -40,11 +40,19 @@ the code sends `"type": 2` — the long code, a message from a random number.
 **Both halves of that are wrong for this project.**
 
 A Vietnamese business registration certificate is required to register *your
-own* brandname, such as `VGU`. It is not required to use the provider's
-shared ones. SpeedSMS operates `Verify` and `Notify` as shared brandnames:
-already registered with the carriers, available on a personal account, no
-licence, no template approval, no registration fee and no monthly fee. That is
-what `sms_type: 4` selects.
+own* brandname, such as `VGU`. It is not required to send under one of theirs.
+Their own SDKs name it, and this is read from the official downloads on
+2026-08-21, not from a blog:
+
+    SMS_TYPE_NOTIFY = 4          // sms gui bang brandname Notify   (PHP)
+    TYPE_BRANDNAME_NOTIFY = 4    // Gửi sms sử dụng brandname Notify (C#)
+
+`Notify` is SpeedSMS's brandname, already carrier-registered. Type 3 is *your
+own* brandname and needs a `sender`; type 4 does not.
+
+Their public price list prices the own-brandname route: **200,000 VND to
+create a brandname and 200,000 VND a month to keep it.** That is the wall, and
+type 4 goes round it.
 
 The long code is also the worse channel on delivery, not only on looks. A
 Vietnamese carrier treats a code arriving from a random mobile number as the
@@ -72,9 +80,15 @@ SpeedSMS and eSMS are the two named most often at this size.
 | Paperwork | None, for `Verify` / `Notify` |
 | Delivery | Under 10 seconds, per their documentation — unmeasured by us |
 
-A live demo form on their own site sends to one number without an account.
-**That is the cheapest possible first test and it should be the first thing
-done** — before any money moves, before any token exists.
+**There is no demo form.** An earlier draft of this file said there was one
+and that it should be the first test. Their site was checked on 2026-08-21:
+the only form on it is a contact form. The zero-cost first test is `/user/info`
+instead — see Next.
+
+The 350 VND figure is from community comparisons, **not confirmed against a
+type-4 price on their own site**. Their published table covers the
+own-brandname service. Read the real rate in the account dashboard before
+topping up.
 
 ### Zalo ZNS — right channel, still the wrong paperwork
 
@@ -135,6 +149,24 @@ of the two spellings we accept. If it is a third, the failure is loud and safe
 — the SMS arrives, the app says it did not, and the log carries the exact body
 to fix it with.
 
+### Two faults in our request, found in their SDK
+
+Neither is visible without an account, and both would have made the first paid
+send fail in a way that looks like the provider's fault.
+
+**The field name.** We sent `"type"`. Their JavaScript and PHP SDKs send
+`"sms_type"`; their C# SDK sends `"type"`. Their own downloads disagree. An
+unknown field is ignored, and the PHP SDK shows the default when it is absent:
+`SMS_TYPE_CSKH = 2`. So sending only the wrong spelling means every message
+quietly goes out as a customer-care long code — from a random number, the shape
+carriers filter — while the code looks like it asked for a brandname. Both
+spellings are sent now. Costs nothing and removes the guess.
+
+**The brandname name.** This file first said `Verify`. Type 4 is `Notify`.
+
+`sender` is now sent as an empty string, as every SDK does. Type 4 does not
+use it; only 3, 5, 7 and 8 require one.
+
 ### The threat the community warns about first
 
 Every Vietnamese write-up on OTP leads with SMS pumping — draining somebody's
@@ -166,22 +198,47 @@ attack now: 22,309 requests, 205 sent, 22,104 refused.
 
 ## Next
 
-1. **Send one message from SpeedSMS's demo form to `+84908619328`.** Free, no
-   account, five minutes. It answers the only question that matters — does a
-   brandname message actually arrive on Ryan's phone, and how fast. If it does
-   not, nothing below is worth doing.
-2. **Open a SpeedSMS account and top it up small.** 100,000 VND is roughly 285
-   messages, which is more than the whole Play test round needs.
-3. **Put the token in the environment, never in the repo.** The variable is
-   `SPEEDSMS_TOKEN`, read in `Config.kt`. Without it the server uses the
-   console provider, which is why every test so far has worked. It is never a
-   fallback when a real send fails — that stays a refusal.
-4. **Then send one real code through our own server** and read it on the
-   phone. Until that has happened, `Sms.kt` is documentation, not a tested
-   path — `type: 4` included.
-5. **Ask VGU about its Zalo Official Account**, and who administers it. Costs
+Read from their official SDK downloads, so each step below has an exact call.
+
+1. **Open a free account at `connect.speedsms.vn`.** No card. Copy the API
+   access token.
+2. **Prove the token works without sending anything.** `/user/info` costs
+   nothing and needs no balance:
+
+       curl -u "<TOKEN>:x" https://api.speedsms.vn/index.php/user/info
+
+   A balance and an account name means the token and the auth scheme are
+   right. `{"...","status":401}` means the token is wrong — the same body this
+   project already tested against.
+3. **Read the real type-4 price in the dashboard before topping up.** The
+   ~350 VND in this file is from community comparisons and is not confirmed
+   against their own type-4 rate.
+4. **Top up small.** 100,000 VND at that rate is ~285 messages, more than a
+   whole Play test round needs.
+5. **Then one real send.** `SPEEDSMS_TOKEN=<token>` in the environment — read
+   in `Config.kt`, never in the repo — and register from the app. Watch four
+   things on the phone: the sender says `Notify` and not a phone number; it
+   arrives in under 10 seconds; `Mã xác thực` renders with its diacritics; it
+   is one message and not two. Accented SMS is Unicode, 70 characters a part
+   against 160, and ours is about 56.
+6. **Check the bill.** `/user/info` again. Messages sent × the rate should
+   match. A gap means something sends twice, and a retry loop on a paid
+   channel is worth catching on day one.
+7. **Ask VGU about its Zalo Official Account**, and who administers it. Costs
    nothing, has a lead time, and decides the deployment channel rather than
    the test channel.
+
+### Not used: their own 2FA API
+
+`TwoFactorAPI.php` in the same download offers `/pin/create` and `/pin/verify`
+— SpeedSMS generates, sends and checks the code for you.
+
+**Deliberately not used.** It moves the lockout counter onto their server, and
+this project has a standing rule that the counter survives a power cut, plus
+its own rules that a wrong code never reveals whether the number has an
+account and that five tries is five tries ever. Those are enforced in `Otp.kt`
+and tested by `checkloop.py`. Handing the code to a provider gives all of that
+away to save a table. We send the message and keep the decision.
 
 ## Sources
 
