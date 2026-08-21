@@ -41,9 +41,24 @@ class LogSms : Sms {
  * SpeedSMS, the real one.
  *
  * `POST https://api.speedsms.vn/index.php/sms/send`, basic auth with the
- * access token as the username. Type 2 is the long code, which needs no
- * template approval - enough for a university project, and the paperwork for a
- * brandname is a term's work on its own.
+ * access token as the username.
+ *
+ * **Type 4, the shared brandname.** The message arrives from `Verify` rather
+ * than from a phone number. It was type 2, the long code, chosen on the belief
+ * that a brandname meant a term of paperwork - which is true of *your own*
+ * brandname and not of SpeedSMS's shared ones. `Verify` and `Notify` are
+ * theirs, already carrier-registered, and need no business licence and no
+ * template approval from us. That belief was the main reason this project
+ * thought it had no way to send a code (see the 2026-08-18 finding, now in
+ * docs/legacy).
+ *
+ * It also matters for delivery, not only for looks: Vietnamese carriers treat
+ * a code from a random long number as the thing spam looks like, and a
+ * brandname is what a bank's code arrives as.
+ *
+ * **Never sent for real yet.** Nobody on this team has a SpeedSMS token, so
+ * every line below is read from their documentation, not measured. The first
+ * real send is the test - see docs/findings/2026-08-21-otp-channel-choice.md.
  */
 class SpeedSms(private val token: String) : Sms {
 
@@ -52,7 +67,7 @@ class SpeedSms(private val token: String) : Sms {
     override fun send(toE164: String, text: String): Boolean {
         // SpeedSMS wants the number without the plus.
         val to = toE164.removePrefix("+")
-        val body = """{"to":"$to","content":${quote(text)},"type":2}"""
+        val body = """{"to":"$to","content":${quote(text)},"type":4}"""
 
         return try {
             val conn = (URI(ENDPOINT).toURL().openConnection() as HttpURLConnection).apply {

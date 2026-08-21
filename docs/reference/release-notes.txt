@@ -51,8 +51,10 @@ WHAT IS STILL NOT REAL
   - NO NOTICE ARRIVES. Nothing pushes a message to the phone yet. Open the app
     and the parcel is there. That is the next phase, not a fault.
   - The one-time code is printed in the laptop's terminal, not sent by SMS.
-    Zalo and WhatsApp were both researched and neither will take a student's
-    registration — see docs/findings/2026-08-18-otp-channels.md.
+    There is a way to change that now: SpeedSMS sends under a shared brandname,
+    which needs no business licence and no card, about 350 VND a message. Test
+    it free from their demo form before paying anything — the steps are in
+    docs/findings/2026-08-21-otp-channel-choice.md.
 
 BEFORE IT WILL REACH ANYTHING
 
