@@ -12,6 +12,9 @@
   "pickup_code_hours": 48,
   "collect_soon_hours": 12,
   "wrong_tries_before_lock": 5,
+
+  "_otp_max_per_hour": "Codes sent an hour, across everybody. Guards the SMS bill: the per-number cooldown does nothing against a caller that changes the number every time, and every code sent is money. Raise it if a real cohort ever hits it.",
+  "otp_max_per_hour": 200,
   "box_lock_minutes": 15,
 
   "open_timeout_seconds": 120,

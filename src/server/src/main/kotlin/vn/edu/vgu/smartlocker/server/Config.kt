@@ -38,6 +38,13 @@ class Config private constructor(
     val pickupCodeDigits get() = num("pickup_code_digits", 6).toInt()
     val pickupCodeHours get() = num("pickup_code_hours", 48)
     val wrongTriesBeforeLock get() = num("wrong_tries_before_lock", 5).toInt()
+
+    /**
+     * Codes sent an hour, across everybody. A guard on the bill, not on a
+     * person - the per-number cooldown never sees a caller that changes the
+     * number every time, and each code is a real message somebody pays for.
+     */
+    val otpMaxPerHour get() = num("otp_max_per_hour", 200).toInt()
     val boxLockMinutes get() = num("box_lock_minutes", 15)
 
     /**

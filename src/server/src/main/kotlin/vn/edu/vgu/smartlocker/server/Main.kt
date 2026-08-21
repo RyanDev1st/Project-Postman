@@ -131,7 +131,7 @@ fun Application.locker(db: Db, config: Config) {
 
     val tokens = Tokens(db, config.receiverTokenDays)
     val sms = config.speedSmsToken?.let(::SpeedSms) ?: LogSms()
-    val otp = Otp(db, sms, digits = config.pickupCodeDigits)
+    val otp = Otp(db, sms, digits = config.pickupCodeDigits, maxPerHour = config.otpMaxPerHour)
     val sessions = Sessions(db, config.qrSessionSeconds)
     val commands = Commands(db)
     val boxes = Boxes(db, config.wrongTriesBeforeLock, config.boxLockMinutes)

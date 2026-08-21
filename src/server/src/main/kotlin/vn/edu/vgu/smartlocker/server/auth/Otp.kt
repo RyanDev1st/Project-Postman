@@ -1,5 +1,6 @@
 package vn.edu.vgu.smartlocker.server.auth
 
+import org.slf4j.LoggerFactory
 import vn.edu.vgu.smartlocker.server.Db
 import vn.edu.vgu.smartlocker.server.Ids
 import vn.edu.vgu.smartlocker.server.now
@@ -15,6 +16,9 @@ import vn.edu.vgu.smartlocker.server.str
  * - **A code that was not sent is never usable.** If the provider does not
  *   confirm, the row is removed. Otherwise a broken SMS gateway becomes a way
  *   in for anybody who can guess six digits at leisure.
+ * - **At most [maxPerHour] codes an hour, across everybody.** The per-number
+ *   cooldown does nothing against a caller that changes the number, and
+ *   every code sent is money.
  * - **Five tries, then it is gone.** Not five tries per minute - five, ever.
  *   The spent row stays behind holding `last_sent_at`, because that is what
  *   the cooldown is counted from; deleting it handed the guesser five more.
@@ -30,7 +34,11 @@ class Otp(
     private val liveMinutes: Long = 5,
     private val triesAllowed: Int = 5,
     private val cooldownSeconds: Long = 60,
+    /** Codes sent an hour, across everybody. The money guard - see [request]. */
+    private val maxPerHour: Int = 200,
 ) {
+
+    private val log = LoggerFactory.getLogger("otp")
 
     enum class Sent { OK, RATE_LIMITED, SEND_FAILED }
 
@@ -41,6 +49,34 @@ class Otp(
      * so a loop of requests costs one SMS a minute rather than one per call.
      */
     fun request(phone: String): Sent {
+        // **The cap that costs money, checked before the one that does not.**
+        //
+        // The cooldown below is per number, so it stops one person pressing
+        // resend - and stops nothing else. A caller who changes the number
+        // every time is never slowed down at all, and every call it makes is a
+        // real SMS somebody pays for. `stress.py` did exactly this by accident:
+        // 19,402 requests in ten seconds, every one a different number. Against
+        // a paid provider at 350-800 VND a message that is six to fifteen
+        // million VND, in ten seconds, from one laptop.
+        //
+        // Not theoretical here. The dev server has been reached from public
+        // addresses (2026-08-17), and the Vietnamese backend community has a
+        // name for the attack and a standing warning about it - it is the
+        // first thing their OTP write-ups tell you to defend.
+        //
+        // Counted from rows this table already keeps, so there is nothing new
+        // to maintain. It is a blunt instrument on purpose: hitting it means
+        // either the university grew or somebody is spending our money, and
+        // both are worth a person looking.
+        val recent = db.row(
+            "SELECT COUNT(*) AS n FROM otp WHERE last_sent_at > ?",
+            now() - 60L * 60 * 1000,
+        ) { it.num("n") } ?: 0
+        if (recent >= maxPerHour) {
+            log.warn("hourly cap reached: {} codes in the last hour, refusing more", recent)
+            return Sent.RATE_LIMITED
+        }
+
         val lastSent = db.row("SELECT last_sent_at FROM otp WHERE phone = ?", phone) {
             it.num("last_sent_at")
         }
