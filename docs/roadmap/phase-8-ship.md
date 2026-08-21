@@ -2,7 +2,7 @@
 
 **Goal:** the system survives real phones, real networks and real people, and installs from a signed release build.
 
-**Progress: 0 / 12.**
+**Progress: 0 / 13.**
 
 Device testing starts at the end of **every** phase, not only here. This phase is the final sweep.
 
@@ -69,9 +69,15 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Notes: **the long pole is fourteen days, not the code.** A personal account opened after 13 November 2023 must run a closed test with twelve opted-in testers for fourteen unbroken days before it may apply for production. Testers have to install and stay opted in; dropping below twelve resets the count. Twelve of three thousand students is the easy part — starting the clock late is not.
         Needs three things written before the fourteen days start: a privacy policy on a URL, a Data Safety form that matches what the app really collects (a phone number and a parcel history — say so), and store text that matches what the app really does. A form that disagrees with the app is the most common rejection there is
 
+- [ ] **P8-13** — A release build has to trust the cabinet's own certificate
+      - Owner: _unassigned_ · Needs: P8-09 · Blocks: P8-12
+      - Verify: a **release** APK, installed on a phone with nothing added to its certificate store, registers and opens a box against the real server
+      - Notes: decided by [ADR 0023](../adr/0023-not-on-the-public-internet.md) — the locker is not on the internet, so no public authority will ever sign its certificate. Only the **debug** build trusts certificates a person installed by hand; a release build trusts the system store and would fail every call, silently, on the first phone that is not a tester's. Ship the cabinet server's certificate in the app and trust that one. That also pins it: the app then refuses any certificate but ours, which is stronger than a public one, not weaker.
+        Two things to get right. The certificate has to outlive the release — a one-year certificate makes every phone stop working on its birthday, so generate a long-lived one for the deployment and write down when it expires. And the app must trust our certificate **in addition to** the system store, or the Play install itself has nothing to check
+
 ## Exit check
 
-- [ ] All twelve tasks ticked
+- [ ] All thirteen tasks ticked
 - [ ] The app installs from the public Play listing, on a phone that was never a tester
 - [ ] The release build runs on a clean Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The cabinet screen runs from a fresh install

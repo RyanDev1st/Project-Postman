@@ -119,12 +119,16 @@ def handle(base: str, key: str, command: dict) -> None:
 
 
 def ask(box: str) -> str:
-    """Which kind of open was that.
+    """Which kind of open was that, when the command does not say.
 
-    The command does not say, and neither would a real ESP32 - it is handed a
-    box number and nothing else. On the real cabinet the screen knows, because
-    the shipper is standing in front of it. Here the person at the keyboard is
-    standing in for whichever of the two it was.
+    It says now - BUG-009 put `purpose` on the command, because an ESP32 is
+    handed a box number and has no honest way to work this out, and reporting
+    the wrong one either books a collection that never happened or loses one
+    that did.
+
+    This is kept for a cabinet still running the older firmware, and for a
+    command queued before that change. Asking a person is the only honest
+    answer left at that point.
     """
     while True:
         answer = input(f"  |  shut door {box}, then type c (collected) or d (dropped): ")

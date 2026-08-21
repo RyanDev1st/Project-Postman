@@ -67,6 +67,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0020-the-server-is-kotlin.md](adr/0020-the-server-is-kotlin.md) | The server is Kotlin, Ktor and SQLite, not FastAPI and MySQL — the repo had already half-decided it. The ESP32 polls for commands because nothing can dial it | accepted, reverses one row of 0019 |
 | [adr/0021-build-for-the-proposed-hardware.md](adr/0021-build-for-the-proposed-hardware.md) | Build to the bill of materials the hardware team costed: a 1024x600 screen, 25 boxes, and an item sensor in every one. The Pi polls, not the ESP32. The sensors answer what [ADR 0006](adr/0006-no-sensor.md) gave up on | accepted |
 | [adr/0022-a-key-outside-the-database.md](adr/0022-a-key-outside-the-database.md) | Credentials are hashed under a key kept out of the database file. A six-digit pickup code is a million guesses, so a bare digest column was a lookup table anybody holding `locker.db` could build in a second | accepted |
+| [adr/0023-not-on-the-public-internet.md](adr/0023-not-on-the-public-internet.md) | The locker is on the campus network and nowhere else. A distributed denial of service leaves the threat model; the certificate is self-signed forever, which makes a release build unable to talk to the server until it ships our own | accepted |
 
 ## Findings — dated reports
 

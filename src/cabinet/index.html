@@ -18,6 +18,31 @@
   1280x800 and 1920x1080 - see ADR 0009.
 -->
 
+<!--
+  What this page is allowed to do, told to the browser.
+
+  The server sends these headers on its own replies, but this page is not
+  served by the server - it is files on the cabinet's own computer, handed
+  over by whatever static server the Pi runs. So it has to say it itself.
+
+  `default-src 'none'` then allows back only what is really used: our own
+  scripts, our own stylesheets, images from here or inline data URLs, which
+  is what the QR renderer draws into. Nothing may be loaded from anywhere
+  else, so an injected `<script src="http://…">` is refused before it is
+  fetched, and there is nowhere to send what is on the screen.
+
+  `connect-src https:` is the interesting one. It makes the browser enforce
+  the rule the code already keeps - this screen talks to its server over
+  HTTPS and never plain HTTP - so a call that tried would be blocked by the
+  browser as well as refused by net.js. The host cannot be named here
+  because it is set per cabinet, in config.js.
+
+  `frame-ancestors` is deliberately absent: a browser ignores it in a meta
+  tag, and writing it here would read as protection that is not there. This
+  screen is a kiosk and is not reachable from another page anyway.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https:; base-uri 'none'; form-action 'none'">
+
 <link rel="stylesheet" href="screen.css">
 <link rel="stylesheet" href="drop.css">
 </head>
@@ -121,8 +146,13 @@
   device at setup and is git-ignored, so it is missing here and on any fresh
   clone - that is correct, not broken. net.js says "this cabinet has no key
   yet" rather than calling with nothing. See config.example.js.
+
+  It used to carry onerror="void 0" to swallow the 404 on a fresh clone. That
+  is an inline handler, which the policy above refuses, and it silenced a
+  message worth seeing. A 404 in the console on a machine with no config is
+  the truth.
 -->
-<script src="config.js" onerror="void 0"></script>
+<script src="config.js"></script>
 <script src="version.js"></script>
 <script src="net.js"></script>
 <!--

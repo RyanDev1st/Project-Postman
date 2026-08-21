@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nothing this app holds leaves the phone in a backup.
+
+    `allowBackup="false"` in the manifest stops the cloud backup and `adb
+    backup`. This file stops the other two doors Android 12 opened: a
+    device-to-device transfer when somebody sets up a new phone, and a
+    cloud backup on newer versions that reads this file instead of the flag.
+
+    What is in there: `shared_prefs/…session.xml`, which holds the login
+    token, encrypted under a key in the phone's hardware keystore. The
+    encrypted blob alone is useless, because that key is not backed up and
+    cannot be - so this is defence in depth rather than the only lock. It
+    costs nothing: an app that signs in with a phone number and a code has
+    nothing worth carrying to a new phone.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

@@ -22,9 +22,15 @@ flooding are each tested below.
 largest thing left open this morning and it is closed - measured both ways, on
 the real database. See *The database file on its own*.
 
-**A real distributed denial of service is not closed and cannot be by code
-here.** That is decided upstream by whoever runs the network. Anything else
-would be a lie told in a config file. See *What this does not cover*.
+**A real distributed denial of service is out of the threat model, and that
+was a decision rather than a fix.** Ryan settled it on 2026-08-22 -
+[ADR 0023](../adr/0023-not-on-the-public-internet.md) - the locker is on the
+campus network and nowhere else, so a botnet cannot address it. The attacker
+who can still reach this server is a person on campus Wi-Fi with a laptop,
+which is exactly what everything below was measured against.
+
+**The app was hardened on 2026-08-22 too**, after Ryan asked for the common
+app attacks as well as the web ones. Five of them, listed with the rest.
 
 ## Scope
 
@@ -103,7 +109,7 @@ the server. They were restored immediately after and the whole journey re-run.
 | Stack traces on the wire | **Closed** | `StatusPages` answers a code and nothing else; the trace goes to the log |
 | Reading codes out of a stolen database | **Closed** | Digests are keyed - see below. A million guesses against the real file recover nothing |
 | Session hijack | **Bounded** | HTTPS only, both front-ends refuse plain HTTP, tokens are 256 bits from `SecureRandom`, compared with `MessageDigest.isEqual` |
-| Distributed denial of service | **NOT closed** | See below. Not closable here |
+| Distributed denial of service | **Out of scope** | The server is not on the internet - [ADR 0023](../adr/0023-not-on-the-public-internet.md). A botnet cannot reach an address it cannot route to |
 
 ### The database file on its own
 
@@ -129,6 +135,28 @@ the old lookup table, look the stored digest up in it, and require a miss.
 per thread fixed it. The hash costs **287 ns**, over a million calls - 0.2 %
 of one core at the rates above. The first number was found by re-running the
 load test after the change rather than by reasoning that a hash is cheap.
+
+### The app, on 2026-08-22
+
+The web list was done and the phone was not, so these came next. Each one is
+a documented Android attack, not a checklist item.
+
+| Attack | State | What was done |
+| --- | --- | --- |
+| **Task hijacking (StrandHogg)** | **Closed** | Another app could declare our `taskAffinity` and have Android place its screen at the front of *our* task, so opening the locker from the launcher shows the attacker's screen wearing our place in recents. `android:taskAffinity=""` means nothing else can claim to belong to our task |
+| **Tapjacking** | **Closed** | An invisible overlay turns "allow this notification" into "open box 07". `filterTouchesWhenObscured` at the window root drops any touch something else is covering, before a screen sees it. At the root rather than per button, because the next button nobody remembers |
+| **Screenshots and the recents thumbnail** | **Closed in release** | The screens show which boxes are somebody's and, on the typed path, a code that opens one. `FLAG_SECURE` keeps that out of screenshots, recordings and the thumbnail Android keeps after the app closes. Debug builds are exempt on purpose - the design-parity loop screenshots them, and a flag that blacked those out would have been deleted the same day |
+| **Backup extraction** | **Closed** | `allowBackup` defaults to *true*, so `adb backup` and the cloud backup both copied the app's private data, session file included. Now false, with an extraction-rules file for the two doors Android 12 added. The token in that file is encrypted under a hardware key that is never backed up, so this is a second lock rather than the only one |
+| **Cleartext on old phones** | **Closed** | `usesCleartextTraffic` only defaults to false from API 28 and `minSdk` here is 24, so a release build on an older phone had no rule. Stated now. `Http.kt` refuses a non-https URL before a socket opens either way |
+| **The cabinet screen's own headers** | **Closed** | The server sends CSP and frame headers on its replies, but the screen is files served by whatever static server the Pi runs, so it carries its own `<meta>` policy: `default-src 'none'` with only what is used added back. `connect-src https:` makes the browser enforce the HTTPS-only rule as well as the code - proved by loading the same policy with two fetches, where `https://…/health` returned `{"ok":true}` and a plain-`http` fetch was refused by the policy |
+
+**Not closed on the app, and named rather than left implied:** root and tamper
+detection, which are worth little on a campus locker and cost a lot to keep
+working; and certificate pinning, which [ADR 0023](../adr/0023-not-on-the-public-internet.md)
+turned from a nice-to-have into task **P8-13** - a release build trusts only
+the system store, and no public authority will sign a certificate for a
+private address, so a release APK cannot talk to this server until it ships
+the cabinet's own certificate.
 
 ### Two faults found in the hardening itself, before it shipped
 
@@ -162,16 +190,17 @@ it invents share `+849` with every real Vietnamese mobile.
 
 ## What this does not cover
 
-1. **A real DDoS.** Everything above is host-level: it stops one machine, or a
-   few, from occupying the server. A botnet saturating the campus uplink is
-   decided by whoever runs that uplink. The honest fix is a service in front -
-   Cloudflare's free tier is the usual answer and needs a domain. **This is the
-   one item on the brief that code in this repo cannot deliver.**
+1. **A release build cannot reach this server.** Only the debug build trusts
+   a hand-installed certificate. That is task **P8-13** and it is now the
+   largest thing on this list. It became visible only because
+   [ADR 0023](../adr/0023-not-on-the-public-internet.md) settled that there
+   will never be a public certificate.
 2. **Malware.** Nothing here accepts a file upload, so there is no scanning
    surface. If parcel photographs are ever added, that changes and this line
    must be revisited.
-3. **The app.** Certificate pinning, root detection, and tamper checks are not
-   done and are not obviously worth it for a campus locker.
+3. **The app, the rest of it.** Root detection and tamper checks are not done
+   and are not obviously worth it for a campus locker. What was done is in
+   *The app, on 2026-08-22*.
 4. **Where the key is kept.** The codes are safe from the database file
    alone, but on this machine `config/pepper.key` sits on the same disk as
    `data/locker.db`. A real deployment sets `LOCKER_PEPPER` in the
@@ -184,9 +213,8 @@ it invents share `+849` with every real Vietnamese mobile.
 
 ## Next
 
-1. **Put something in front of the server before it is public.** A Cloudflare
-   quick tunnel needs no account and no card and would also end the
-   self-signed certificate problem for every tester at once.
+1. **P8-13, before anybody builds a release.** Nothing else on this list
+   stops the app working; that one does.
 2. **Run `scripts/backup.py --to` another disk on a schedule**, and copy
    `config/pepper.key` once, by hand, somewhere the backups do not go. Neither
    is worth anything without the other and they must not travel together.

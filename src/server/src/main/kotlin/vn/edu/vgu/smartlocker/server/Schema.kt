@@ -94,6 +94,19 @@ object Schema {
                 "DELETE FROM tokens",
                 "DELETE FROM otp",
             ),
+
+            // 4 - why a door was told to open, so nobody has to guess.
+            //
+            // BUG-009. Endpoint 12 needs `drop` or `collect` and endpoint 22
+            // handed the hardware only `open`, so an ESP32 reporting a door
+            // shut had no honest way to fill that in. Now the command says.
+            //
+            // Anything already queued is a drop: the collect path was not
+            // reachable from the cabinet screen when this shipped.
+            listOf(
+                "ALTER TABLE commands ADD COLUMN purpose TEXT",
+                "UPDATE commands SET purpose = 'drop' WHERE purpose IS NULL",
+            ),
         )
     }
 

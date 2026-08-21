@@ -24,18 +24,32 @@ import vn.edu.vgu.smartlocker.server.str
  */
 class Commands(private val db: Db) {
 
-    data class Waiting(val id: String, val boxNumber: String, val action: String)
+    data class Waiting(
+        val id: String,
+        val boxNumber: String,
+        val action: String,
+        val purpose: String,
+    )
 
-    /** Queue a door to open. Returns the id, which lands in the event log. */
-    fun open(cabinetId: String, boxNumber: String): String =
-        queue(cabinetId, boxNumber, "open")
+    /**
+     * Queue a door to open. Returns the id, which lands in the event log.
+     *
+     * **`purpose` says why, and the hardware could not work it out.** The same
+     * door opens for a courier putting a parcel in and for a student taking
+     * one out, and what happens when it shuts is opposite in the two cases.
+     * Until BUG-009 the command said only `open`, so an ESP32 reporting the
+     * door shut had to guess which it had been - and a guess there books a
+     * collection that never happened, or loses one that did.
+     */
+    fun open(cabinetId: String, boxNumber: String, purpose: String): String =
+        queue(cabinetId, boxNumber, "open", purpose)
 
-    private fun queue(cabinetId: String, boxNumber: String, action: String): String {
+    private fun queue(cabinetId: String, boxNumber: String, action: String, purpose: String): String {
         val id = Ids.id()
         db.exec(
-            """INSERT INTO commands (id, cabinet_id, box_number, action, created_at)
-               VALUES (?, ?, ?, ?, ?)""",
-            id, cabinetId, boxNumber, action, now(),
+            """INSERT INTO commands (id, cabinet_id, box_number, action, purpose, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            id, cabinetId, boxNumber, action, purpose, now(),
         )
         return id
     }
@@ -49,11 +63,11 @@ class Commands(private val db: Db) {
      */
     fun take(cabinetId: String): List<Waiting> = db.transaction {
         val waiting = db.rows(
-            """SELECT id, box_number, action FROM commands
+            """SELECT id, box_number, action, purpose FROM commands
                WHERE cabinet_id = ? AND taken_at IS NULL
                ORDER BY created_at ASC LIMIT 16""",
             cabinetId,
-        ) { Waiting(it.str("id"), it.str("box_number"), it.str("action")) }
+        ) { Waiting(it.str("id"), it.str("box_number"), it.str("action"), it.str("purpose")) }
 
         waiting.forEach {
             db.exec("UPDATE commands SET taken_at = ? WHERE id = ?", now(), it.id)

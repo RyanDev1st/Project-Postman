@@ -80,7 +80,7 @@ class Collect(
         // 5. Only now does metal move. The command, the parcel's state and the
         //    log entry are one transaction: a crash between them would open a
         //    door the log never mentions.
-        val commandId = commands.open(cabinetId, parcel.boxNumber)
+        val commandId = commands.open(cabinetId, parcel.boxNumber, "collect")
         db.exec(
             "UPDATE parcels SET state = 'opening', opening_since = ? WHERE id = ?",
             now(), parcel.id,

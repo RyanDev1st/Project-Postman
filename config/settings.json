@@ -24,7 +24,7 @@
   "_max_request_bytes": "Biggest request body accepted. Every call this API takes is a few short fields; the largest honest one is a few hundred bytes.",
   "max_request_bytes": 16384,
 
-  "_send_hsts": "Send Strict-Transport-Security. OFF here on purpose: HSTS is remembered per host and not per port, so sending it from 127.0.0.1:8443 makes the browser force HTTPS on the cabinet screen at 127.0.0.1:8137 too, which serves plain HTTP and would go dead for a year on that machine. Turn it on in the same change that puts a real certificate and a real domain in front of the server.",
+  "_send_hsts": "Send Strict-Transport-Security. OFF here on purpose: HSTS is remembered per host and not per port, so sending it from 127.0.0.1:8443 makes the browser force HTTPS on the cabinet screen at 127.0.0.1:8137 too, which serves plain HTTP and would go dead for a year on that machine. There is now a second reason it stays off: ADR 0023 settled that this system is on the campus network and never on the internet, so there is no public site for HSTS to protect and no domain to protect it on. The flag stays for a deployment that ever does get one.",
   "send_hsts": false,
   "box_lock_minutes": 15,
 

@@ -94,10 +94,10 @@ One path, told apart by whether a receiver token is sent:
 | 9 | Get the QR session code to display | `GET /cabinet/session` | cabinet key | session code, how long it lives |
 | 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | **masked** name, or a refusal code |
 | 11 | Start a drop | `POST /cabinet/drop` | cabinet key, receiver ref, parcel size | which box opened, or a refusal code |
-| 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next |
+| 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next. **The server works the purpose out itself** and logs a disagreement — see below |
 | 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
-| 22 | **Anything for me to do?** | `GET /cabinet/commands` | cabinet key | a list of doors to open, each with an id |
+| 22 | **Anything for me to do?** | `GET /cabinet/commands` | cabinet key | a list of doors to open, each with an id and **why it is opening** — `drop` or `collect` |
 | 23 | That is done | `POST /cabinet/command-done` | cabinet key, command id, result | ok |
 
 **Endpoints 22 and 23 are the ESP32's, and were added with [ADR 0020](../adr/0020-the-server-is-kotlin.md).** The board cannot be dialled — it takes a DHCP address on campus Wi-Fi and has no name — so it asks once a second rather than being told. The cost is up to a second before a door opens, which a person standing at a locker will accept.
@@ -107,6 +107,10 @@ One path, told apart by whether a receiver token is sent:
 The full protocol, and a reference sketch, are in [cabinet-firmware.md](cabinet-firmware.md).
 
 **Endpoint 10 returns a masked name.** `Nguyễn V. A***`, never the full name. The shipper already knows who he is delivering to — he only needs to confirm he has the right person. Without masking, anyone can stand at the cabinet, type phone numbers, and collect names. See task P0-08.
+
+**A command says why the door is opening, and the server checks the answer anyway.** Endpoint 12 needs `drop` or `collect` and they do opposite things — a collect closing writes the parcel off and frees the box, a drop closing does neither. Until 2026-08-22 endpoint 22 handed the hardware only `open`, so an ESP32 filling that field in had to guess, and a wrong guess either books a collection that never happened or loses one that did (BUG-009). Endpoint 22 now carries `purpose`, which is **additive** — firmware built against the older shape keeps working.
+
+The server does not trust it. A parcel it opened for a collect is sitting in `opening` at that box and nothing else is, so it works the purpose out from its own state and uses that. A caller whose claim disagrees is logged and overruled. Both halves matter: the hardware should not have to guess, and a field on a request that decides whether a parcel is written off should not be the last word.
 
 **Endpoint 12 is named for the event, not for what causes it.** There is no sensor — see [ADR 0006](../adr/0006-no-sensor.md) — so today a closing door fires it. If a sensor is fitted later, the sensor fires the same call and **nothing else in this contract changes**. That is why it is called *a door closed* and not *a sensor reading*.
 

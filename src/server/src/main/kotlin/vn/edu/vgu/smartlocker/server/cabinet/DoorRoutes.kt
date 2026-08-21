@@ -15,6 +15,9 @@ import vn.edu.vgu.smartlocker.server.auth.Empty
 import vn.edu.vgu.smartlocker.server.now
 import vn.edu.vgu.smartlocker.server.refuse
 import vn.edu.vgu.smartlocker.server.str
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("doors")
 
 /**
  * Doors: the typed backup code, a door closing, a faulty box, and the two
@@ -45,7 +48,28 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
         val box = asked.boxNumber
 
         db.transaction {
-            if (asked.purpose == "collect") {
+            // **What the caller says, checked against what is true.**
+            //
+            // The command now carries its purpose, so the hardware need not
+            // guess (BUG-009) - but a field on a request is still a claim, and
+            // this one decides whether a parcel is written off as collected.
+            // The server does not need to be told: a parcel it opened for a
+            // collect is sitting in `opening` at that box, and nothing else
+            // is. So it works the answer out and only logs the disagreement.
+            val opening = db.row(
+                """SELECT id FROM parcels
+                   WHERE cabinet_id = ? AND box_number = ? AND state = 'opening'""",
+                me, box,
+            ) { it.str("id") }
+            val purpose = if (opening != null) "collect" else "drop"
+            if (purpose != asked.purpose) {
+                log.warn(
+                    "cabinet {} box {} reported '{}' on door-closed; the parcel state says '{}' - going with the state",
+                    me, box, asked.purpose, purpose,
+                )
+            }
+
+            if (purpose == "collect") {
                 // The door shut on an open we asked for, so the parcel is
                 // gone and the code with it. This is where "works once"
                 // actually lands - a collection, not an attempt.
@@ -60,7 +84,7 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
             db.exec(
                 """INSERT INTO events (id, at, cabinet_id, box_number, action, detail)
                    VALUES (?, ?, ?, ?, 'door-closed', ?)""",
-                Ids.id(), now(), me, box, asked.purpose,
+                Ids.id(), now(), me, box, purpose,
             )
         }
         call.respond(Empty())
@@ -119,7 +143,7 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
                 now(), parcelId,
             )
             boxes.clearTries(me, box)
-            val commandId = commands.open(me, box)
+            val commandId = commands.open(me, box, "collect")
             db.exec(
                 """INSERT INTO events (id, at, receiver_id, cabinet_id, box_number, parcel_id, action, detail)
                    VALUES (?, ?, ?, ?, ?, ?, 'collect-by-code', ?)""",
@@ -156,7 +180,7 @@ fun Route.doorRoutes(db: Db, boxes: Boxes, commands: Commands) {
     get("/cabinet/commands") {
         val me = call.cabinetId(db)
         commands.expireStale(STALE_MS)
-        val waiting = commands.take(me).map { CommandJson(it.id, it.boxNumber, it.action) }
+        val waiting = commands.take(me).map { CommandJson(it.id, it.boxNumber, it.action, it.purpose) }
         call.respond(CommandsResponse(waiting, now().asIso()))
     }
 
@@ -200,7 +224,19 @@ data class FaultRequest(
 data class OpenedBox(@SerialName("box_number") val boxNumber: String)
 
 @Serializable
-data class CommandJson(val id: String, val box: String, val action: String)
+data class CommandJson(
+    val id: String,
+    val box: String,
+    val action: String,
+    /**
+     * Why this door is opening: `drop` or `collect`.
+     *
+     * Added for BUG-009. Endpoint 12 needs it and the hardware had no way to
+     * know it. Additive, so an ESP32 built against the older shape keeps
+     * working - it just goes on guessing, which is the thing this removes.
+     */
+    val purpose: String,
+)
 
 @Serializable
 data class CommandsResponse(val commands: List<CommandJson>, val at: String)

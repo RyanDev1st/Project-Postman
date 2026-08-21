@@ -105,7 +105,7 @@ fun Route.cabinetRoutes(
                 Ids.id(), asked.receiverRef, me, box, now(),
                 Ids.hash(pickupCode), now() + pickupCodeHours * 60 * 60 * 1000,
             )
-            val commandId = commands.open(me, box)
+            val commandId = commands.open(me, box, "drop")
             db.exec(
                 """INSERT INTO events (id, at, receiver_id, cabinet_id, box_number, action, detail)
                    VALUES (?, ?, ?, ?, ?, 'drop-opened', ?)""",

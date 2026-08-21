@@ -73,12 +73,43 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SmartLocker">
+        android:theme="@style/Theme.SmartLocker"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false">
+
+        <!--
+            android:allowBackup="false" - the login token never leaves this
+            phone. It is encrypted under a hardware key that cannot be backed
+            up, so the copy would be unreadable anyway; not making the copy is
+            simpler than relying on that. `adb backup` reads this flag too,
+            which is the one an attacker with a cable would use. See
+            @xml/data_extraction_rules for the Android 12 half.
+
+            android:usesCleartextTraffic="false" - stated rather than assumed.
+            It only defaults to false from API 28 and minSdk here is 24, so on
+            an older phone a release build had no rule at all. Http.kt refuses
+            a non-https URL before a socket opens; two locks, on purpose.
+        -->
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.SmartLocker">
+            android:theme="@style/Theme.SmartLocker"
+            android:taskAffinity=""
+            android:launchMode="singleTask">
+
+            <!--
+                An empty taskAffinity, and one task.
+
+                Without it, another app can declare our affinity, and Android
+                puts its activity at the front of OUR task - so the next time
+                somebody opens the locker from their launcher, the attacker's
+                screen is what appears, wearing our position in the recents
+                list. It is called task hijacking, or StrandHogg, and the fix
+                is this line: an empty affinity means no other app can claim
+                to belong to our task.
+            -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
