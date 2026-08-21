@@ -14,8 +14,11 @@ standing between this project and a code that reaches a real phone.
 ## Status
 
 **Decided: SpeedSMS, shared brandname `Verify`.** Already the provider in
-`Sms.kt`; the change today is one digit. Not sent for real yet — nobody has a
-token, and that is Ryan's to buy.
+`Sms.kt`; the change today is one digit.
+
+**Nothing has been sent for real** — nobody has a token, and buying one is
+Ryan's call. What *has* been tested is the provider refusing, against the live
+endpoint, which cost nothing and found two faults in our own code.
 
 Zalo ZNS is not rejected. It is second, and it stays second until VGU answers
 about its Official Account.
@@ -89,6 +92,49 @@ So ZNS is not ruled out — it is **an ask with a lead time**, and it is
 strictly better than SMS if VGU says yes: cheaper per message, richer message,
 and Zalo is where students already are. Ask early, ship on SMS meanwhile.
 
+### The provider refusing, tested — 2026-08-21
+
+Done before any money moved, and it needs no account. The live endpoint was
+asked with a bogus token, then the whole server was run against it.
+
+The endpoint, the URL and the auth scheme are right. What it answers a bad
+token is not from documentation:
+
+    HTTP 401 {"name":"Unauthorized","message":"...","code":0,"status":401}
+
+Then the server, with `SPEEDSMS_TOKEN=not-a-real-token`, asked for a code for
+a test number:
+
+| Checked | Result |
+| --- | --- |
+| The request is refused, not quietly accepted | `502 SEND_FAILED` |
+| The server says why, in the log | `WARN sms.speedsms - SpeedSMS refused: HTTP 401 {...}` |
+| No code is left that anybody could spend | 0 rows in `otp` |
+| No account appears for a number never proved | 0 rows in `receivers` |
+| Guessing anyway gets nowhere | `000000`, `123456`, `111111` → `401`, no token |
+| The console provider still works, so this is the provider and not us | `200`, code printed |
+
+**Two faults were found doing it, both in our code, neither on a device.**
+
+The success check was read from their documentation and had never seen a real
+answer. It matched `"status"` followed by an optional-quoted `1` — which also
+matches the `1` at the front of `"status":12` and `"status":100`. A 1xx status
+in an error body would have been read as a message successfully sent, and a
+code nobody received would have opened an account. Now `1` refuses to be
+followed by another digit, and there is a unit test.
+
+Their errors also put an HTTP code in the same `status` field a success uses,
+so "the field is present" would have been the wrong test entirely.
+
+`speedSmsAccepted(httpCode, body)` is its own function now with five test
+cases, including the real 401 above byte for byte. Every case is free; asking
+the provider the same questions is 350 VND each.
+
+**Still unproven, and only a real token proves it:** that a *success* is one
+of the two spellings we accept. If it is a third, the failure is loud and safe
+— the SMS arrives, the app says it did not, and the log carries the exact body
+to fix it with.
+
 ### The threat the community warns about first
 
 Every Vietnamese write-up on OTP leads with SMS pumping — draining somebody's
@@ -126,9 +172,10 @@ attack now: 22,309 requests, 205 sent, 22,104 refused.
    not, nothing below is worth doing.
 2. **Open a SpeedSMS account and top it up small.** 100,000 VND is roughly 285
    messages, which is more than the whole Play test round needs.
-3. **Put the token in the environment, never in the repo.** `LOCKER_SMS_TOKEN`
-   is read in `Main.kt`; the server falls back to the console provider without
-   it, which is why every test so far has worked.
+3. **Put the token in the environment, never in the repo.** The variable is
+   `SPEEDSMS_TOKEN`, read in `Config.kt`. Without it the server uses the
+   console provider, which is why every test so far has worked. It is never a
+   fallback when a real send fails — that stays a refusal.
 4. **Then send one real code through our own server** and read it on the
    phone. Until that has happened, `Sms.kt` is documentation, not a tested
    path — `type: 4` included.

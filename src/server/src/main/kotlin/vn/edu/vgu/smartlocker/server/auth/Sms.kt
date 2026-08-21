@@ -85,9 +85,7 @@ class SpeedSms(private val token: String) : Sms {
                 ?.bufferedReader()?.use { it.readText() }.orEmpty()
             conn.disconnect()
 
-            // Only a confirmed send counts. A code the user never received
-            // must not be usable, so anything unclear here is a failure.
-            val sent = code in 200..299 && Regex("\"status\"\\s*:\\s*\"?1\"?").containsMatchIn(answer)
+            val sent = speedSmsAccepted(code, answer)
             if (!sent) log.warn("SpeedSMS refused: HTTP {} {}", code, answer.take(200))
             sent
         } catch (e: Exception) {
@@ -122,3 +120,43 @@ class SpeedSms(private val token: String) : Sms {
         const val ENDPOINT = "https://api.speedsms.vn/index.php/sms/send"
     }
 }
+
+/**
+ * Did SpeedSMS say it sent the message?
+ *
+ * Its own function because it is the line that decides whether somebody's code
+ * is real, and because every other way of checking it costs 350 VND. A unit
+ * test can ask it a hundred times for nothing.
+ *
+ * **A whitelist, and it stays one.** Only a body that says success in a
+ * spelling we know counts. Anything else - an error, a maintenance page, a
+ * captive portal, an empty body, a shape they change next year - is a code
+ * that may never have arrived, and a code nobody received must never open an
+ * account. Two spellings because their documentation shows both and this team
+ * has never seen a real success.
+ *
+ * The refusal below is not from documentation. It is what the live endpoint
+ * answered a bogus token on 2026-08-21:
+ *
+ *     {"name":"Unauthorized","message":"...","code":0,"status":401}
+ *
+ * Note `"status":401` - their errors put an HTTP code in the same field a
+ * success uses, so "the field is present" would have been the wrong test.
+ *
+ * If a real success turns out to be a third spelling, this returns false and
+ * the failure is loud and safe: the SMS arrives, the user is told it did not,
+ * and `SpeedSMS refused` appears in the log with the exact body. Fix it then,
+ * with the body in hand, rather than guessing wider now.
+ */
+internal fun speedSmsAccepted(httpCode: Int, body: String): Boolean =
+    httpCode in 200..299 && SPEEDSMS_SUCCESS.containsMatchIn(body)
+
+/**
+ * `"status": 1`, `"status": "1"` or `"status": "success"`.
+ *
+ * The bare `1` refuses to be followed by another digit. Written `"?1"?` first,
+ * which matched the `1` at the front of `"status":12` and `"status":100` and
+ * called both a successful send - and 1xx is exactly what an error carries.
+ * Caught by the test beside this, not by reading it.
+ */
+private val SPEEDSMS_SUCCESS = Regex("\"status\"\\s*:\\s*(\"1\"|\"success\"|1(?![0-9]))")
