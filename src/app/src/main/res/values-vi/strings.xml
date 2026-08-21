@@ -141,6 +141,8 @@
     <string name="refused_no_parcel_here">Không có hàng ở đây.</string>
     <string name="refused_box_faulty">Hộp này đang hỏng. Nhân viên đã biết.</string>
     <string name="refused_wrong_code">Sai mã. Thử lại.</string>
+    <string name="refused_rate_limited">Mã vừa được gửi. Đợi một phút rồi yêu cầu lại.</string>
+    <string name="refused_send_failed">Không gửi được mã. Thử lại sau giây lát.</string>
     <string name="refused_unknown">Có lỗi xảy ra. Thử lại.</string>
 
     <string name="unclear_result">Chưa rõ thao tác có thành công không. Kiểm tra tủ trước.</string>

@@ -189,6 +189,8 @@
     <string name="refused_no_parcel_here">Nothing waiting here.</string>
     <string name="refused_box_faulty">That box is out of order. Staff know.</string>
     <string name="refused_wrong_code">Wrong code. Try again.</string>
+    <string name="refused_rate_limited">A code was just sent. Wait a minute, then ask again.</string>
+    <string name="refused_send_failed">The code could not be sent. Try again in a moment.</string>
     <string name="refused_unknown">Something went wrong. Try again.</string>
 
     <!--

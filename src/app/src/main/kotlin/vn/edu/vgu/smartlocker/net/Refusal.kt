@@ -36,6 +36,31 @@ enum class Refusal(@param:StringRes val message: Int?) {
     WRONG_CODE(R.string.refused_wrong_code),
 
     /**
+     * Asked for a code too soon, or too many were sent across everybody.
+     *
+     * **Missing from this list until 2026-08-21**, so it arrived as [UNKNOWN]
+     * and the screen said *"Something went wrong. Try again."* - which invites
+     * the one action that cannot work, on a cooldown, and says nothing about
+     * waiting. Reachable by tapping Resend inside the minute, so it was always
+     * a real screen a real person could reach; the hourly cap (BUG-015) only
+     * made it common. Seen on the emulator while re-testing BUG-012.
+     *
+     * The sentence says to wait, and never says whether the number has an
+     * account - the two limits are worded the same on purpose.
+     */
+    RATE_LIMITED(R.string.refused_rate_limited),
+
+    /**
+     * The SMS provider did not confirm it sent anything.
+     *
+     * Missing for the same reason and found in the same run. This is what a
+     * real person sees the moment the provider is misconfigured or out of
+     * balance, which is exactly the state the SpeedSMS account is in today
+     * (BUG-016) - so it is not a rare path, it is the current one.
+     */
+    SEND_FAILED(R.string.refused_send_failed),
+
+    /**
      * The token has run out.
      *
      * **No message.** This one is not shown - the app sends the user back to
