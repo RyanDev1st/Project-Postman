@@ -19,21 +19,26 @@ it never proves metal moved - ADR 0008.
 ## Reading its own one-time code
 
 Step 2 recovers the code by brute force from the hash in the database: it is
-six digits and the hash is a plain unsalted SHA-256, so a million guesses
-settle it in about a second.
+six digits, so a million guesses settle it in under a minute.
 
-That is a legitimate thing for a test on its own database to do, and it is
-also a finding - anybody who can read `locker.db` can recover every live code
-the same way. See docs/findings/2026-08-18-audit.md. The alternative was to
-scrape the server's console, which would tie this test to how the server
-happened to be started.
+It needs two things to do that, and that is the interesting part. The database
+file gives the digest; `config/pepper.key` gives the key the digest was made
+under. Neither alone is enough any more - it used to be, and anybody holding
+`locker.db` could read every live code. That was closed on 2026-08-21.
+
+This test holds both because it runs on the machine that owns both, which is
+the access a person debugging their own server already has. The alternative
+was to scrape the server's console, which would tie this test to how the
+server happened to be started.
 """
 
 from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
+import os
 import random
 import re
 import sqlite3
@@ -97,6 +102,33 @@ def cabinet_key() -> str:
     return found.group(1)
 
 
+def pepper() -> bytes:
+    """The key the server hashes under. Without it, no code can be recovered.
+
+    That is the point of it: a six-digit code is a million guesses, so a bare
+    digest column is a lookup table anybody with the database file can build.
+    Under an HMAC they need this file too, and it is deliberately not beside
+    `data/locker.db`. See `src/server/.../Pepper.kt`.
+
+    A test on its own machine holds both, which is exactly the access a person
+    debugging their own server has and nothing more.
+    """
+    from_env = os.environ.get("LOCKER_PEPPER", "").strip()
+    if from_env:
+        return from_env.encode()
+    key = ROOT / "config/pepper.key"
+    if not key.exists():
+        sys.exit(f"no hashing key at {key} - start the server once and it makes one")
+    raw = key.read_text().strip()
+    # The server writes it without padding; Python's decoder insists on it.
+    return base64.urlsafe_b64decode(raw + "=" * (-len(raw) % 4))
+
+
+def code_hash(code: str, key: bytes) -> str:
+    """The same digest the server writes down, computed here."""
+    return base64.urlsafe_b64encode(hmac.new(key, code.encode(), hashlib.sha256).digest()).decode().rstrip("=")
+
+
 def cabinet_id() -> str:
     found = re.search(r'\bCABINET_ID\s*:\s*"([^"]+)"', (ROOT / "src/cabinet/config.js").read_text(encoding="utf-8"))
     return found.group(1) if found else "vgu-back-gate"
@@ -104,6 +136,7 @@ def cabinet_id() -> str:
 
 def recover_code(phone: str) -> str:
     """Six digits, from the hash the server wrote down. See the module docstring."""
+    key = pepper()
     db = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     try:
         row = db.execute("SELECT code_hash FROM otp WHERE phone = ?", (phone,)).fetchone()
@@ -114,10 +147,12 @@ def recover_code(phone: str) -> str:
     wanted = row[0]
     for n in range(1_000_000):
         guess = f"{n:06d}"
-        digest = base64.urlsafe_b64encode(hashlib.sha256(guess.encode()).digest()).decode().rstrip("=")
-        if digest == wanted.rstrip("="):
+        if code_hash(guess, key) == wanted.rstrip("="):
             return guess
-    sys.exit("could not recover the code - the hash is not a bare SHA-256 of six digits")
+    sys.exit(
+        "could not recover the code - config/pepper.key does not match the key the "
+        "server hashed under. Was the server restarted with a different LOCKER_PEPPER?"
+    )
 
 
 def parcel_state(parcel_id: str) -> str:

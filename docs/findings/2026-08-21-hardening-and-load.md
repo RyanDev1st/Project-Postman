@@ -8,13 +8,19 @@ Tripwire lists.
 
 ## Status
 
-**Load: answered, with room.** 300 concurrent readers get 5,488 requests a
-second, 99 in 100 served inside 135 ms, zero errors. The binding constraint on
-this product is 25 boxes, not the server.
+**Load: answered, with room, and the room is bigger than the first number
+said.** At 300 concurrent the server was never the limit - the laptop
+generating the load was. Split across four generators it carries **600
+requests in flight at 7,413 a second**, worst p99 153 ms, no error the server
+produced. The binding constraint on this product is 25 boxes.
 
 **Attacks: the host-level ones are closed and measured.** Injection, XSS,
 brute force, oversized bodies, slow requests, missing headers, and per-caller
 flooding are each tested below.
+
+**A stolen database file no longer reads a live pickup code.** That was the
+largest thing left open this morning and it is closed - measured both ways, on
+the real database. See *The database file on its own*.
 
 **A real distributed denial of service is not closed and cannot be by code
 here.** That is decided upstream by whoever runs the network. Anything else
@@ -44,18 +50,32 @@ No upgrade was needed and none was made. Kotlin is 2.4.10.
 `scripts/stress.py`, keep-alive connections, real accounts with real tokens,
 against the real SQLite file.
 
-| in flight | requests | req/s | p50 | p95 | p99 | worst | errors |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 50 | 63,632 | 5,286 | 8.5 ms | 17.8 ms | 24.0 ms | 118 ms | 0 |
-| 150 | 66,681 | 5,526 | 23.4 ms | 50.6 ms | 67.4 ms | 215 ms | 0 |
-| **300** | **66,431** | **5,488** | **39.3 ms** | **97.9 ms** | **134.9 ms** | **406 ms** | **0** |
+| in flight | generators | req/s | p50 | p99 | errors the server made |
+| --- | --- | --- | --- | --- | --- |
+| 50 | 1 | 5,286 | 8.5 ms | 24.0 ms | 0 |
+| 150 | 1 | 5,526 | 23.4 ms | 67.4 ms | 0 |
+| **300** | 1 | **5,488** | 39.3 ms | 134.9 ms | 0 |
+| 300 | 2 | **6,414** | 42 ms | 128 ms | 0 |
+| **600** | 4 | **7,413** | 77 ms | 153 ms | 0 |
 
 Writes at 300 in flight: 1,097 req/s, p99 561 ms, zero errors.
 
-**Throughput is flat from 50 to 300 and latency rises in proportion.** That is
-a saturated server sharing itself out fairly, not one falling over: the work
-per request is constant and the queue is doing its job. A server about to
-collapse shows throughput *falling* as concurrency rises.
+**The single-figure answer is wrong and the reason matters.** One generator at
+300 gives 5,488 a second. Two generators at 150 each - the same 300 in flight -
+give 6,414. The load generator is Python on the same laptop, and it saturates
+before the server does, so every one-process number here is a floor on the
+server rather than a measurement of it. Four generators reach 7,413 a second
+at 600 in flight and the server still answers everything.
+
+The 506 non-200s in the four-generator run were all `404`, and all
+self-inflicted: each generator deletes its own test accounts when it finishes,
+which deletes the accounts the others are still asking about. No `5xx`, no
+timeouts, no refused connections, in any run.
+
+**Throughput rises with concurrency and latency rises in proportion.** That is
+a server sharing itself out fairly. A server about to collapse shows
+throughput *falling* as concurrency rises, and this one never did - it was
+still climbing when the measuring laptop ran out.
 
 The database is one SQLite connection behind one global lock, which is the
 obvious thing to suspect. At these numbers it is not the problem - 5,488 reads
@@ -81,8 +101,34 @@ the server. They were restored immediately after and the whole journey re-run.
 | Flooding one endpoint | **Bounded** | Per-caller ceilings. Under production limits a write flood of 19,268 requests was 611 accepted, 18,657 refused `429` |
 | Server fingerprinting | **Closed** | The `Server` header is blanked. It named Ktor and its version, which tells a stranger which advisories to read |
 | Stack traces on the wire | **Closed** | `StatusPages` answers a code and nothing else; the trace goes to the log |
+| Reading codes out of a stolen database | **Closed** | Digests are keyed - see below. A million guesses against the real file recover nothing |
 | Session hijack | **Bounded** | HTTPS only, both front-ends refuse plain HTTP, tokens are 256 bits from `SecureRandom`, compared with `MessageDigest.isEqual` |
 | Distributed denial of service | **NOT closed** | See below. Not closable here |
+
+### The database file on its own
+
+The audit of 2026-08-18 said a six-digit pickup code stored as a bare SHA-256
+is a million guesses - about a second - so anybody holding `data/locker.db`
+could read every live code out of it. That is now closed. `Ids.hash` is an
+HMAC under a key that is deliberately not in the database file, argued in
+[ADR 0022](../adr/0022-a-key-outside-the-database.md).
+
+Run against the real file, with a real code the server had just issued:
+
+| The attacker holds | Guesses tried | Result |
+| --- | --- | --- |
+| `data/locker.db` | 1,000,000 | 2 s, **nothing found** |
+| `data/locker.db` **and** `config/pepper.key` | 823,388 | 5 s, code recovered |
+
+Four unit tests hold the property in place, including the attack itself: build
+the old lookup table, look the stored digest up in it, and require a miss.
+
+**And the fix was half a regression until it was measured.** Calling
+`Mac.getInstance` on every request took read throughput from 5,488 a second to
+2,589, because each call walks the JCA provider list under a lock. One `Mac`
+per thread fixed it. The hash costs **287 ns**, over a million calls - 0.2 %
+of one core at the rates above. The first number was found by re-running the
+load test after the change rather than by reasoning that a hash is cheap.
 
 ### Two faults found in the hardening itself, before it shipped
 
@@ -126,22 +172,27 @@ it invents share `+849` with every real Vietnamese mobile.
    must be revisited.
 3. **The app.** Certificate pinning, root detection, and tamper checks are not
    done and are not obviously worth it for a campus locker.
-4. **Codes in the database.** A six-digit code is stored as a bare unsalted
-   SHA-256, which is a million guesses - about a second. Anyone holding
-   `data/locker.db` can recover a live 48-hour backup code. The fix is an HMAC
-   with a key kept outside the database. **Not done**, and it is the largest
-   thing left on this list.
-5. **No backup of `data/locker.db`.** One file, one machine, no copy.
+4. **Where the key is kept.** The codes are safe from the database file
+   alone, but on this machine `config/pepper.key` sits on the same disk as
+   `data/locker.db`. A real deployment sets `LOCKER_PEPPER` in the
+   environment and has no file. Nobody has done that, because nothing is
+   deployed.
+5. **Backups are on the same disk.** `scripts/backup.py` exists and works -
+   a consistent snapshot taken while the server runs, opened afterwards and
+   checked. Nothing runs it on a schedule, and the default destination
+   survives a mistake but not a dead disk.
 
 ## Next
 
 1. **Put something in front of the server before it is public.** A Cloudflare
    quick tunnel needs no account and no card and would also end the
    self-signed certificate problem for every tester at once.
-2. **Pepper the short codes** - HMAC with a key from the environment, so the
-   database file alone is not enough. Changes `checkloop.py` and `stress.py`,
-   both of which currently recover codes by brute force, and that is a feature
-   of the fix rather than a cost of it.
-3. **Copy the database somewhere.** Any copy beats none.
-4. **Re-run `scripts/stress.py --at 300` after any change to a route**, and
-   read the error column, not just the rate.
+2. **Run `scripts/backup.py --to` another disk on a schedule**, and copy
+   `config/pepper.key` once, by hand, somewhere the backups do not go. Neither
+   is worth anything without the other and they must not travel together.
+3. **Re-run `scripts/stress.py --at 300` after any change to a route**, and
+   read the error column, not just the rate. Use more than one generator if
+   the number itself matters - one is not enough to find the server's limit.
+4. **Measure again on the Pi.** Every number here is from a 16-core laptop
+   talking to itself. The Pi is the machine this runs on and nothing has been
+   measured there.

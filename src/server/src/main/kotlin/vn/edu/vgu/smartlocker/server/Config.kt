@@ -95,6 +95,13 @@ class Config private constructor(
                 JsonObject(emptyMap())
             }
 
+            // Before anything else. Everything that writes a credential down
+            // goes through Ids.hash, and Ids.hash refuses to run without a
+            // key - so this has to happen ahead of the first database write,
+            // not lazily on the first login. Both the server and the admin
+            // commands come through here.
+            Pepper.load(File(env("LOCKER_PEPPER_FILE") ?: File(root, "config/pepper.key").path))
+
             return Config(
                 settings = settings,
                 port = env("PORT")?.toIntOrNull() ?: 8443,

@@ -3,6 +3,8 @@ package vn.edu.vgu.smartlocker.server
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Random values, and the one-way function everything secret goes through
@@ -48,12 +50,48 @@ object Ids {
         return random.nextInt(bound).toString().padStart(count, '0')
     }
 
-    /** What gets written down instead of the secret itself. */
-    fun hash(secret: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(secret.toByteArray(Charsets.UTF_8))
-            .let(encoder::encode)
-            .toString(Charsets.US_ASCII)
+    /**
+     * What gets written down instead of the secret itself.
+     *
+     * **Keyed, not bare.** A plain SHA-256 protects a secret only while the
+     * secret is too long to enumerate, and half of what goes through here is
+     * six digits - a million guesses, about a second. Under an HMAC the table
+     * cannot be built without the key, and the key is deliberately not in the
+     * database file. The argument in full is in [Pepper].
+     *
+     * Every caller is unchanged and every stored digest is the same shape, so
+     * this is one function's business - which is why hashing lives in one
+     * function.
+     *
+     * **The [javax.crypto.Mac] is kept, not made.** Every authenticated
+     * request hashes its token, so this is on the hot path of the whole
+     * server. Calling `Mac.getInstance` per request halved throughput at 300
+     * concurrent - 5,488 requests a second down to 2,589, measured - because
+     * each call walks the JCA provider list under a lock. It is not thread
+     * safe, so one per thread, keyed once.
+     *
+     * The kept one is thrown away if the key changes underneath it, which
+     * only a test does. Without that check a test that loads a second key
+     * keeps hashing under the first and passes while proving nothing.
+     */
+    fun hash(secret: String): String {
+        var held = macs.get()
+        if (held.version != Pepper.version()) {
+            held = newMac()
+            macs.set(held)
+        }
+        return held.mac.doFinal(secret.toByteArray(Charsets.UTF_8))
+            .let(encoder::encode).toString(Charsets.US_ASCII)
+    }
+
+    private class Keyed(val version: Int, val mac: Mac)
+
+    private val macs = ThreadLocal.withInitial { newMac() }
+
+    private fun newMac() = Keyed(
+        Pepper.version(),
+        Mac.getInstance(HMAC).apply { init(SecretKeySpec(Pepper.bytes(), HMAC)) },
+    )
 
     /**
      * Compare two hashes without leaking how far the match got.
@@ -65,6 +103,8 @@ object Ids {
         MessageDigest.isEqual(a.toByteArray(Charsets.UTF_8), b.toByteArray(Charsets.UTF_8))
 
     private fun bytes(n: Int) = ByteArray(n).also(random::nextBytes)
+
+    private const val HMAC = "HmacSHA256"
 }
 
 /** Now, as the rest of the server counts it: epoch milliseconds, UTC. */

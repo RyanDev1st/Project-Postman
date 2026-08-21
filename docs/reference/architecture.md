@@ -162,6 +162,10 @@ Remembers users, cabinets, boxes, parcels, and the full open and close history.
 
 **A parcel must know who it belongs to.** That row is what the pickup flow asks about, and no other table can answer it.
 
+**Nothing secret is stored as itself.** Tokens, one-time codes, pickup codes and cabinet keys are all kept as a hash, and the hash is keyed with a secret that is **not in the database file** — see [ADR 0022](../adr/0022-a-key-outside-the-database.md). A pickup code is six digits, so without that key the digest column would be a lookup table anybody holding the file could build in a second. Passwords use Argon2id instead — [ADR 0012](../adr/0012-passwords-on-a-phone-account.md).
+
+Copy it with `python scripts/backup.py`, which takes a consistent snapshot while the server is running and checks that the copy opens. The key is deliberately not in that copy.
+
 ## 5. Login and token
 
 The receiver types a phone number **once** and enters the one-time code sent to it. The server answers with a token — a temporary pass. The app stores that token in the phone's secure store and sends it with every later request.

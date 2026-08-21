@@ -50,7 +50,7 @@ What the Server team owns is listed in [architecture.md](docs/reference/architec
 | `docs/adr/` | One short file per hard decision. It holds the *why* |
 | `src/`, `tests/` | App source, feature folders only. Tests mirror `src/` |
 | `config/` | `settings.json` — every number we guessed. One file, editable by a person |
-| `scripts/` | Build and automation. `checkboard.py` checks the board; `cabinet-sim/` is the Blender cabinet, and `cabinet-sim/film/` the videos built from it — **never evidence**, see [ADR 0008](docs/adr/0008-cabinet-simulator.md) |
+| `scripts/` | Build and automation. `checkboard.py` checks the board; `backup.py` copies the database; `cabinet-sim/` is the Blender cabinet, and `cabinet-sim/film/` the videos built from it — **never evidence**, see [ADR 0008](docs/adr/0008-cabinet-simulator.md) |
 | `.claude/` | Agent context, skills, and rules for named file types |
 
 **Root policy:** the repo root holds only these — `CLAUDE.md`, `PRODUCT.md` (who the product is for), `DESIGN.md` (how the app looks), `.gitignore`, `config/`, build setup files such as `settings.gradle.kts` or `gradlew`, CI folders, and container files.

@@ -35,8 +35,10 @@ import argparse
 import atexit
 import base64
 import hashlib
+import hmac
 import http.client
 import json
+import os
 import random
 import re
 import sqlite3
@@ -118,18 +120,47 @@ def cabinet_key() -> str:
     return found.group(1)
 
 
+def pepper() -> bytes:
+    """The key the server hashes under. Without it, no code can be recovered.
+
+    That is the point of it: a six-digit code is a million guesses, so a bare
+    digest column is a lookup table anybody with the database file can build.
+    Under an HMAC they need this file too, and it is deliberately not beside
+    `data/locker.db`. See `src/server/.../Pepper.kt`.
+
+    A test on its own machine holds both, which is exactly the access a person
+    debugging their own server has and nothing more.
+    """
+    from_env = os.environ.get("LOCKER_PEPPER", "").strip()
+    if from_env:
+        return from_env.encode()
+    key = ROOT / "config/pepper.key"
+    if not key.exists():
+        sys.exit(f"no hashing key at {key} - start the server once and it makes one")
+    raw = key.read_text().strip()
+    # The server writes it without padding; Python's decoder insists on it.
+    return base64.urlsafe_b64decode(raw + "=" * (-len(raw) % 4))
+
+
+def code_hash(code: str, key: bytes) -> str:
+    """The same digest the server writes down, computed here."""
+    return base64.urlsafe_b64encode(hmac.new(key, code.encode(), hashlib.sha256).digest()).decode().rstrip("=")
+
+
 def rainbow() -> dict[str, str]:
     """Every six-digit code by its hash, built once.
 
-    The server stores a bare unsalted SHA-256, so this is a million entries and
-    about a second. Twenty accounts would otherwise be twenty brute forces.
-    That it is this cheap is a finding in its own right - see the audit.
+    A million entries, and now a keyed HMAC rather than a bare digest, so it
+    takes a minute rather than a second and it cannot be built at all without
+    `config/pepper.key`. Twenty accounts would otherwise be twenty brute
+    forces. That this used to be cheap AND keyless was the finding; the cost
+    here is the shape of the fix, not a regression.
     """
+    key = pepper()
     table = {}
     for n in range(1_000_000):
         guess = f"{n:06d}"
-        digest = base64.urlsafe_b64encode(hashlib.sha256(guess.encode()).digest()).decode().rstrip("=")
-        table[digest] = guess
+        table[code_hash(guess, key)] = guess
     return table
 
 

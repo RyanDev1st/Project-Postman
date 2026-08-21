@@ -70,6 +70,30 @@ object Schema {
                 // pick it up rather than leaving it stuck for good.
                 "UPDATE parcels SET opening_since = 0 WHERE state = 'opening'",
             ),
+
+            // 3 - clear out what the hashing key change made unreadable.
+            //
+            // Ids.hash became an HMAC under a key kept outside the database
+            // file (see Pepper). Digests written before that cannot be matched
+            // by anything a caller could type, and cannot be converted -
+            // one-way is the point. What is left is rows that will never
+            // match: a phone holding a token the server no longer recognises,
+            // and one-time codes that expire in minutes anyway.
+            //
+            // Deleting them is the honest outcome and it is what happens on
+            // its own otherwise, slowly, one confusing 401 at a time. Everyone
+            // registers again once.
+            //
+            // Two things this cannot clean up. Pickup codes live on parcels
+            // and deleting those would lose the parcel, so a code issued
+            // before the change simply stops working and the receiver needs a
+            // new one. Cabinet keys have to be rotated by hand -
+            // `cabinet rotate <id>` - because the server never held anything
+            // it could re-issue from.
+            listOf(
+                "DELETE FROM tokens",
+                "DELETE FROM otp",
+            ),
         )
     }
 

@@ -64,3 +64,9 @@ Pods/
 # installed on a phone, and it is regenerated with the keystore.
 data/
 config/dev-cert/
+
+# The hashing key. Deliberately NOT in data/, so a copied database or a
+# backup does not carry it. Losing it logs everybody out; leaking it turns
+# every six-digit code in the database back into a guessable one. See
+# Pepper.kt.
+config/pepper.key
