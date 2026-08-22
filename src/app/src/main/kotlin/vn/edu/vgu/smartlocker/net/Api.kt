@@ -141,6 +141,42 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
     fun registerDevice(deviceId: String): Answer<Unit> =
         post("/devices", JSONObject().put("device_id", deviceId)).map { }
 
+    // --- The second way in - endpoints 20 and 21 ---------------------------
+
+    /**
+     * 20. Set a password on the account this token belongs to.
+     *
+     * Needs a live session, so it is also the reset path: prove the number
+     * with a one-time code, sign in, set a new one. ADR 0012. That is why
+     * there is no reset screen and no email address anywhere in the product.
+     *
+     * The password is not kept. It goes out once and is not written down on
+     * this phone - the only thing stored is the token, and that was already
+     * there before this call.
+     */
+    fun setPassword(password: String): Answer<Unit> =
+        post("/auth/set-password", JSONObject().put("password", password)).map { }
+
+    /**
+     * 21. Sign in with a number and a password.
+     *
+     * Like [verifyCode], the token is written to the secure store here rather
+     * than handed back, so no screen ever holds one.
+     */
+    fun passwordLogin(phoneNumber: String, password: String): Answer<Unit> {
+        val body = JSONObject()
+            .put("phone_number", phoneNumber)
+            .put("password", password)
+        return when (val answer = post("/auth/password-login", body, withToken = false)) {
+            is Answer.Ok -> {
+                tokens.write(Session.from(answer.value).token)
+                Answer.Ok(Unit)
+            }
+            is Answer.Refused -> answer
+            is Answer.Unclear -> answer
+        }
+    }
+
     // --- Both callers - endpoint 15 ----------------------------------------
 
     /**

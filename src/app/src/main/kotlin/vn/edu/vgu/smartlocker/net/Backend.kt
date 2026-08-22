@@ -58,6 +58,22 @@ class Backend(context: Context) {
 
     // --- What is waiting ---------------------------------------------------
 
+    /**
+     * Set a password on the signed-in account. Endpoint 20, task P2-09.
+     *
+     * Needs a live session, which is what makes it the reset path too.
+     */
+    suspend fun setPassword(password: String): Answer<Unit> = io { api.setPassword(password) }
+
+    /**
+     * Sign in with a number and a password. Endpoint 21.
+     *
+     * The only way in that works today - no Vietnamese one-time code has
+     * ever been delivered, BUG-016.
+     */
+    suspend fun passwordLogin(phoneNumber: String, password: String): Answer<Unit> =
+        io { api.passwordLogin(phoneNumber, password) }
+
     suspend fun parcels(): Answer<List<Parcel>> = io { api.waitingParcels() }
 
     suspend fun history(): Answer<List<Event>> = io { api.history() }

@@ -61,6 +61,33 @@ enum class Refusal(@param:StringRes val message: Int?) {
     SEND_FAILED(R.string.refused_send_failed),
 
     /**
+     * The phone number and the password do not go together.
+     *
+     * **One answer for every way it can fail** - a number this server has
+     * never seen, a right password on an account five wrong tries into a
+     * lockout, an account that never set one. The server answers this to all
+     * of them on purpose, so the endpoint cannot be asked which numbers are
+     * worth attacking, and the sentence here has to keep that promise: it
+     * never says whether the number has an account.
+     *
+     * That is also why it does not say "locked". Being told the lockout
+     * started is being told the password was right.
+     */
+    WRONG_PASSWORD(R.string.refused_wrong_password),
+
+    /**
+     * The password offered is too short, or too long to be worth hashing.
+     *
+     * Unlike [WRONG_PASSWORD] these say which way it was wrong, and that is
+     * safe: they are only ever reached by somebody who has already proved the
+     * number and is choosing a password, so there is nothing left to leak.
+     * Refusing without saying why would just be a screen that will not move
+     * on and will not say what to type.
+     */
+    PASSWORD_TOO_SHORT(R.string.refused_password_too_short),
+    PASSWORD_TOO_LONG(R.string.refused_password_too_long),
+
+    /**
      * The token has run out.
      *
      * **No message.** This one is not shown - the app sends the user back to

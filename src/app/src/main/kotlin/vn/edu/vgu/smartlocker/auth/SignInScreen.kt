@@ -2,6 +2,7 @@ package vn.edu.vgu.smartlocker.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -54,6 +55,10 @@ fun SignInScreen(
     number: String,
     onNumberChange: (String) -> Unit,
     onSendCode: () -> Unit,
+    /** The other way in - endpoint 21, task P2-09. It is offered rather than
+     *  made the default because a password can only be set from an account
+     *  that already exists, so a new receiver has to come this way first. */
+    onUsePassword: () -> Unit = {},
     /** What the server said, if anything went wrong asking for a code. Also
      * how this screen says the build has no server address at all. */
     note: Int? = null,
@@ -125,6 +130,22 @@ fun SignInScreen(
                     )
                 }
             }
+
+            // The second way in. A quiet line rather than a button: it is
+            // for somebody who already has an account, and the screen's job
+            // is to get a first-time receiver to a code.
+            //
+            // It is not conditional on anything. The app cannot know whether
+            // a number has a password without asking the server, and asking
+            // would be an endpoint that answers "is this number registered".
+            Text(
+                text = stringResource(R.string.pw_use_password),
+                style = MaterialTheme.typography.labelMedium,
+                color = t.accent,
+                modifier = Modifier
+                    .clickable(onClick = onUsePassword)
+                    .padding(start = 2.dp),
+            )
 
             // The Google and VGU buttons were here. Both are removed until
             // there is something behind them.

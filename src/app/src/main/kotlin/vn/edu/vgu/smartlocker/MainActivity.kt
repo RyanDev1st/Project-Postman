@@ -27,6 +27,8 @@ import vn.edu.vgu.smartlocker.net.Backend
 import vn.edu.vgu.smartlocker.net.Http
 import vn.edu.vgu.smartlocker.net.Refusal
 import vn.edu.vgu.smartlocker.auth.CodeScreen
+import vn.edu.vgu.smartlocker.auth.PasswordSignInScreen
+import vn.edu.vgu.smartlocker.auth.SetPasswordScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
 import vn.edu.vgu.smartlocker.cabinet.YourDoor
@@ -52,8 +54,8 @@ import vn.edu.vgu.smartlocker.ui.theme.SmartLockerTheme
  * them and the pickup flow reachable from Home or Cabinet.
  */
 enum class Screen {
-    SIGN_IN, CODE,
-    HOME, CABINET, SETTINGS,
+    SIGN_IN, CODE, PASSWORD_SIGN_IN,
+    HOME, CABINET, SETTINGS, SET_PASSWORD,
     SCAN, OPENED, TYPE_CODE,
 }
 
@@ -249,7 +251,9 @@ fun AppSkeleton(
      * that refused us; there is nothing to tell it.
      */
     fun endSession() {
-        if (screen == Screen.SIGN_IN || screen == Screen.CODE) return
+        if (screen == Screen.SIGN_IN || screen == Screen.CODE ||
+            screen == Screen.PASSWORD_SIGN_IN
+        ) return
         scope.launch { backend.forget() }
         number = ""
         busy = false
@@ -288,7 +292,10 @@ fun AppSkeleton(
 
     BackHandler(enabled = screen != Screen.SIGN_IN) {
         screen = when (screen) {
-            Screen.CODE -> Screen.SIGN_IN
+            Screen.CODE, Screen.PASSWORD_SIGN_IN -> Screen.SIGN_IN
+            // Back from setting a password returns to Settings, not out of
+            // the app: it is reached from there and nowhere else.
+            Screen.SET_PASSWORD -> Screen.SETTINGS
             Screen.HOME, Screen.CABINET, Screen.SETTINGS -> Screen.SIGN_IN
             Screen.SCAN, Screen.TYPE_CODE -> lastMain
             Screen.OPENED -> lastMain
@@ -338,6 +345,7 @@ fun AppSkeleton(
                             else authNote = sentenceFor(answer, R.string.unclear_no_server)
                         }
                     },
+                    onUsePassword = { authNote = null; screen = Screen.PASSWORD_SIGN_IN },
                     note = authNote ?: noAddress,
                     busy = busy,
                 )
@@ -357,6 +365,48 @@ fun AppSkeleton(
                     },
                     onBack = { screen = Screen.SIGN_IN; authNote = null },
                     number = number,
+                    note = authNote,
+                    busy = busy,
+                )
+
+                // Endpoint 21. The second way in, and today the only one
+                // that works at all - BUG-016 means no Vietnamese one-time
+                // code has ever been delivered.
+                Screen.PASSWORD_SIGN_IN -> PasswordSignInScreen(
+                    number = number,
+                    onNumberChange = { number = it },
+                    onSignIn = { typed ->
+                        busy = true
+                        authNote = null
+                        scope.launch {
+                            val answer = backend.passwordLogin(number, typed)
+                            busy = false
+                            if (answer is Http.Answer.Ok) gotoMain(Screen.HOME)
+                            else authNote = sentenceFor(answer, R.string.unclear_no_server)
+                        }
+                    },
+                    onUseCode = { authNote = null; screen = Screen.SIGN_IN },
+                    onBack = { authNote = null; screen = Screen.SIGN_IN },
+                    note = authNote,
+                    busy = busy,
+                )
+
+                // Endpoint 20. Reached from Settings and nowhere else,
+                // because it needs a live session - which is exactly what
+                // makes it the reset path as well. ADR 0012.
+                Screen.SET_PASSWORD -> SetPasswordScreen(
+                    onSave = { typed ->
+                        busy = true
+                        authNote = null
+                        scope.launch {
+                            val answer = backend.setPassword(typed)
+                            busy = false
+                            authNote =
+                                if (answer is Http.Answer.Ok) R.string.pw_saved
+                                else sentenceFor(answer, R.string.unclear_no_server)
+                        }
+                    },
+                    onBack = { authNote = null; screen = Screen.SETTINGS },
                     note = authNote,
                     busy = busy,
                 )
@@ -424,6 +474,10 @@ fun AppSkeleton(
                             // token behind because the wifi was down is the
                             // one outcome nobody expects. Api.logout keeps
                             // that promise; this only decides where to go.
+                            // "Change password" had nothing behind it -
+                            // onPassword defaulted to {} and nothing ever
+                            // passed one, which is the same shape as BUG-011.
+                            onPassword = { authNote = null; screen = Screen.SET_PASSWORD },
                             onLogOut = {
                                 scope.launch { backend.logOut() }
                                 number = ""

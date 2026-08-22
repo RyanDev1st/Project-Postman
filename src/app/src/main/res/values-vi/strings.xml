@@ -152,4 +152,28 @@
 
     <string name="working">Đang xử lý…</string>
     <string name="type_at_cabinet">Nhập mã này trên màn hình của tủ. Mã dùng khi điện thoại hết pin, nên không thể nhập ở đây.</string>
+    <!-- 9b. A password: set one, and sign in with one. Task P2-09, ADR 0012.
+         No email anywhere and no reset screen - forgetting a password is the
+         one-time code, then setting a new one. -->
+    <string name="pw_set_title_lead">Đặt</string>
+    <string name="pw_set_title_accent">mật khẩu</string>
+    <string name="pw_signin_title_lead">Đăng nhập bằng</string>
+    <string name="pw_signin_title_accent">mật khẩu</string>
+    <string name="pw_set_sub">Cách vào thứ hai, cho khi tin nhắn không đến.</string>
+    <string name="pw_label">MẬT KHẨU</string>
+    <string name="pw_placeholder">Ít nhất 8 ký tự</string>
+    <string name="pw_again_label">NHẬP LẠI</string>
+    <string name="pw_save">Lưu mật khẩu</string>
+    <string name="pw_saved">Đã lưu mật khẩu. Từ giờ bạn có thể đăng nhập bằng nó.</string>
+    <string name="pw_mismatch">Hai ô không giống nhau.</string>
+    <string name="pw_show">Hiện</string>
+    <string name="pw_hide">Ẩn</string>
+    <string name="pw_signin_sub">Số của bạn và mật khẩu bạn đã đặt.</string>
+    <string name="pw_signin_go">Đăng nhập</string>
+    <string name="pw_use_password">Đăng nhập bằng mật khẩu</string>
+    <string name="pw_use_code">Gửi mã cho tôi</string>
+    <string name="refused_wrong_password">Số điện thoại và mật khẩu không khớp. Nếu bạn đã thử nhiều lần, hãy đợi mười lăm phút rồi thử lại.</string>
+    <string name="refused_password_too_short">Quá ngắn. Dùng ít nhất 8 ký tự.</string>
+    <string name="refused_password_too_long">Quá dài. Dùng tối đa 200 ký tự.</string>
+
 </resources>
