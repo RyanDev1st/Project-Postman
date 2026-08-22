@@ -16,7 +16,7 @@ import javax.net.ssl.HttpsURLConnection
  * and the refusal codes are decided once instead of being re-decided, badly,
  * in whichever screen needed a call that afternoon.
  *
- * Three things this file will not do, each of them load-bearing:
+ * Four things this file will not do, each of them load-bearing:
  *
  * 1. **It never speaks plain HTTP.** Not in test, not behind a flag. A URL
  *    that is not `https://` throws before a socket is opened.
@@ -25,6 +25,9 @@ import javax.net.ssl.HttpsURLConnection
  *    decision, made per call, and for [Api.collectByScan] the answer is no.
  * 3. **It never logs a token, a key, or a body.** There is no debug flag that
  *    turns that on, because a flag like that is always on somewhere.
+ * 4. **It never holds a connection open between calls.** See [CLOSE] below.
+ *    Rule 2 is why: a client that cannot retry cannot afford to inherit a
+ *    socket that died while nobody was looking.
  *
  * No HTTP library. Android carries `HttpURLConnection` and `org.json`, and
  * fifteen small JSON endpoints do not justify a dependency.
@@ -37,6 +40,26 @@ object Http {
 
     /** What the server calls us. Handy in its logs when something is odd. */
     private const val USER_AGENT = "VGUSmartLocker-Android"
+
+    /**
+     * One connection, one call. Never a second call down the same socket.
+     *
+     * BUG-019. The gap between two of this app's calls is a person: they tap
+     * `Send code`, wait for a text, read it, and type six digits. That is
+     * always more than ten seconds, and ten seconds is exactly how long our
+     * own server keeps a quiet connection - `requestReadTimeoutSeconds` in
+     * `Main.kt`, which is the slow-client defence and is staying. A carrier's
+     * NAT is less patient still. So by the time the second call is made the
+     * pooled socket is dead, and `HttpURLConnection` sends the request down
+     * it anyway: it will not re-send a POST that carries a body, and by
+     * rule 2 neither will we. The person sees *could not reach the server*,
+     * taps again, and it works - which is the shape of every report of this.
+     *
+     * Asking the server to close each connection empties the pool, so there
+     * is never a dead socket to inherit. The price is a TLS handshake per
+     * call, on a screen flow that makes about fifteen of them.
+     */
+    private const val CLOSE = "close"
 
     /**
      * The answer to a request. Three outcomes, not two.
@@ -100,6 +123,7 @@ object Http {
                 instanceFollowRedirects = false
                 setRequestProperty("Accept", "application/json")
                 setRequestProperty("User-Agent", USER_AGENT)
+                setRequestProperty("Connection", CLOSE)
                 token?.let { setRequestProperty("Authorization", "Bearer $it") }
             }
 
