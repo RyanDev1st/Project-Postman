@@ -6,7 +6,7 @@ Source for both front-ends, one folder each — they share no code, only the API
 | --- | --- | --- | --- |
 | `cabinet/` | The cabinet screen, for the shipper. A public terminal, no login | Web page — [ADR 0009](../docs/adr/0009-start-phase-1-early.md) | P1-03 ✅ |
 | `app/` | The phone app, for the receiver | Kotlin, native Android — [ADR 0001](../docs/adr/0001-tech-stack.md) | P1-01, not yet |
-| `otp-server/` | **Not shipped, and not ours to own.** A reference server that answers the login endpoints, so the app can be built and tested before the Server team's server exists. It is a proposal in runnable form — [ADR 0005](../docs/adr/0005-we-propose-they-object.md) | Kotlin, Ktor | P2-01…P2-03, P2-08 |
+| `otp-server/` | **Superseded, and no longer built.** It was the reference login server written before we owned the real one. [ADR 0019](../docs/adr/0019-we-own-the-server.md) and [ADR 0020](../docs/adr/0020-the-server-is-kotlin.md) made `server/` ours, and this stopped being a Gradle module — nothing in `settings.gradle.kts` includes it, so it does not compile as part of the build and cannot be run. Kept, not deleted, because `/auth/google`, `/auth/set-password` and `/auth/password-login` are written and tested here and P2-08 and P2-09 need them ported | Kotlin, Ktor | dead — source for P2-08, P2-09 |
 
 ## Folder rules
 

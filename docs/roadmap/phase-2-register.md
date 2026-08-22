@@ -48,12 +48,12 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
 - [ ] **P2-08** — Sign in with Google, on top of the phone number
       - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
       - Verify: on a real Android phone, tapping "Continue with Google" on an account that has already registered by phone reaches the parcel list without a code being typed; and a Google account that has never registered is asked for a phone number first
-      - Notes: decided in [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoint 19 in [api-contract.md](../reference/api-contract.md); the reference server already answers it and its checks are tested. **Blocked on an OAuth client id, which only Ryan can create** — see the ADR. No passwords are added, on purpose
+      - Notes: decided in [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoint 19 in [api-contract.md](../reference/api-contract.md). **Correction, 2026-08-22: the shipping server does not answer it.** `/auth/google` and its tests live in `src/otp-server/`, which stopped being a Gradle module when [ADR 0020](../adr/0020-the-server-is-kotlin.md) made `:server` the real one - so it is not built, not run, and not reachable. The code is a good starting point and nothing more. This task is therefore server work as well as app work. **Blocked on an OAuth client id, which only Ryan can create** — see the ADR. No passwords are added, on purpose
 
 - [ ] **P2-09** — Set a password, and sign in with one
       - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
       - Verify: on a real Android phone, set a password after registering by code, close the app fully, sign in with the phone number and that password, and reach the parcel list. Then type it wrong five times and confirm the right password stops working until fifteen minutes have passed
-      - Notes: decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md), which reverses the no-passwords half of [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoints 20 and 21. The server side is written and tested; **no email anywhere, and no reset screen** — forgetting a password is the one-time code, then set a new one
+      - Notes: decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md), which reverses the no-passwords half of [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoints 20 and 21. **Correction, 2026-08-22: not in the shipping server.** `/auth/set-password` and `/auth/password-login`, with their Argon2id tests, are in `src/otp-server/`, which is no longer a Gradle module and is not built - see P2-08. Porting them is most of this task; **no email anywhere, and no reset screen** — forgetting a password is the one-time code, then set a new one
 
 ## Exit check
 
