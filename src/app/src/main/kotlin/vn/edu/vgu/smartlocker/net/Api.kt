@@ -148,8 +148,12 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
      *
      * The answer is applied by [Settings], which keeps the higher
      * `settings_version` and ignores `server_base_url` entirely. Task P1-08.
+     *
+     * `true` means a number really changed. The caller needs to know,
+     * because a screen that has already read the old numbers has no way to
+     * find out on its own - none of them is observable state.
      */
-    fun fetchSettings(): Answer<Unit> =
+    fun fetchSettings(): Answer<Boolean> =
         get("/settings").map { settings.apply(it) }
 }
 

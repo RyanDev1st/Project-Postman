@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -141,6 +142,30 @@ fun AppSkeleton(
     // the settings, and both read files - remaking it on every recomposition
     // would re-read them thirty times a second.
     val backend = remember { Backend(context) }
+
+    // Endpoint 15, once per launch. Task P1-08.
+    //
+    // Every number in this build is a guess - how long a QR code lives, how
+    // many hours a parcel may sit before the ticket says hurry - and the
+    // point of that task is that a wrong guess is corrected by editing one
+    // file on the server, not by asking a hundred people to update the app.
+    // The plumbing was built on both sides and nothing ever pulled it, so
+    // until now every guess was frozen at whatever shipped.
+    //
+    // It carries no credential, so it runs before sign-in too. It is never
+    // retried and a failure is never shown: the last good copy stays, and
+    // none of these numbers open a door.
+    //
+    // The stamp is why Home draws with the corrected numbers on this launch
+    // and not the next one. This fetch finishes after Home has already read
+    // `pickupCodeHours`, and that is a plain getter over a file, not state
+    // Compose watches - so without the stamp a number corrected on the
+    // server landed one launch late. Seen: the ticket said 48 hours on the
+    // launch that fetched 96, and agreed only on the one after. It moves
+    // only when something really changed, so the usual launch, which
+    // corrects nothing, redraws nothing.
+    var settingsStamp by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) { if (backend.refreshSettings()) settingsStamp++ }
 
     // A phone that has signed in before opens on Home.
     //
@@ -346,7 +371,7 @@ fun AppSkeleton(
                         // Reloaded when Home is arrived at, which includes
                         // coming back from a collect - so a parcel that has
                         // just been taken out stops being listed.
-                        val home = rememberHome(backend, reloadKey = openedBox)
+                        val home = rememberHome(backend, reloadKey = openedBox to settingsStamp)
                         HomeScreen(
                             parcels = home.parcels,
                             second = home.second,
@@ -370,7 +395,7 @@ fun AppSkeleton(
                         // used to build two parcels of its own - box 04 and
                         // box 07 - which is why it never named the box Home
                         // named.
-                        val cab = rememberHome(backend, reloadKey = openedBox)
+                        val cab = rememberHome(backend, reloadKey = openedBox to settingsStamp)
                         CabinetScreen(
                             onScan = { gotoScan() },
                             onTypeCode = { codeBox = it; screen = Screen.TYPE_CODE },

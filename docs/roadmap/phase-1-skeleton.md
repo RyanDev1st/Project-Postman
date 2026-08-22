@@ -54,7 +54,10 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
 - [ ] **P1-08** — A changed setting reaches a phone without a new release
       - Owner: _unassigned_ · Needs: P0-15, P1-05 · Blocks: —
       - Verify: change one number in `config/settings.json`, do **not** rebuild the app, and the phone behaves by the new number
-      - Notes: design is in [config/README.md](../../config/README.md). The server side is endpoint 15 in `api-contract.md`, proposed 2026-08-06 — it goes to the Server team with P0-04. Until this is ticked, every guessed number is frozen at whatever shipped
+      - Notes: design is in [config/README.md](../../config/README.md). The server side is endpoint 15 in `api-contract.md`. It no longer goes to anybody — the server is ours, [ADR 0019](../adr/0019-we-own-the-server.md)
+      - Notes: **built and proven by machine on 2026-08-22; not ticked, because `Verify` says *the phone* and an emulator is not one.** Both halves existed and **nothing ever called them** — `Backend.refreshSettings()` had no caller anywhere in the app, so every guessed number really was frozen at whatever shipped. `MainActivity` now asks once per launch. It carries no credential, so it runs before sign-in too; it is never retried, and a failure is never shown, because the last good copy stays and none of these numbers open a door.
+        Proven on the `parity` emulator against the real server over TLS, with a real parcel in box 07: `pickup_code_hours` was changed from 96 to 72 in `config/settings.json`, `settings_version` raised, the server restarted, and **the app was not rebuilt** — the installed build predates the change. The claim ticket went from *96h left / collect by 26 Aug* to *72h left / collect by 25 Aug* on the first launch after it.
+        One fault was found and fixed by that walk: the corrected number landed **one launch late**. The fetch finishes after Home has read the numbers, and none of them is state Compose watches, so the launch that fetched 96 still drew 48. Home is now redrawn when — and only when — a number really changed
 
 - [x] **P1-09** — Name every screen in the app, and what it must never show
       - Owner: Team · Needs: P1-01 · Blocks: P2-01, P4-04, P5-02

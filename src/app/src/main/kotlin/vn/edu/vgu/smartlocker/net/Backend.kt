@@ -88,10 +88,14 @@ class Backend(context: Context) {
     /**
      * Fetch corrected settings. Failing is fine and is not reported: the last
      * good copy stays, which is rule 2 of [Settings].
+     *
+     * @return `true` if a number actually changed, so a screen that has
+     *   already drawn with the old ones can be asked to draw again. A fetch
+     *   that changes nothing - which is nearly every one - returns `false`
+     *   and costs nothing.
      */
-    suspend fun refreshSettings() {
-        io { api.fetchSettings() }
-    }
+    suspend fun refreshSettings(): Boolean =
+        io { api.fetchSettings() }.let { it is Answer.Ok && it.value }
 
     private suspend fun <T> io(work: () -> T): T = withContext(Dispatchers.IO) { work() }
 }
