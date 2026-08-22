@@ -21,6 +21,8 @@ import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import vn.edu.vgu.smartlocker.server.auth.LogSms
 import vn.edu.vgu.smartlocker.server.auth.Accounts
+import vn.edu.vgu.smartlocker.server.auth.GoogleCerts
+import vn.edu.vgu.smartlocker.server.auth.GoogleTokens
 import vn.edu.vgu.smartlocker.server.auth.Otp
 import vn.edu.vgu.smartlocker.server.auth.SpeedSms
 import vn.edu.vgu.smartlocker.server.auth.Tokens
@@ -159,6 +161,16 @@ fun Application.locker(db: Db, config: Config) {
     // The same two numbers a box lockout uses. One wrong-guess policy for the
     // whole product is easier to argue about than two that drift apart.
     val accounts = Accounts(db, config.wrongTriesBeforeLock, config.boxLockMinutes)
+
+    // Endpoint 19 is off unless a client id is configured, and it says so -
+    // `GOOGLE_OFF`, not a refusal that reads as "your Google account was
+    // rejected". The id is an environment variable and not a setting,
+    // because `config/settings.json` is served to both front-ends by
+    // endpoint 15 and this does not belong in that answer.
+    val google = System.getenv("GOOGLE_CLIENT_ID")
+        ?.takeIf { it.isNotBlank() }
+        ?.let { GoogleTokens(it, GoogleCerts()) }
+    if (google == null) log.info("google    off - set GOOGLE_CLIENT_ID to turn endpoint 19 on")
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
 
     tokens.sweep()
@@ -168,7 +180,7 @@ fun Application.locker(db: Db, config: Config) {
         // Grouped by what a flood of it would cost. `auth` is the paid path,
         // `cabinet` is a trusted device that polls constantly, `read` is
         // everything a signed-in phone does.
-        rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens, accounts) }
+        rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens, accounts, google) }
         rateLimit(READ_LIMIT) { parcelRoutes(db, tokens, collect) }
         rateLimit(CABINET_LIMIT) {
             cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)

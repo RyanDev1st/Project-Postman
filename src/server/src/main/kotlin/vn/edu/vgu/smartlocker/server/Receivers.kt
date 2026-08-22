@@ -55,6 +55,38 @@ object Receivers {
     fun find(db: Db, phone: String): String? =
         db.row("SELECT id FROM receivers WHERE phone = ?", phone) { it.str("id") }
 
+    // --- The Google link - endpoint 19, task P2-08 -------------------------
+
+    /**
+     * The receiver a Google account is tied to, or null while it is unlinked.
+     *
+     * Keyed by Google's `sub` and never by the email address: a person can
+     * change their Gmail address, and `sub` cannot be changed for as long as
+     * the account lives.
+     */
+    fun findByGoogle(db: Db, sub: String): String? =
+        db.row("SELECT id FROM receivers WHERE google_sub = ?", sub) { it.str("id") }
+
+    /**
+     * Tie a Google account to a receiver.
+     *
+     * Doing it again re-points it, and that is safe rather than sloppy: it
+     * takes both the Google account **and** a one-time code on the new phone,
+     * and anybody holding both is the same person. It is how somebody who
+     * changes phone number keeps their Google sign-in.
+     *
+     * The unique index does the rest. Linking a Google account that is
+     * already tied to a different receiver fails here rather than quietly
+     * leaving two rows a sign-in could pick between - and the row it picked
+     * would be somebody else's parcels.
+     */
+    fun linkGoogle(db: Db, receiverId: String, sub: String) = db.transaction {
+        // Cleared from whoever held it, so re-pointing does not trip the
+        // unique index against a row that is about to stop using it.
+        db.exec("UPDATE receivers SET google_sub = NULL WHERE google_sub = ?", sub)
+        db.exec("UPDATE receivers SET google_sub = ? WHERE id = ?", sub, receiverId)
+    }
+
     fun name(db: Db, receiverId: String): String =
         db.row("SELECT full_name FROM receivers WHERE id = ?", receiverId) { it.str("full_name") }
             .orEmpty()

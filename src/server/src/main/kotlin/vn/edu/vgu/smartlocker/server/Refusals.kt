@@ -76,7 +76,6 @@ enum class Refusal(val status: HttpStatusCode) {
     /** Too many wrong tries at this box. */
     BOX_LOCKED_OUT(HttpStatusCode.TooManyRequests),
 
-    /** The cabinet key was missing, or is not one we issued. */
     /**
      * Endpoint 20 only. The two length rules are the whole password policy.
      *
@@ -99,6 +98,40 @@ enum class Refusal(val status: HttpStatusCode) {
      */
     WRONG_PASSWORD(HttpStatusCode.Unauthorized),
 
+    // --- Google - endpoint 19 ----------------------------------------------
+
+    /**
+     * No client id is configured on this server, so the check cannot be made.
+     *
+     * Not an error on the caller's part, and deliberately its own code: the
+     * app is meant to hide the Google button rather than show one that
+     * cannot work. Answering `GOOGLE_INVALID` here would tell a user their
+     * Google account was refused, which is not what happened.
+     */
+    GOOGLE_OFF(HttpStatusCode.NotImplemented),
+
+    /**
+     * Every way an ID token can be wrong, in one code and on purpose.
+     *
+     * Bad signature, wrong `aud`, wrong issuer, expired, `alg` swapped,
+     * unknown `kid`, not three parts at all. Saying which check failed is
+     * free help to somebody probing the verifier - see `GoogleTokens`, which
+     * returns null for all of them for the same reason.
+     */
+    GOOGLE_INVALID(HttpStatusCode.BadRequest),
+
+    /**
+     * A genuine Google account that is not linked to any phone number here.
+     *
+     * **Not a failure.** It is the app's cue to ask for a phone number and a
+     * one-time code, and then call endpoint 19 again carrying the receiver
+     * token, which links the two. A Google account has no phone number and a
+     * shipper finds people by number, so Google can never make an account on
+     * its own - only sign in to one that already exists.
+     */
+    PHONE_REQUIRED(HttpStatusCode.BadRequest),
+
+    /** The cabinet key was missing, or is not one we issued. */
     CABINET_UNKNOWN(HttpStatusCode.Unauthorized),
 }
 

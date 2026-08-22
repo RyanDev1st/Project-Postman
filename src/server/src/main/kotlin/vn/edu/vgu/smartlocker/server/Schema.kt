@@ -125,6 +125,27 @@ object Schema {
                 "ALTER TABLE receivers ADD COLUMN password_tries INTEGER NOT NULL DEFAULT 0",
                 "ALTER TABLE receivers ADD COLUMN password_locked_until INTEGER NOT NULL DEFAULT 0",
             ),
+
+            // 6 - the Google account tied to a receiver. Endpoint 19, P2-08.
+            //
+            // Keyed by Google's `sub`, never by the email address. A person
+            // can change their Gmail address; `sub` stays the same for as
+            // long as the account lives, so an email key would quietly
+            // detach somebody from their own parcels.
+            //
+            // A column rather than a table: it is one value per receiver and
+            // the link is the receiver's, not a thing of its own.
+            //
+            // UNIQUE, and that is the load-bearing part. Without it one
+            // Google account could be linked to two phone numbers, and
+            // signing in with Google would then reach whichever row the
+            // database happened to return - somebody else's parcels. SQLite
+            // lets any number of rows hold NULL in a unique column, which is
+            // what makes NULL and not '' the right unlinked value.
+            listOf(
+                "ALTER TABLE receivers ADD COLUMN google_sub TEXT",
+                "CREATE UNIQUE INDEX IF NOT EXISTS receivers_google ON receivers(google_sub)",
+            ),
         )
     }
 

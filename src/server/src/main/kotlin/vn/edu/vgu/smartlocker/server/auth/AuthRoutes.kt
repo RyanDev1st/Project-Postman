@@ -20,7 +20,15 @@ import vn.edu.vgu.smartlocker.server.refuse
  * silently broken login, because the app's parsers are lenient by design and
  * a missing field reads as empty rather than throwing.
  */
-fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens, accounts: Accounts) {
+fun Route.authRoutes(
+    db: Db,
+    otp: Otp,
+    tokens: Tokens,
+    accounts: Accounts,
+    /** Null when no `GOOGLE_CLIENT_ID` is set. Endpoint 19 then answers
+     *  `GOOGLE_OFF` rather than pretending to check anything. */
+    google: GoogleTokens? = null,
+) {
 
     /** 1. Ask for a one-time code. No token: this is the way in. */
     post("/auth/request-code") {
@@ -108,7 +116,50 @@ fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens, accounts: Accounts) {
         val issued = tokens.mint(me)
         call.respond(SessionResponse(issued.token, issued.expiresAt.toString()))
     }
+
+    /**
+     * 19. Sign in with Google, or link Google to the account already signed in.
+     *
+     * **Google can never make an account here.** A Google account has no
+     * phone number, and the shipper finds a receiver by typing a phone number
+     * on the cabinet screen - so an account made this way could be signed in
+     * to and never be sent a parcel. ADR 0011.
+     *
+     * That gives the endpoint two jobs, told apart by whether a receiver
+     * token rides along:
+     *
+     *  - **No token.** Sign in, if this Google account is already linked. If
+     *    it is not, the answer is `PHONE_REQUIRED`, which is not a failure -
+     *    it is the app's cue to take a phone number and a one-time code and
+     *    come back here with the token.
+     *  - **With a token.** Link this Google account to that receiver, and
+     *    hand back a fresh token. This is the second half of the flow above,
+     *    and the only way a link is ever made.
+     *
+     * The ID token is checked here rather than at Google's tokeninfo
+     * endpoint: that keeps the network, and somebody else's rate limit, off
+     * the login path. Every check is in [GoogleTokens] with a test attacking
+     * it, and every failure is the same refusal.
+     */
+    post("/auth/google") {
+        val checker = google ?: call.refuse(Refusal.GOOGLE_OFF)
+        val asked = call.receive<GoogleRequest>()
+        val sub = checker.subjectOf(asked.idToken.trim()) ?: call.refuse(Refusal.GOOGLE_INVALID)
+
+        val me = when (val bearer = call.bearer()) {
+            null -> Receivers.findByGoogle(db, sub) ?: call.refuse(Refusal.PHONE_REQUIRED)
+            else -> tokens.receiverFor(bearer)
+                ?.also { Receivers.linkGoogle(db, it, sub) }
+                ?: call.refuse(Refusal.TOKEN_EXPIRED)
+        }
+
+        val issued = tokens.mint(me)
+        call.respond(SessionResponse(issued.token, issued.expiresAt.toString()))
+    }
 }
+
+@Serializable
+data class GoogleRequest(@SerialName("id_token") val idToken: String = "")
 
 @Serializable
 data class PasswordRequest(val password: String = "")
