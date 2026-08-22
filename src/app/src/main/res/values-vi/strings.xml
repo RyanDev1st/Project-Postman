@@ -133,6 +133,8 @@
     <string name="set_language">Ngôn ngữ</string>
     <string name="set_dark_mode">Nền tối</string>
     <string name="set_version">Phiên bản</string>
+    <string name="set_log_out">Đăng xuất</string>
+    <string name="signed_out_expired">Bạn đã được đăng xuất. Nhập số của bạn để đăng nhập lại.</string>
 
     <!--
         Từ chối — đúng câu chữ trong api-contract.md.

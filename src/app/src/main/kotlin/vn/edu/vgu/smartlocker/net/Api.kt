@@ -96,6 +96,17 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
         return answer.map { }
     }
 
+    /**
+     * Drop the token without telling the server.
+     *
+     * For the one case where telling it is pointless: the server has just
+     * refused this token as expired, so calling endpoint 4 with it would be
+     * one more request that fails, on a person who is already being sent back
+     * to register. [logout] is the deliberate act; this is the tidy-up after
+     * the server has already ended the session for us.
+     */
+    fun forget() = tokens.clear()
+
     // --- Parcels and pickup - endpoints 5 to 8 -----------------------------
 
     /** 5. What is waiting for me, and where. */

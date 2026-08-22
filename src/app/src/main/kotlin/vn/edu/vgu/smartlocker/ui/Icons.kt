@@ -121,6 +121,11 @@ object AppIcons {
     }
 
     /** A tick on its own. */
+    /** A door with an arrow leaving it. Log out, not the locker's Lock. */
+    val LogOut: ImageVector by lazy {
+        stroke("logOut", "M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4", "M15 12H4", "M8 8l-4 4 4 4")
+    }
+
     val Check: ImageVector by lazy { stroke("check", "M5 12.5l5 5 9-11") }
 
     // ---- refusals --------------------------------------------------------

@@ -166,6 +166,11 @@
     <string name="set_dark_mode">Dark mode</string>
     <!-- Which build this is, so a report about it can name one. -->
     <string name="set_version">Version</string>
+    <string name="set_log_out">Log out</string>
+    <!-- After the server refuses a token that has run out. It says what
+         happened and what to do, and never mentions a token: the person was
+         simply away for a while. -->
+    <string name="signed_out_expired">You were signed out. Enter your number to sign in again.</string>
 
     <!--
         The language names are deliberately NOT translated. A person looking

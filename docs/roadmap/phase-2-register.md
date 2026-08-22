@@ -2,7 +2,7 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 0 / 9.** Ticked, that is - not 0 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase says *a real Android phone*, and an emulator is not one, so none of them are ticked. The gap is one session with Ryan's phone, not more building. P2-02 is the real blocker and it is an account setting at SpeedSMS. See `docs/findings/2026-08-21-otp-channel-choice.md`.
+**Progress: 1 / 9.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 is the real blocker and it is an account setting at SpeedSMS. See `docs/findings/2026-08-21-otp-channel-choice.md`.
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
@@ -40,10 +40,11 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Verify: each of the three cases shows its own plain sentence on a real phone. No code shown raw
       - Status 2026-08-21: **half done.** Two of the sentences were missing entirely - a cooldown and a failed send both showed "Something went wrong. Try again.", which invites the one action that cannot work (BUG-018, fixed, both languages). The three code cases in this task's `Verify` - wrong, expired, too many tries - have still not been walked on a screen.
 
-- [ ] **P2-07** — Log out, and handle an expired token
-      - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
+- [x] **P2-07** — Log out, and handle an expired token
+      - Owner: Claude · Needs: P2-05 · Blocks: —
       - Verify: log out clears the token; an expired token sends the user back to register once, with no loop
-      - Status 2026-08-21: **not started, and it is the one real gap left in this phase.** Nothing logs out, and nothing has been walked with a dead token. The server side exists - it answers `401` on an expired token - but what the app does next has never been seen. The risk this task exists to remove is a loop: the app is sent back to register, registers, gets the same dead token, and goes round again.
+      - Done: 2026-08-22 — Signed in on the emulator with a real account and a real code, then tapped **Log out** in Settings. The app went back to the sign-in screen and the phone's token store was empty afterwards — nothing left behind. Then the other half: signed in again, deleted that account's token on the server so the phone was holding a dead one, and reopened the app. It landed on sign-in **once**, saying *"You were signed out. Enter your number to sign in again."*, threw the dead token away, and sat still — checked again at six, twelve and eighteen seconds, same screen every time. Typing the number again signed straight back in and reached Home. So there is no loop, and there cannot be one: the phone has nothing left to send.
+      - Notes: two bugs came out of the walk. **BUG-020** — the Log out row is drawn underneath the bottom navigation bar, so the first tap hits the Cabinet tab instead; it works after one scroll, which is how it was tested. **BUG-019** — unrelated to this task and far worse: every second call the app made was failing. Fixed and proven in the same session.
 
 - [ ] **P2-08** — Sign in with Google, on top of the phone number
       - Owner: _unassigned_ · Needs: P2-05 · Blocks: —

@@ -62,6 +62,7 @@ fun SettingsScreen(
     onLanguage: (AppLanguage) -> Unit = {},
     onPin: () -> Unit = {},
     onPassword: () -> Unit = {},
+    onLogOut: () -> Unit = {},
 ) {
     val t = LocalLockerTokens.current
     var parcelNotices by remember { mutableStateOf(true) }
@@ -173,6 +174,15 @@ fun SettingsScreen(
                 icon = AppIcons.Badge,
                 title = stringResource(R.string.set_version),
                 value = BuildConfig.VERSION_NAME,
+            )
+            // Last, and in the same stack rather than shouting in red at the
+            // bottom of the screen. Logging out of a locker app is a small
+            // act - the parcels stay where they are - and a row that looks
+            // dangerous invites the question of what it will destroy.
+            SettingsRow(
+                icon = AppIcons.LogOut,
+                title = stringResource(R.string.set_log_out),
+                onClick = onLogOut,
             )
         }
 

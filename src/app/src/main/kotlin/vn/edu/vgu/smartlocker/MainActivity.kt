@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import vn.edu.vgu.smartlocker.net.Backend
 import vn.edu.vgu.smartlocker.net.Http
+import vn.edu.vgu.smartlocker.net.Refusal
 import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
@@ -206,6 +207,31 @@ fun AppSkeleton(
      * arrived - the network dropped after it went out - so the honest answer
      * is that we do not know, and rule 4 in `architecture.md` says to say so.
      */
+    /**
+     * End the session and send the person back to register. Once.
+     *
+     * **The loop this guards against is the whole task.** A token that has
+     * run out is noticed by whatever call happened to be in flight - the
+     * parcel list, the history, a scan - and each of those could send the
+     * user back to sign in on its own. Home reloads on arrival, so a version
+     * of this without the guard bounces: Home asks, is refused, goes to sign
+     * in, and any other answer still landing does it again.
+     *
+     * Already on the way in? Then nothing to do. That single line is what
+     * makes it happen once. Rule 5 in `architecture.md`.
+     *
+     * The token is dropped locally and the server is not told. It is the one
+     * that refused us; there is nothing to tell it.
+     */
+    fun endSession() {
+        if (screen == Screen.SIGN_IN || screen == Screen.CODE) return
+        scope.launch { backend.forget() }
+        number = ""
+        busy = false
+        authNote = R.string.signed_out_expired
+        screen = Screen.SIGN_IN
+    }
+
     fun <T> sentenceFor(
         answer: Http.Answer<T>,
         // What "we do not know" means here. The default is written for the
@@ -217,10 +243,22 @@ fun AppSkeleton(
         // existing. Unclear is still the honest answer there; it just has a
         // different thing to say.
         unclear: Int = R.string.unclear_result,
-    ): Int = when (answer) {
-        is Http.Answer.Ok -> R.string.working
-        is Http.Answer.Unclear -> unclear
-        is Http.Answer.Refused -> answer.reason.message ?: R.string.refused_unknown
+    ): Int {
+        // Every answer from the server passes through here, which is why the
+        // check lives here and not in six screens that would each forget it
+        // differently.
+        if (answer is Http.Answer.Refused && answer.reason == Refusal.TOKEN_EXPIRED) {
+            endSession()
+        }
+        return when (answer) {
+            is Http.Answer.Ok -> R.string.working
+            is Http.Answer.Unclear -> unclear
+            // TOKEN_EXPIRED carries no words on purpose - endSession has
+            // already put the right sentence on the sign-in screen, and a
+            // second one about tokens would explain plumbing to somebody who
+            // was simply away for a month.
+            is Http.Answer.Refused -> answer.reason.message ?: R.string.refused_unknown
+        }
     }
 
     BackHandler(enabled = screen != Screen.SIGN_IN) {
@@ -355,6 +393,18 @@ fun AppSkeleton(
                             onToggleDark = onToggleDark,
                             language = language,
                             onLanguage = onLanguage,
+                            // Endpoint 4. The token is cleared on this phone
+                            // whatever the server answers - a person who
+                            // tapped Log out has logged out, and leaving the
+                            // token behind because the wifi was down is the
+                            // one outcome nobody expects. Api.logout keeps
+                            // that promise; this only decides where to go.
+                            onLogOut = {
+                                scope.launch { backend.logOut() }
+                                number = ""
+                                authNote = null
+                                screen = Screen.SIGN_IN
+                            },
                         )
                     },
                 )

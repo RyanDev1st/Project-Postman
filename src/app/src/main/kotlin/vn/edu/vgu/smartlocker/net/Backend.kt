@@ -50,7 +50,11 @@ class Backend(context: Context) {
     suspend fun verifyCode(number: String, code: String, fullName: String = ""): Answer<Unit> =
         io { api.verifyCode(number, code, fullName) }
 
+    /** The deliberate act. Clears locally whatever the server answers. */
     suspend fun logOut(): Answer<Unit> = io { api.logout() }
+
+    /** The server already ended it. Just drop what we are holding. */
+    suspend fun forget() = io { api.forget() }
 
     // --- What is waiting ---------------------------------------------------
 
