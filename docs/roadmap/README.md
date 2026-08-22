@@ -104,7 +104,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 0 — Agree** · [phase-0-agree.md](phase-0-agree.md) · `12/17`
       Settle the stack, the cabinet hardware, the sensor, the codes and the API contract. No code.
       **5 deferred `⏸️ LATER`** — [ADR 0009](../adr/0009-start-phase-1-early.md). **P0-04 is the critical path for the entire board** — send the contract, get an address.
-- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `3/9`
+- [ ] **Phase 1 — Skeleton** · [phase-1-skeleton.md](phase-1-skeleton.md) · `5/9`
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
 - [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `4/10` · **CURRENT**
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
@@ -123,7 +123,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/13`
       Device tests, bug fixing, release build, rollback page, and the Play listing.
 
-**Total: 19 / 91.**  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 21 / 91.**  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

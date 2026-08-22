@@ -2,7 +2,7 @@
 
 **Goal:** an empty app runs on the real Android phone, an empty cabinet screen runs in a browser, and both reach the real server.
 
-**Progress: 3 / 9.**  ·  **OPEN — P1-01 is built and waiting on a phone**
+**Progress: 5 / 9.**  ·  **OPEN — P1-01 is built and waiting on a phone**
 
 No feature in this phase. Only proof that the pipes exist.
 
@@ -38,16 +38,18 @@ Phase 0 no longer gates this phase — [ADR 0009](../adr/0009-start-phase-1-earl
       - Verify: the app calls one real endpoint and the server log shows the request arriving
       - Notes: **the app's half is built** — P1-04. It is blocked on there being a server to call: `server_base_url` in `config/settings.json` is empty and stays empty until P0-04 is sent and answered. P0-04 was added to Needs on 2026-08-07, because the dependency was always real and was not written down
 
-- [ ] **🔴 BLOCKED — P1-06** — The cabinet reaches the real server with its key
-      - Owner: _unassigned_ · Needs: P1-03, P0-04 · Blocks: P1-07, P3-01, P5-01
+- [x] **P1-06** — The cabinet reaches the real server with its key
+      - Owner: Claude · Needs: P1-03, P0-04 · Blocks: P1-07, P3-01, P5-01
       - Verify: the cabinet calls one real endpoint and the server log shows it, identified as that cabinet
       - Notes: P0-05 was dropped from the Needs by [ADR 0009](../adr/0009-start-phase-1-early.md) — the key **type** is deferred, so this uses a simple test key we issue ourselves. The key is placed on the device, never built into the code, and the real design lands before any cabinet leaves a desk
-      - Notes: **the cabinet's half is built** — `src/cabinet/net.js` is its one door, and `config.example.js` shows where the key goes. `python scripts/checknet.py` proves nothing else in `src/cabinet/` touches the network. What is missing is a server: `server_base_url` is blank, because the contract has not been sent (P0-04). Blocked on the Server team, not on us
+      - Notes: **the cabinet's half is built** — `src/cabinet/net.js` is its one door, and `config.example.js` shows where the key goes. `python scripts/checknet.py` proves nothing else in `src/cabinet/` touches the network. It was blocked waiting for the Server team's server; [ADR 0019](../adr/0019-we-own-the-server.md) made that server ours, so the block went away rather than being lifted
+      - Done: 2026-08-22 — Opened the cabinet screen in a browser against the real server over HTTPS. The screen asked for a session code on its own, without anybody touching it, using the key that was placed on this machine. The server wrote one line: `cabinet vgu-back-gate -> GET /cabinet/session`. That is the whole task — the cabinet reached the server and the server knew which cabinet it was. The key itself is never written to the log, only the name it proves.
 
-- [ ] **P1-07** — No key, token or address inside either build
-      - Owner: _unassigned_ · Needs: P1-05, P1-06 · Blocks: P8-07
+- [x] **P1-07** — No key, token or address inside either build
+      - Owner: Claude · Needs: P1-05, P1-06 · Blocks: P8-07
       - Verify: a search of both source trees for keys and addresses returns nothing, and `.gitignore` covers the config files
       - Notes: the cabinet key is placed on the device, never built into the code
+      - Done: 2026-08-22 — Wrote `scripts/checksecrets.py` and ran it. It reads the three real secrets off this machine - the cabinet key, the hashing key and the cabinet's own address - and searches every one of the 187 files git actually tracks for those exact values. None of them is there. It also opened the built app file itself and found no secret inside, and confirmed the server address we ship is blank. The six files that hold a secret are all covered by `.gitignore`. The check found three addresses in developer scripts and says so plainly rather than failing: `8.8.8.8` is Google's, used to ask this laptop which of its own addresses faces the network, and nothing ships those scripts to anybody.
 
 - [ ] **P1-08** — A changed setting reaches a phone without a new release
       - Owner: _unassigned_ · Needs: P0-15, P1-05 · Blocks: —

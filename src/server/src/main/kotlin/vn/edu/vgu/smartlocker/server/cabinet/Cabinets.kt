@@ -8,6 +8,9 @@ import vn.edu.vgu.smartlocker.server.Refusal
 import vn.edu.vgu.smartlocker.server.now
 import vn.edu.vgu.smartlocker.server.refuse
 import vn.edu.vgu.smartlocker.server.str
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
+import org.slf4j.LoggerFactory
 
 /**
  * The cabinets, and the key each one signs in with.
@@ -94,5 +97,18 @@ const val CABINET_KEY_HEADER = "X-Cabinet-Key"
 suspend fun ApplicationCall.cabinetId(db: Db): String {
     val key = request.header(CABINET_KEY_HEADER)?.trim()?.takeIf(String::isNotEmpty)
         ?: refuse(Refusal.CABINET_UNKNOWN)
-    return Cabinets.idForKey(db, key) ?: refuse(Refusal.CABINET_UNKNOWN)
+    val id = Cabinets.idForKey(db, key) ?: run {
+        // Worth a line. A cabinet that has been rotated, or a stranger with a
+        // guess, both look like silence otherwise - and the first is a real
+        // cabinet standing dead in a corridor with nothing to say why.
+        log.warn("refused {} {} - no cabinet has that key", request.httpMethod.value, request.path())
+        refuse(Refusal.CABINET_UNKNOWN)
+    }
+    // Which cabinet, on every call it makes. This is what task P1-06 asks the
+    // log to show, and what makes a door opening traceable to one machine
+    // afterwards. The key itself is never logged - only the name it proves.
+    log.info("cabinet {} -> {} {}", id, request.httpMethod.value, request.path())
+    return id
 }
+
+private val log = LoggerFactory.getLogger("cabinet")
