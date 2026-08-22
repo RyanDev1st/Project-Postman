@@ -107,6 +107,24 @@ object Schema {
                 "ALTER TABLE commands ADD COLUMN purpose TEXT",
                 "UPDATE commands SET purpose = 'drop' WHERE purpose IS NULL",
             ),
+
+            // 5 - a password on an account, and the lockout that guards it.
+            //
+            // P2-09, ADR 0012. Three columns on `receivers` rather than a
+            // table of its own: in this server the account IS the receiver,
+            // and a parcel and a password that live in one row cannot
+            // disagree about who somebody is. The reference server had its own
+            // `accounts` table because it had no receivers to hang them on.
+            //
+            // Empty hash means no password, which is the state every existing
+            // account is in and the state most will stay in - a password is
+            // an extra way in, never the way in (there is no
+            // register-with-a-password route).
+            listOf(
+                "ALTER TABLE receivers ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE receivers ADD COLUMN password_tries INTEGER NOT NULL DEFAULT 0",
+                "ALTER TABLE receivers ADD COLUMN password_locked_until INTEGER NOT NULL DEFAULT 0",
+            ),
         )
     }
 

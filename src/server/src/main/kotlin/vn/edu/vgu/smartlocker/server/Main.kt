@@ -20,6 +20,7 @@ import java.io.File
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import vn.edu.vgu.smartlocker.server.auth.LogSms
+import vn.edu.vgu.smartlocker.server.auth.Accounts
 import vn.edu.vgu.smartlocker.server.auth.Otp
 import vn.edu.vgu.smartlocker.server.auth.SpeedSms
 import vn.edu.vgu.smartlocker.server.auth.Tokens
@@ -155,6 +156,9 @@ fun Application.locker(db: Db, config: Config) {
     val sessions = Sessions(db, config.qrSessionSeconds)
     val commands = Commands(db)
     val boxes = Boxes(db, config.wrongTriesBeforeLock, config.boxLockMinutes)
+    // The same two numbers a box lockout uses. One wrong-guess policy for the
+    // whole product is easier to argue about than two that drift apart.
+    val accounts = Accounts(db, config.wrongTriesBeforeLock, config.boxLockMinutes)
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
 
     tokens.sweep()
@@ -164,7 +168,7 @@ fun Application.locker(db: Db, config: Config) {
         // Grouped by what a flood of it would cost. `auth` is the paid path,
         // `cabinet` is a trusted device that polls constantly, `read` is
         // everything a signed-in phone does.
-        rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens) }
+        rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens, accounts) }
         rateLimit(READ_LIMIT) { parcelRoutes(db, tokens, collect) }
         rateLimit(CABINET_LIMIT) {
             cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)

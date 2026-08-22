@@ -20,7 +20,7 @@ import vn.edu.vgu.smartlocker.server.refuse
  * silently broken login, because the app's parsers are lenient by design and
  * a missing field reads as empty rather than throwing.
  */
-fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens) {
+fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens, accounts: Accounts) {
 
     /** 1. Ask for a one-time code. No token: this is the way in. */
     post("/auth/request-code") {
@@ -71,7 +71,53 @@ fun Route.authRoutes(db: Db, otp: Otp, tokens: Tokens) {
         call.bearer()?.let(tokens::revoke)
         call.respond(Empty())
     }
+
+    /**
+     * 20. Set or change the password. ADR 0012.
+     *
+     * **It needs a live session, which is what makes it the reset path too.**
+     * Somebody who has forgotten their password asks for a one-time code the
+     * ordinary way, signs in with it, and sets a new one here. That is why
+     * there is no reset endpoint and no reset email: the shortest reset path
+     * is the one that already existed, and it needs no email address the
+     * product otherwise never collects.
+     */
+    post("/auth/set-password") {
+        val me = call.receiverId(tokens)
+        val asked = call.receive<PasswordRequest>()
+        when (accounts.setPassword(me, asked.password)) {
+            null -> call.respond(Empty())
+            "PASSWORD_TOO_SHORT" -> call.refuse(Refusal.PASSWORD_TOO_SHORT)
+            else -> call.refuse(Refusal.PASSWORD_TOO_LONG)
+        }
+    }
+
+    /**
+     * 21. Sign in with a phone number and a password.
+     *
+     * Everything that can go wrong answers `WRONG_PASSWORD`, including a
+     * number this server has never seen and an account five wrong tries into
+     * a lockout. See the refusal's own note.
+     */
+    post("/auth/password-login") {
+        val asked = call.receive<PasswordLoginRequest>()
+        // A number that will not parse is answered the same way, so the
+        // endpoint cannot be used to learn which numbers are worth trying.
+        val phone = Phone.normalise(asked.phoneNumber) ?: call.refuse(Refusal.WRONG_PASSWORD)
+        val me = accounts.check(phone, asked.password) ?: call.refuse(Refusal.WRONG_PASSWORD)
+        val issued = tokens.mint(me)
+        call.respond(SessionResponse(issued.token, issued.expiresAt.toString()))
+    }
 }
+
+@Serializable
+data class PasswordRequest(val password: String = "")
+
+@Serializable
+data class PasswordLoginRequest(
+    @SerialName("phone_number") val phoneNumber: String = "",
+    val password: String = "",
+)
 
 @Serializable
 data class PhoneRequest(@SerialName("phone_number") val phoneNumber: String = "")

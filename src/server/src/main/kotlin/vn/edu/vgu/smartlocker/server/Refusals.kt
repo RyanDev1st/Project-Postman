@@ -77,6 +77,28 @@ enum class Refusal(val status: HttpStatusCode) {
     BOX_LOCKED_OUT(HttpStatusCode.TooManyRequests),
 
     /** The cabinet key was missing, or is not one we issued. */
+    /**
+     * Endpoint 20 only. The two length rules are the whole password policy.
+     *
+     * A pile of must-contain-a-symbol rules mostly teaches people to write
+     * Password1! and reuse it everywhere, so length carries the weight and
+     * the refusal says which way it was wrong - unlike [WRONG_PASSWORD],
+     * because this one is answering somebody who has already proved who they
+     * are and is choosing a password right now.
+     */
+    PASSWORD_TOO_SHORT(HttpStatusCode.BadRequest),
+    PASSWORD_TOO_LONG(HttpStatusCode.BadRequest),
+
+    /**
+     * Endpoint 21's only answer, and it covers three different failures.
+     *
+     * Wrong password, locked out, and no account with that number all come
+     * back as this. Splitting them would answer two things a sign-in screen
+     * must never answer - whether that number is registered here, and whether
+     * the lockout has started. Same rule as [WRONG_CODE].
+     */
+    WRONG_PASSWORD(HttpStatusCode.Unauthorized),
+
     CABINET_UNKNOWN(HttpStatusCode.Unauthorized),
 }
 
