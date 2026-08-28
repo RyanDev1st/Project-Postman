@@ -160,6 +160,37 @@ def free_port_or_die() -> None:
             )
 
 
+
+def assert_the_build_is_not_stale(jars: Path) -> None:
+    """Refuse to check a build that is older than the code it came from.
+
+    This script runs `installDist` output rather than Gradle, for a good
+    reason written below - but nothing made it notice when that output was
+    old. On 2026-08-22 it ran a **five-day-old** server and printed
+    `All checks passed`, which is the most expensive kind of green: a whole
+    afternoon's work - a hashing key, two password endpoints, a schema
+    column that decides whether a parcel is written off - none of it in the
+    thing being checked, and the report saying it was fine.
+
+    A stale jar even passes the schema check, because a server built at
+    version 2 migrates a fresh database to version 2 and agrees with itself.
+
+    Timestamps, not hashes. This has to be cheap enough that nobody is
+    tempted to skip it.
+    """
+    newest_jar = max((j.stat().st_mtime for j in jars.glob("*.jar")), default=0.0)
+    source = ROOT / "src" / "server" / "src" / "main"
+    newer = [f for f in source.rglob("*.kt") if f.stat().st_mtime > newest_jar]
+    if not newer:
+        return
+    print(f"the build is older than the code: {len(newer)} source file(s) have changed since")
+    for f in sorted(newer)[:5]:
+        print(f"  {f.relative_to(ROOT).as_posix()}")
+    if len(newer) > 5:
+        print(f"  ... and {len(newer) - 5} more")
+    sys.exit("run: ./gradlew :server:installDist   then check again")
+
+
 class Server:
     """The real server, started the way a person starts it."""
 
@@ -172,6 +203,7 @@ class Server:
         jars = ROOT / "src" / "server" / "build" / "install" / "server" / "lib"
         if not jars.is_dir():
             sys.exit(f"nothing built at {jars} - run: ./gradlew :server:installDist")
+        assert_the_build_is_not_stale(jars)
 
         # Java is started directly rather than through Gradle's launcher
         # script. The script is a shell wrapper, and terminating a wrapper on
@@ -296,7 +328,21 @@ def register(server: Server, phone: str) -> str:
 # goes through the wire on purpose, but a migration and a timeout are both
 # facts about the FILE, and there is no endpoint that reports either.
 
-MIGRATIONS_EXPECTED = ["the tables", "opening_since"]
+# One entry per migration in `Schema.kt`, in order, named so a reader can see
+# what version 6 actually means. The count is the check: a migration added
+# without a line here, or a line here without a migration, fails.
+#
+# It went stale between 2026-08-17 and 2026-08-22 and nobody noticed, because
+# the jars this script runs were five days old and a stale build lands on the
+# version it was built with. See `assert_the_build_is_not_stale`.
+MIGRATIONS_EXPECTED = [
+    "the tables",
+    "opening_since",
+    "codes and tokens cleared for the pepper",
+    "commands.purpose",
+    "password_hash, tries and lockout",
+    "google_sub",
+]
 
 
 def sql(db: Path, statement: str, *args):
