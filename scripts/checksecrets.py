@@ -34,9 +34,12 @@ people learn to skip.
 
 from __future__ import annotations
 
+import io
 import re
 import subprocess
 import sys
+import tempfile
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,6 +94,70 @@ def live_secrets() -> dict[str, str]:
             if m and host_of(m.group(1)) not in FINE:
                 found[name] = m.group(1)
     return {k: v for k, v in found.items() if len(v) >= 12}
+
+
+
+def search_apk(apk: Path, secrets: dict[str, str]) -> tuple[list[str], str]:
+    """Which secrets are inside a built APK, and what address it carries.
+
+    **An APK is a zip, so its bytes are not its contents.** Reading the file
+    and searching the bytes is what this used to do, and it could not fail:
+    `res/raw/settings.json` is deflated, so the address really baked into the
+    build was invisible, and so would a key have been. It reported a blank
+    address for a build that carried `https://10.0.2.2:8443`. Every entry is
+    decompressed here and searched.
+
+    The address is read from `res/raw/settings.json`, which is the copy the
+    app itself reads - `Settings.readShipped`. Falling back to any JSON that
+    happens to match would report a number from some library's asset.
+    """
+    found: list[str] = []
+    addr = ""
+    with zipfile.ZipFile(apk) as z:
+        for entry in z.infolist():
+            if entry.is_dir():
+                continue
+            try:
+                blob = z.read(entry)
+            except (RuntimeError, zipfile.BadZipFile):
+                # Encrypted or damaged. Say so rather than skipping quietly:
+                # an entry nobody can read is an entry nobody has checked.
+                print(f"         ! could not read {entry.filename} - not searched")
+                continue
+            for name, value in secrets.items():
+                if value.encode() in blob and name not in found:
+                    found.append(name)
+            if entry.filename == "res/raw/settings.json":
+                m = re.search(rb'"server_base_url"\s*:\s*"([^"]*)"', blob)
+                if m:
+                    addr = m.group(1).decode()
+    return found, addr
+
+
+def assert_apk_scanner_works() -> None:
+    """Prove the scanner can see through compression before trusting it.
+
+    The address pattern above proves itself the same way, for the same
+    reason: this check has now silently passed everything twice - once on a
+    corrupted regex, once on unread compressed entries - and both times the
+    output was a screen of `ok`.
+    """
+    needle = "a-secret-that-must-be-found"
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("classes.dex", needle * 40)
+        z.writestr("res/raw/settings.json", '{"server_base_url": "https://example.test:1"}')
+    buf.seek(0)
+    raw = buf.getvalue()
+    assert needle.encode() not in raw, "the self-test needle was not compressed, so it proves nothing"
+    tmp = Path(tempfile.gettempdir()) / "checksecrets-selftest.apk"
+    tmp.write_bytes(raw)
+    try:
+        found, addr = search_apk(tmp, {"the needle": needle})
+        assert found == ["the needle"], "the APK scanner cannot see inside a compressed entry"
+        assert addr == "https://example.test:1", "the APK scanner cannot read the shipped settings"
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def main() -> None:
@@ -160,10 +227,8 @@ def main() -> None:
     # 5. The built app, if one has been built. This is the real "in the build".
     apk = ROOT / "src/app/build/outputs/apk/debug/app-debug.apk"
     if apk.exists():
-        blob = apk.read_bytes()
-        inside = [n for n, v in secrets.items() if v.encode() in blob]
-        url_in = re.search(rb'"server_base_url"\s*:\s*"([^"]+)"', blob)
-        addr = url_in.group(1).decode() if url_in else ""
+        assert_apk_scanner_works()
+        inside, addr = search_apk(apk, secrets)
         print(f"  {'FAIL' if inside else 'ok  '} the built APK carries no secret"
               + (f" - {inside}" if inside else ""))
         print(f"  {'note' if addr else 'ok  '} the built APK's server address is {addr or 'blank'}"
