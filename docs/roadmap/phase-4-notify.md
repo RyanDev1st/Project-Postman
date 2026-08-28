@@ -2,19 +2,22 @@
 
 **Goal:** the receiver learns a parcel arrived, without opening the app to check.
 
-**Progress: 0 / 5.**
+**Progress: 0 / 5.** Nothing here is built except the device-token endpoint, and nothing calls it. P4-04's screen is the exception - it is built and drawing real parcels. See P4-01 for what the four missing parts are and which Google credential unblocks them.
 
 A parcel nobody knows about is a parcel nobody collects.
 
 ## Tasks
 
-- [ ] **P4-01** — The server sends the notice when the door closes
+- [ ] **🔴 BLOCKED — P4-01** — The server sends the notice when the door closes
       - Owner: _unassigned_ · Needs: P3-05, P0-06 · Blocks: P4-02, P4-04
       - Verify: closing a real door sends one notice, and the server log shows it going out
+      - Notes: **surveyed 2026-08-22. One of four parts exists.** The chain is: the app gets a device token from Firebase → the app sends it to us → the server calls Google when a drop's door closes → Google wakes the phone. Part two is built on both sides - endpoint 8 `POST /devices` stores it in the `devices` table, and `Api.registerDevice` is written. **Nothing calls `registerDevice`**, the same dead wiring P1-08 had, so no token is ever collected and the table stays empty. Parts one, three and four do not exist
+      - Notes: 🔴 **blocked on a credential only Ryan can make: a Firebase service-account key** for the FCM HTTP v1 API. `google-services.json` is already in the repo tree (git-ignored) and the Firebase project exists, but it carries **App Distribution only** - sending test builds to testers - not Messaging. FCM itself is free and needs no card, which is why it was chosen over SMS in [ADR 0006](../adr/0006-*.md). Not to be confused with the OAuth **client id** P2-08 needs; two different Google credentials, both Ryan's to create
 
 - [ ] **P4-02** — The notice arrives while the app is open
       - Owner: _unassigned_ · Needs: P4-01, P2-05 · Blocks: P4-03
       - Verify: with the app open on a real phone, the notice appears within the agreed time
+      - Notes: needs the `FirebaseMessagingService` subclass, which does two jobs and neither exists yet: it receives the device token when Firebase issues **or rotates** it - so the token cannot be collected once and forgotten - and it receives the message. Also needs the messaging dependency, the manifest entry, and `registerDevice` actually being called after sign-in
 
 - [ ] **P4-03** — The notice arrives while the app is closed
       - Owner: _unassigned_ · Needs: P4-02 · Blocks: P4-05
