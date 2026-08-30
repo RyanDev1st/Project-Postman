@@ -156,6 +156,33 @@ def _numbers():
     print(f"door numbers set to {NUMBER_MM:.0f} mm: {grown}")
 
 
+def _quiet_the_screen():
+    """Turn the cabinet's own screen down, and take its words off.
+
+    The simulator lights this screen because a film of a drop has to show it
+    changing. The app's still is a different job: at about 300 px wide the
+    screen is a saturated blue rectangle with two-pixel type in it, and in the
+    dark scheme it is the brightest thing on the tab - pulling the eye to
+    something nobody can read, next to the one colour on the screen that has
+    to be read, which is the amber on your own door.
+
+    Off rather than restyled. A cabinet photographed with a dark screen is a
+    cabinet; a cabinet with a legible screen in a 300 px picture is a lie
+    about how big the screen is.
+    """
+    screen = bpy.data.materials.get("Mat_Screen")
+    if screen and screen.use_nodes:
+        for node in screen.node_tree.nodes:
+            if node.type == "EMISSION":
+                node.inputs["Strength"].default_value = 0.0
+            if node.type == "BSDF_PRINCIPLED" and "Emission Strength" in node.inputs:
+                node.inputs["Emission Strength"].default_value = 0.0
+    words = bpy.data.objects.get("Screen_Text")
+    if words is not None:
+        words.hide_render = True
+    print("panel screen: dark, and its words hidden")
+
+
 def _finish(cab):
     """Break every edge, and take the doors from matte to satin.
 
@@ -533,6 +560,7 @@ def preview(scale=0.22, samples=48):
     cab = _clear_props()
     _shut_every_door()
     _numbers()
+    _quiet_the_screen()
     _finish(cab)
     _stage()
     _camera()
@@ -547,6 +575,7 @@ def shoot():
     cab = _clear_props()
     _shut_every_door()
     _numbers()
+    _quiet_the_screen()
     _finish(cab)
     _stage()
     cam = _camera()

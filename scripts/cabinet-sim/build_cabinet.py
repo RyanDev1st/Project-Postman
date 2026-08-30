@@ -18,6 +18,7 @@ Then drive it:
 
 import bpy
 import math
+import os
 
 from mathutils import Matrix
 
@@ -170,6 +171,8 @@ def _door_number(door, number, w, h):
     label = bpy.data.objects.new(f"Label_{number:02d}",
                                  bpy.data.curves.new(f"L{number}", "FONT"))
     label.data.body = f"{number:02d}"
+    # A face whose 1 is not a bare stroke - see NUMBER_FACES.
+    label.data.font = _number_font()
     # 100 mm digits. Raised from 72 on 2026-08-07: at 72 the number was hard
     # to read from a metre away at the real cabinet, and illegible in the app,
     # which shows this cabinet at about 300 px wide. hero.py keeps its own
@@ -191,6 +194,40 @@ def _door_number(door, number, w, h):
     label.rotation_euler = (math.radians(90), 0, 0)
     label.location = (mm(34), mm(-12 - 4), mm(h / 2 - 30))
     return label
+
+
+# Blender's built-in face draws 1 as a bare vertical stroke: no flag, no foot.
+# On this cabinet that makes 01 read as 0I, 10 as IO and 11 as II - eight of
+# the twenty doors, on the one surface whose whole job is saying which door.
+# Seen in the app on 2026-08-29, and it is just as wrong at the real cabinet.
+#
+# The same faces make_label.py already asks for, and the same silent fallback:
+# a render with the default face beats no render, and the warning says which
+# one happened.
+NUMBER_FACES = ("arialbd.ttf", "calibrib.ttf", "segoeuib.ttf", "DejaVuSans-Bold.ttf")
+FONT_DIRS = (
+    os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"),
+    "/usr/share/fonts/truetype/dejavu",
+    "/Library/Fonts",
+)
+
+
+def _number_font():
+    """A face whose 1 has a flag and a foot. Loaded once, reused per door."""
+    existing = bpy.data.fonts.get("DoorNumber")
+    if existing is not None:
+        return existing
+    for name in NUMBER_FACES:
+        for folder in FONT_DIRS:
+            path = os.path.join(folder, name)
+            if os.path.exists(path):
+                face = bpy.data.fonts.load(path)
+                face.name = "DoorNumber"
+                return face
+    print("cabinet-sim: WARNING - no bold face found, so the door numbers keep "
+          "the built-in one and 1 draws as a bare stroke. Tried: "
+          + ", ".join(NUMBER_FACES))
+    return None
 
 
 def _panel(mat_panel):
