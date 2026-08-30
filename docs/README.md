@@ -68,6 +68,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0021-build-for-the-proposed-hardware.md](adr/0021-build-for-the-proposed-hardware.md) | Build to the bill of materials the hardware team costed: a 1024x600 screen, 25 boxes, and an item sensor in every one. The Pi polls, not the ESP32. The sensors answer what [ADR 0006](adr/0006-no-sensor.md) gave up on | accepted |
 | [adr/0022-a-key-outside-the-database.md](adr/0022-a-key-outside-the-database.md) | Credentials are hashed under a key kept out of the database file. A six-digit pickup code is a million guesses, so a bare digest column was a lookup table anybody holding `locker.db` could build in a second | accepted |
 | [adr/0023-not-on-the-public-internet.md](adr/0023-not-on-the-public-internet.md) | The locker is on the campus network and nowhere else. A distributed denial of service leaves the threat model; the certificate is self-signed forever, which makes a release build unable to talk to the server until it ships our own | accepted |
+| [adr/0024-colour-means-something.md](adr/0024-colour-means-something.md) | Colour is reserved for facts about a box - amber for your door, green for free, red for refused. The accent stops being a hue and becomes the end of the value scale, near white on the dark ground and near black on the pale one, so the product reads the same in both schemes and nothing competes with the door light | accepted |
 
 ## Findings — dated reports
 

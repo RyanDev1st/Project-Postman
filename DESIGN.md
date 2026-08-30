@@ -167,28 +167,37 @@ Every colour token is registered with `@property`, so a theme change interpolate
 
 ### The accent
 
-**Dark leads blue. Light leads burnt orange.** Changed 2026-08-08 at Ryan's call — warmth rather than a second blue. It is the one token whose *hue* differs between schemes, which is deliberate: the cool steel ground of the light design has nothing to push against from another blue, and a warm control on cold metal is the reason that scheme exists at all.
+**Colour means something.** If a thing on this screen is coloured, it is telling you a fact about a box. Amber says *this door is yours*, the free green says *this box is empty*, the refusal red says *this was turned down*. Everything else is steel.
+
+So the accent is not a colour. It is **the end of the value scale** — near white on the dark ground, near black on the pale one. Decided 2026-08-30, [ADR 0024](docs/adr/0024-colour-means-something.md).
 
 | Token | Dark | Light | Carries |
 | --- | --- | --- | --- |
-| `--accent` | `#7FA8FF` | `#C2410C` | the colour, wherever it is large or sits on a card |
-| `--accent-deep` | `#3D74F0` | `#B83E0B` | the filled button |
-| `--accent-ink` | `#7FA8FF` | `#98380A` | small accent text on the ground |
-
-**Three values, not one, because orange is lighter than a red at the same chroma** and loses contrast against a mid-steel ground. No orange worth calling orange clears 4.5:1 on `#D3DBE3`. Measured:
+| `--accent` | `#F2F7FF` | `#0A121B` | the emphasis, wherever it is large or sits on a card |
+| `--accent-deep` | `#E7EEFA` | `#14202C` | the filled button |
+| `--accent-ink` | `#F2F7FF` | `#0A121B` | small accent text on the ground |
+| `--on-accent` | `#0A0E14` | `#F4F8FE` | what sits **on** the filled button |
 
 | | contrast | |
 | --- | --- | --- |
-| `#C2410C` on the ground `#D3DBE3` | 3.70:1 | large type and fills only |
-| `#C2410C` on a white card | 5.18:1 | small type passes |
-| `#98380A` on the ground | 5.17:1 | small type passes here too |
-| white on `#B83E0B` | 5.63:1 | the button |
+| `#F2F7FF` on the dark ground `#090B0E` | 18.32:1 | |
+| `#F2F7FF` on a dark card `#161D27` | 15.76:1 | |
+| `#0A0E14` on the dark slab `#E7EEFA` | 16.58:1 | the button label |
+| `#0A121B` on the light ground `#D3DBE3` | 13.46:1 | |
+| `#0A121B` on a white card | 18.83:1 | |
+| `#F4F8FE` on the light slab `#14202C` | 15.48:1 | the button label |
 
-`--accent-ink` exists for one element: the 10px `See all` link, the only accent text that sits on the ground rather than on a card. `--accent-deep` will not serve — in dark it is `#3D74F0`, which is 4.26:1 on `#090B0E`, so using it there would fix light by breaking dark.
+**What this replaced, and why.** Dark led `#7FA8FF` and light led burnt orange `#C2410C` — the one token whose hue differed between schemes. That cost the product twice. It had no colour anybody could picture, because the only colour on screen changed when the sun went down. And the light accent sat at hue 17°, 25° off the `#FFB200` door light; the note that used to stand here defended that by darkness alone, and on a phone the two read as one warm family — with the one colour the product has to teach. The old light accent was also 3.70:1 on the ground, large type and fills only, which is what `--accent-ink` was bought to work around.
 
-**The button fill is deliberately not pushed darker.** A first pass filled it with `#98380A`; at that value the largest orange area on the screen goes brown, and the button is what decides whether the scheme reads as orange at all. A prior pass at `#A8482A` was rejected the same day for the same reason — red-brown, not orange.
+**A second blue would have fixed the clash and not the point.** Amber is at hue 42°, so its complement is 222° — almost exactly the blue the dark scheme already had. Taking the colour out of the controls instead leaves amber alone on the screen, which is the strongest thing that can be done for it, and gives the same identity in both schemes: steel and amber, which is a cabinet in a corridor.
 
-**And it stays off yellow, which is the constraint rather than the taste.** The door light is `#FFB200` at hue 42°; this sits at hue 17°, 25° away and much darker. Amber means *this door is yours* and nothing else. A burnt-orange control and a yellow door light are never read as the same colour; a golden control beside a golden door would be. Anything that pulls this accent toward yellow closes that gap and breaks the one colour the product has to teach.
+**Emphasis is carried by value and by form, never by hue.** The headline's payoff word keeps full ink while its lead drops to `--ink-2`. A link is underlined and set in medium. The disabled primary gives up the fill and keeps an outline — at 36% of the primary's own colour under a white label it read as pressable, which it is not. A focus ring is still a ring.
+
+**`--on-accent` is not optional.** The filled button, the theme switch's knob and the selected nav pill all wrote white on `--accent-deep`. White on a near-white slab is nothing at all.
+
+**One wash, and it comes off `--lip`.** A wash is light, not colour. Drawn from the accent it would put a shadow across the top of every screen in the light scheme.
+
+**`--accent-ink` survives with the same value as `--accent`.** It was a third orange, bought to carry the 10px `See all` link at 5.17:1 on the ground. At 13.46:1 there is nothing left for it to fix, and it is still named in four places, so it stays as a name.
 
 ### The door light
 
@@ -199,11 +208,11 @@ OnDoorLight #241A00
 
 **It means *this door is yours*.** Two places only: the highlight on the cabinet tab, and the Opened screen, which it fills.
 
-**Decision, 2026-08-07:** the earlier rule was amber *only* on a door that had opened. It now also marks your door on the map, because *amber is my door* is a stronger thing to learn than *amber is open*, and the two moments are the same door four seconds apart. **To reverse it, draw the cabinet-tab highlight in the accent instead** — one argument to `lightDoor()`.
+**Decision, 2026-08-07:** the earlier rule was amber *only* on a door that had opened. It now also marks your door on the map, because *amber is my door* is a stronger thing to learn than *amber is open*, and the two moments are the same door four seconds apart. The escape hatch this used to name — *draw the cabinet-tab highlight in the accent instead* — closed on 2026-08-30: there is no accent colour to draw it in. Reversing amber now means choosing a new signal colour, which is an ADR.
 
 **Identical in both schemes.** It was briefly made theme-dependent — azure on light — on a misreading of which colour was being asked about, and reverted the same day. A door holding your parcel is a fact about the world, not about the phone's settings, and a colour that changes with the scheme is a colour nobody can learn.
 
-**And it is never used as decoration.** A soft amber wash sat in the bottom-left corner of every screen, under the nav bar, as a second light source. Removed 2026-08-07: it read as a yellow stain on a cold interface, and spraying a signal colour across a corner is how it stops being a signal. The screens keep one wash, in the accent, from above the app bar.
+**And it is never used as decoration.** A soft amber wash sat in the bottom-left corner of every screen, under the nav bar, as a second light source. Removed 2026-08-07: it read as a yellow stain on a cold interface, and spraying a signal colour across a corner is how it stops being a signal. The screens keep one wash from above the app bar, and since [ADR 0024](docs/adr/0024-colour-means-something.md) it is drawn from `--lip` rather than from the accent, because a wash is light and not colour.
 
 **No Dynamic Colour.** Material You would let the wallpaper repaint the one colour that must never be repainted.
 
@@ -282,8 +291,8 @@ So Home is built like a claim ticket. A cloakroom tag, a luggage stub, a lottery
 - **`04` and `6h left` share one baseline.** The pill started in the header, which left two thirds of the number row empty — and an oversized ghost numeral was put there to fill it, which read as a smudged duplicate rather than as an ornament. The space did not need decorating, it needed the other half of the sentence. The ghost was deleted.
 - **The seam is a real cut**, not a divider rule: two circular bites out of the card edges with the ground showing through, and a dashed line between them. Two pseudo-elements, no images, and it is the one shape on this screen that could not belong to any other app.
 - **The empty Home is the same ticket with a different number.** `06` in the free-box green where the door number goes, labelled *Boxes free*. Six boxes free is a fact worth a whole screen — it is what lets you tell a courier to send one today. Nothing is redesigned for the empty case.
-- **Grey means there is time; amber means there is not.** The drain rule's calm fill was `--accent`, which is `#C2410C` in light — so the parcel with 31 hours on it drew a two-thirds-width burnt-orange bar, louder than the 12% amber dash beside it and near enough to the primary button to read as a second alarm. The calm state has to be genuinely calm or the urgent one carries nothing.
-- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the palette: the nearest legible amber is hue 28 and the light accent is hue 17, so the two would read as one colour. So amber is a **surface** — `#FFB200` on `#241A00`, at 11.5:1, identical in both schemes.
+- **Grey means there is time; amber means there is not.** The drain rule's calm fill was `--accent`, which was `#C2410C` in light before ADR 0024 — so the parcel with 31 hours on it drew a two-thirds-width burnt-orange bar, louder than the 12% amber dash beside it and near enough to the primary button to read as a second alarm. The calm state has to be genuinely calm or the urgent one carries nothing.
+- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the signal: a darkened amber is a brown, and a brown that means *this door is yours* teaches nobody anything. (Until ADR 0024 there was a second reason - the nearest legible amber is hue 28 and the light accent was hue 17, so the two would have read as one colour. The accent is no longer a colour, and that reason has gone; this one has not.) So amber is a **surface** — `#FFB200` on `#241A00`, at 11.5:1, identical in both schemes.
 
 ### The notch is why the hairline moved layers
 

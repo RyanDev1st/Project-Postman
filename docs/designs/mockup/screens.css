@@ -57,9 +57,10 @@
 @property --ink      { syntax: "<color>"; inherits: true; initial-value: #E8EDF4; }
 @property --ink-2    { syntax: "<color>"; inherits: true; initial-value: #8E9AA8; }
 @property --ink-3    { syntax: "<color>"; inherits: true; initial-value: #5C6874; }
-@property --accent   { syntax: "<color>"; inherits: true; initial-value: #7FA8FF; }
-@property --accent-deep { syntax: "<color>"; inherits: true; initial-value: #3D74F0; }
-@property --accent-ink  { syntax: "<color>"; inherits: true; initial-value: #7FA8FF; }
+@property --accent   { syntax: "<color>"; inherits: true; initial-value: #F2F7FF; }
+@property --accent-deep { syntax: "<color>"; inherits: true; initial-value: #E7EEFA; }
+@property --accent-ink  { syntax: "<color>"; inherits: true; initial-value: #F2F7FF; }
+@property --on-accent   { syntax: "<color>"; inherits: true; initial-value: #0A0E14; }
 @property --free     { syntax: "<color>"; inherits: true; initial-value: #3FD69A; }
 @property --refuse   { syntax: "<color>"; inherits: true; initial-value: #FF9B92; }
 @property --shadow   { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.62); }
@@ -77,7 +78,19 @@
   --glass-edge: rgba(160,196,240,.13); --glass-lip: rgba(176,208,255,.24);
   --ink: #E8EDF4; --ink-2: #8E9AA8; --ink-3: #5C6874;
 
-  --accent: #7FA8FF; --accent-deep: #3D74F0; --accent-ink: #7FA8FF;
+  /* Colour means something, so the accent is not one. ADR 0024.
+     Amber is your door, green is a free box, red is a refusal; the accent is
+     the end of the value scale and nothing else on screen is coloured at all.
+
+       #F2F7FF on the ground #090B0E  -> 18.32:1
+       #F2F7FF on a card    #161D27   -> 15.76:1
+       #E7EEFA the slab, just under the marks so thin ones read as brighter
+       #0A0E14 on the slab            -> 16.58:1   the button label */
+  --accent: #F2F7FF; --accent-deep: #E7EEFA; --accent-ink: #F2F7FF;
+  --on-accent: #0A0E14;
+  /* A pale slab is shaded at its foot, a dark one is caught along its head.
+     Either way the light comes from above. */
+  --slab-sheen: rgba(0,0,0,0); --slab-edge: rgba(0,0,0,.10);
   --free: #3FD69A;
   --refuse: #FF9B92;
   --shadow: rgba(0,0,0,.62);
@@ -117,28 +130,24 @@
      and not a yellow one. Measured, not chosen by eye:
 
        #C2410C on the ground #D3DBE3  -> 3.70:1   large type and fills only
-       #C2410C on a white card        -> 5.18:1   small type passes
-       #98380A on the ground          -> 5.17:1   small type passes here too
-       white on #98380A               -> 7.23:1   the filled button
+       #0A121B on the ground #D3DBE3  -> 13.46:1
+       #0A121B on a white card        -> 18.83:1
+       #14202C the slab, lifted just off the marks
+       #F4F8FE on the slab            -> 15.48:1   the button label
 
-     Orange sits lighter than a terracotta at the same chroma, so it loses
-     contrast against a mid-steel ground: no orange worth calling orange
-     clears 4.5:1 on #D3DBE3. Hence three values rather than one.
+     This was burnt orange, and it is the change ADR 0024 records. The old
+     note here read: "the door light is #FFB200 at hue 42, this is 25 degrees
+     off it and much darker, so the two never read as the same colour." On a
+     phone they did. The accent now follows ink to the end of the value scale
+     instead of flipping to a second hue, which leaves amber alone on the
+     screen and gives the same identity in both schemes.
 
-       --accent      the colour, wherever it is large or sits on a card
-       --accent-deep the button fill. #B83E0B carries white at 5.63:1, and
-                     is deliberately NOT pushed darker - at #98380A the
-                     largest orange area on the screen went brown, and the
-                     button is the thing that decides whether the scheme
-                     reads as orange at all
-       --accent-ink  small accent text on the ground, the one place that
-                     needs 4.5:1 against #D3DBE3
-
-     The door light is #FFB200 at hue 42. This is 25 degrees off it and much
-     darker, so the two never read as the same colour - which is the rule the
-     palette exists to protect. Pushing this any further toward yellow closes
-     that gap and breaks it. See DESIGN.md. */
-  --accent: #C2410C; --accent-deep: #B83E0B; --accent-ink: #98380A;
+     --accent-ink survives with the same value as --accent. It was a third
+     orange bought to carry small text at 5.17:1; at 13.46:1 there is nothing
+     left for it to fix, and it is still named in four places. */
+  --accent: #0A121B; --accent-deep: #14202C; --accent-ink: #0A121B;
+  --on-accent: #F4F8FE;
+  --slab-sheen: rgba(255,255,255,.22); --slab-edge: rgba(255,255,255,.26);
   /* #0E7A54 measured 3.82:1 on the light ground, and the free count sits on
      the ground rather than on a card. #0B6B49 is 4.67:1 there and 6.53:1 on
      a white card. */
@@ -255,7 +264,7 @@ section > .lede { margin: 0 0 26px; color: var(--page-ink-2); max-width: 64ch; }
 .screen {
   height: 100%; border-radius: 34px; overflow: hidden; position: relative;
   background: radial-gradient(132% 60% at 50% -10%,
-      color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 60%),
+      color-mix(in srgb, var(--lip) 14%, transparent) 0%, transparent 60%),
     var(--ground);
   color: var(--ink); display: flex; flex-direction: column;
   padding: 15px 17px 13px; font-size: 14px;
@@ -345,21 +354,25 @@ section > .lede { margin: 0 0 26px; color: var(--page-ink-2); max-width: 64ch; }
    interpolate, so it would snap while everything around it moved. */
 .go { width: 100%; min-height: 52px; border: 0; border-radius: 17px;
   background-color: var(--accent-deep);
+  color: var(--on-accent);
   background-image: linear-gradient(180deg,
-    rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 100%);
-  color: #fff; font: inherit; font-size: 14.5px; font-weight: 600;
+    var(--slab-sheen) 0%, rgba(0,0,0,0) 55%, rgba(0,0,0,.08) 100%);
+  font: inherit; font-size: 14.5px; font-weight: 600;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   cursor: pointer;
   /* Neutral, and offset. A shadow tinted with the button's own colour is a
      glow, and a glow under a large saturated slab is what makes it read as a
      web control rather than as a key you are about to press. */
   box-shadow: 0 6px 16px -8px rgba(0,0,0,.55),
-              inset 0 1px 0 rgba(255,255,255,.26); }
+              inset 0 1px 0 var(--slab-edge); }
 .go svg { width: 16px; height: 16px; }
-.go[disabled] { opacity: .36; cursor: not-allowed; box-shadow: none; }
+.go[disabled] { cursor: not-allowed; box-shadow: none;
+  background-color: var(--field); background-image: none;
+  color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--hair); }
 .go.onamber { background: var(--on-door); color: var(--door); box-shadow: none; }
-.quiet { background: none; border: 0; font: inherit; font-size: 12px;
-  color: var(--ink-3); padding: 8px; cursor: pointer; width: 100%; }
+.quiet { background: none; border: 0; font: inherit; font-size: 12.5px;
+  font-weight: 500; text-decoration: underline; text-underline-offset: 3px;
+  color: var(--ink-2); padding: 8px; cursor: pointer; width: 100%; }
 .action { flex: none; padding-top: 10px; display: flex; flex-direction: column; }
 /* A class rule that sets `display` outranks the UA's `[hidden]`, so every
    element this build hides with the attribute has to say so itself. */
