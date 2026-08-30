@@ -207,7 +207,7 @@ private fun TroubleCard(note: Int) {
         shape = RoundedCornerShape(22.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -251,7 +251,7 @@ fun SectionLabel(text: String, action: String? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp, bottom = 8.dp, start = 2.dp, end = 2.dp),
+            .padding(top = 32.dp, bottom = 8.dp, start = 2.dp, end = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

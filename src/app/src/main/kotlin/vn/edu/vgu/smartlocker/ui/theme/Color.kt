@@ -6,15 +6,24 @@ import androidx.compose.ui.graphics.Color
  * The token sets, ported from the design mock-up's source of truth
  * (`docs/designs/mockup/screens.css`, lines 46–151).
  *
- * **Dark leads.** The light scheme is a second design, not an inversion, and
- * it breaks the 4-to-8 L* rule on purpose: white on `#D3DBE3` is +13 L*.
- * A card cannot go higher than white, so on the light side the separation is
- * made by pulling the *ground* down to a real mid-steel.
+ * **One hue, hue 210, and very little of it.** Every neutral in both schemes
+ * is that same cold steel, two points of channel spread between red and
+ * blue. Nothing here is a pure grey and nothing is a pure white: the light
+ * card is `#FAFBFC`, so it carries the same trace of steel as the ground it
+ * sits on.
  *
- * Surfaces are **picked, never mixed**. Mixing the ground with ink dilutes
- * the blue bias by four fifths and lifts a panel 38 L* — a second background.
- * The picked values sit 4–8 L* up and stay more saturated for being lifted,
- * which is what a real material does when a light finds it.
+ * **Small steps.** Ground to card is +4.3 L points in dark and +3.5 in light.
+ * Measured against the two published systems this is drawn from - Radix Slate
+ * steps 2.9 in its dark scheme, Vercel's Geist 6.3 in its dark - that is the
+ * whole range. It used to be **14.1** in light, which is not a step but a
+ * stage: the ground had been pulled down to 85.9% L so a pure white card
+ * would pop off it, and the result read as a grey backdrop with paper on it
+ * rather than as one material.
+ *
+ * The saturation came down with it. These neutrals ran 20 to 28 percent;
+ * Radix Slate, which exists to be a cold grey, runs 6 to 20. At 28 percent
+ * the ground was a blue, and a blue ground is a colour - which breaks the
+ * rule below before any component gets a chance to. ADR 0025.
  *
  * Amber is identical in both schemes: a door being open is a fact about the
  * world, not about the phone's settings.
@@ -30,6 +39,10 @@ import androidx.compose.ui.graphics.Color
  * burnt orange 25 degrees off the door light, which the note below defended
  * by darkness alone and which reads on a phone as one warm family with the
  * one colour the product has to teach. ADR 0024.
+ *
+ * The cold bias is amber's, not ours. `#FFB200` is hue 42 and warm, so on a
+ * cool field it is the warmest thing on the screen and it carries. On a warm
+ * field it goes muddy, which is exactly what happened to the burnt orange.
  */
 
 /** A full token set for one scheme. Names carry over from the mock-up. */
@@ -89,30 +102,30 @@ val OnDoorLight = Color(0xFF241A00)
 // --- dark, the default ----------------------------------------------------
 
 private val Dark = LockerTokens(
-    ground = Color(0xFF090B0E),
-    ground2 = Color(0xFF0F141A),
-    surface = Color(0xFF161D27),
-    surface2 = Color(0xFF10161E),
-    field = Color(0x8C02050A), // rgba(2,5,10,.55)
-    hair = Color(0x2196BAE8),  // rgba(150,186,232,.13)
-    lip = Color(0x33B0D0FF),   // rgba(176,208,255,.20)
+    ground = Color(0xFF101214),  // 7.1% L - graphite, not black
+    ground2 = Color(0xFF151719),
+    surface = Color(0xFF1A1D20),  // +4.3 L points off the ground, and no more
+    surface2 = Color(0xFF17191C),
+    field = Color(0xFF0B0D0E),  // the one thing set INTO the ground
+    hair = Color(0x14A8BACC),  // rgba(168,186,204,.08) - rules, not outlines
+    lip = Color(0x1FB0C4DC),  // rgba(176,196,220,.12)
     glass = Color(0x0EFFFFFF), // rgba(255,255,255,.055)
     glass2 = Color(0x15FFFFFF),// rgba(255,255,255,.085)
     glassEdge = Color(0x21A0C4F0), // rgba(160,196,240,.13)
     glassLip = Color(0x3DB0D0FF),  // rgba(176,208,255,.24)
-    ink = Color(0xFFE8EDF4),
-    ink2 = Color(0xFF8E9AA8),
-    ink3 = Color(0xFF798591), // 5.23:1 on the ground, 4.50:1 on a card
-    accent = Color(0xFFF2F7FF),     // 18.3:1 on the ground, brighter than ink
-    accentDeep = Color(0xFFE7EEFA),  // the slab, pulled just under the marks
-    accentInk = Color(0xFFF2F7FF),
-    onAccent = Color(0xFF0A0E14),    // 16.6:1 on the slab
-    free = Color(0xFF3FD69A),
-    refuse = Color(0xFFFF9B92),
-    shadow = Color(0x9E000000), // rgba(0,0,0,.62)
-    bezel = Color(0xFF171E25),
-    recessIn = Color(0x8C000000), // rgba(0,0,0,.55)
-    recessLit = Color(0x12B4D6FF),// rgba(180,214,255,.07)
+    ink = Color(0xFFECEDEF),  // 16.03:1 on the ground
+    ink2 = Color(0xFF969DA6),  // 6.86:1
+    ink3 = Color(0xFF7D858E),  // 5.02:1 on the ground, 4.53:1 on a card
+    accent = Color(0xFFF4F5F6),
+    accentDeep = Color(0xFFE6E8EA),  // the slab
+    accentInk = Color(0xFFF4F5F6),
+    onAccent = Color(0xFF101214),  // 15.28:1 on the slab
+    free = Color(0xFF3FD69A),  // 10.1:1
+    refuse = Color(0xFFFF9B92),  // 9.26:1
+    shadow = Color(0x7A000000),  // rgba(0,0,0,.48) - one soft shadow, no rim
+    bezel = Color(0xFF191C1F),
+    recessIn = Color(0x66000000),  // rgba(0,0,0,.40)
+    recessLit = Color(0x0FB4C8DC),  // rgba(180,200,220,.06)
     dark = true,
 )
 
@@ -130,30 +143,30 @@ private val Dark = LockerTokens(
  * name rather than becoming a rename across four files.
  */
 private val Light = LockerTokens(
-    ground = Color(0xFFD3DBE3),
-    ground2 = Color(0xFFE8EEF3),
-    surface = Color(0xFFFFFFFF),
-    surface2 = Color(0xFFF3F7FB),
-    field = Color(0xFFC6D0DA), // 13 points DOWN from the ground — a recess must
-    hair = Color(0x1A0E2030),  // rgba(14,32,48,.10)
-    lip = Color(0xE6FFFFFF),   // rgba(255,255,255,.9)
+    ground = Color(0xFFF0F2F4),  // 94.9% L - paper, not a stage
+    ground2 = Color(0xFFE9ECEF),
+    surface = Color(0xFFFAFBFC),  // +3.5 L points, and it carries the hue
+    surface2 = Color(0xFFF6F7F9),
+    field = Color(0xFFE5E8EB),  // 4 points DOWN from the ground - a recess must
+    hair = Color(0x140E2030),  // rgba(14,32,48,.08) - rules, not outlines
+    lip = Color(0x99FFFFFF),  // rgba(255,255,255,.60)
     glass = Color(0xB3FFFFFF), // rgba(255,255,255,.7)
     glass2 = Color(0xE0FFFFFF),// rgba(255,255,255,.88)
     glassEdge = Color(0xF2FFFFFF), // rgba(255,255,255,.95)
     glassLip = Color(0xFFFFFFFF),
-    ink = Color(0xFF0F161B),
-    ink2 = Color(0xFF4C5862),
-    ink3 = Color(0xFF54616C), // 4.54:1 on the ground, 6.36:1 on a card
-    accent = Color(0xFF0A121B),      // 13.5:1 on the ground, 18.8:1 on a card
-    accentDeep = Color(0xFF14202C),  // the slab, lifted just off the marks
-    accentInk = Color(0xFF0A121B),
-    onAccent = Color(0xFFF4F8FE),    // 15.5:1 on the slab
-    free = Color(0xFF0B6B49), // 4.67:1 on the light ground, 6.53:1 on white
-    refuse = Color(0xFFB3261E),
-    shadow = Color(0x380C1824), // rgba(12,24,36,.22)
-    bezel = Color(0xFFAFBAC4),
-    recessIn = Color(0x260E2030),  // rgba(14,32,48,.15)
-    recessLit = Color(0xF2FFFFFF), // rgba(255,255,255,.95)
+    ink = Color(0xFF191E24),  // 14.94:1 on the ground
+    ink2 = Color(0xFF5C6570),  // 5.27:1
+    ink3 = Color(0xFF676F7B),  // 4.52:1 on the ground, 4.90:1 on a card
+    accent = Color(0xFF13181E),
+    accentDeep = Color(0xFF1D232B),  // the slab
+    accentInk = Color(0xFF13181E),
+    onAccent = Color(0xFFFAFBFC),  // 15.27:1 on the slab
+    free = Color(0xFF0B6B49),  // 5.82:1 on the ground, 6.31:1 on a card
+    refuse = Color(0xFFB3261E),  // 5.82:1
+    shadow = Color(0x1F0C1824),  // rgba(12,24,36,.12) - one soft shadow
+    bezel = Color(0xFFC8CED4),
+    recessIn = Color(0x140E2030),  // rgba(14,32,48,.08)
+    recessLit = Color(0xB3FFFFFF),  // rgba(255,255,255,.70)
     dark = false,
 )
 

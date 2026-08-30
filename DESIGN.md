@@ -127,20 +127,22 @@ Dark leads. Light is a second design, complete, and follows the system setting. 
 
 | Token | Hex | Where |
 | --- | --- | --- |
-| `Ground` | `#090B0E` | the app background, blue-biased, never neutral |
-| `Surface` | `#161D27` → `#10161E` | a card, top to bottom |
-| `Lip` | `#B0D0FF` 20% | the lit top edge of a card |
-| `Hair` | `#96BAE8` 13% | a card's border, and every rule |
-| `Field` | `#02050A` 55% | an input, recessed into whatever holds it |
-| `Ink` | `#E8EDF4` | text |
-| `InkSoft` | `#8E9AA8` | second-rank text |
-| `InkFaint` | `#5C6874` | captions and disabled |
+| `Ground` | `#101214` | the app background — graphite, not black |
+| `Surface` | `#1A1D20` → `#17191C` | a card, top to bottom. **+4.3 L\*** and no more |
+| `Lip` | `#B0C4DC` 12% | a lit edge, where one is doing work |
+| `Hair` | `#A8BACC` 8% | a rule between things, not an outline round them |
+| `Field` | `#0B0D0E` | an input, recessed into whatever holds it |
+| `Ink` | `#ECEDEF` | text — 16.03:1 |
+| `InkSoft` | `#969DA6` | second-rank text — 6.86:1 |
+| `InkFaint` | `#7D858E` | captions and disabled — 5.02:1, and 4.53:1 on a card |
 
 ### Light
 
-`Ground #D3DBE3` · `Surface #FFFFFF → #F3F7FB` · `Field #E7EDF4` · `Ink #0F161B` · `InkSoft #4C5862` · `InkFaint #7A8792`
+`Ground #F0F2F4` · `Surface #FAFBFC → #F6F7F9` · `Field #E5E8EB` · `Ink #191E24` · `InkSoft #5C6570` · `InkFaint #676F7B`
 
-The ground is a real mid-steel, not a near-white. At `#F2F5F7` a card had nothing to lift off.
+Paper, not a stage. The ground is **94.9% L\*** and the card **98.4%** — a step of 3.5, matching dark's 4.3.
+
+**This replaced a fourteen-point step**, and the reason it had one is written below. Both schemes are hue 210 with about two points of channel spread; the neutrals used to run 20 to 28 percent saturation, which is a blue, and a blue ground is a colour. [ADR 0025](docs/adr/0025-a-four-point-step.md).
 
 ### Every surface is picked, never mixed
 
@@ -159,7 +161,9 @@ The picked value is lifted *and more saturated for being lifted*, which is what 
 
 **A card is lifted by its edge first, its shadow second, its fill last.**
 
-Light breaks the 4-to-8 rule deliberately — white on `#D3DBE3` is +13 L\*. A card cannot go higher than white, so on that side the separation is made by pulling the **ground** down to mid-steel. Same decision from the other end, and the reason one formula can never serve both schemes.
+**Light used to break the 4-to-8 rule deliberately, and that was the mistake.** The note here read: white on `#D3DBE3` is +13 L\*, a card cannot go higher than white, so pull the ground down until the card lifts off it. The arithmetic was right and the result was wrong. Thirteen points is not a step, it is a stage — the screen read as a grey backdrop with sheets of paper laid on it rather than as one material with things raised out of it, and that is the single largest reason the light scheme looked cheap.
+
+Measured against the systems this palette is now drawn from: **Radix Slate steps −1.0** in light and **Vercel Geist +2.0**; in dark, Radix +2.9 and Vercel +6.3. Ours were +13 light and +7.5 dark. So the ground came **up** to `#F0F2F4` and the card stopped short of white at `#FAFBFC`. A card that is nearly the value of its ground is told apart by its **edge and its shadow**, which is what the rule above already said.
 
 ### The tokens animate, the elements do not
 
@@ -173,21 +177,23 @@ So the accent is not a colour. It is **the end of the value scale** — near whi
 
 | Token | Dark | Light | Carries |
 | --- | --- | --- | --- |
-| `--accent` | `#F2F7FF` | `#0A121B` | the emphasis, wherever it is large or sits on a card |
-| `--accent-deep` | `#E7EEFA` | `#14202C` | the filled button |
-| `--accent-ink` | `#F2F7FF` | `#0A121B` | small accent text on the ground |
-| `--on-accent` | `#0A0E14` | `#F4F8FE` | what sits **on** the filled button |
+| `--accent` | `#F4F5F6` | `#13181E` | the emphasis, wherever it is large or sits on a card |
+| `--accent-deep` | `#E6E8EA` | `#1D232B` | the filled button |
+| `--accent-ink` | `#F4F5F6` | `#13181E` | small accent text on the ground |
+| `--on-accent` | `#101214` | `#FAFBFC` | what sits **on** the filled button |
 
 | | contrast | |
 | --- | --- | --- |
-| `#F2F7FF` on the dark ground `#090B0E` | 18.32:1 | |
-| `#F2F7FF` on a dark card `#161D27` | 15.76:1 | |
-| `#0A0E14` on the dark slab `#E7EEFA` | 16.58:1 | the button label |
-| `#0A121B` on the light ground `#D3DBE3` | 13.46:1 | |
-| `#0A121B` on a white card | 18.83:1 | |
-| `#F4F8FE` on the light slab `#14202C` | 15.48:1 | the button label |
+| `#F4F5F6` on the dark ground `#101214` | 17.20:1 | |
+| `#F4F5F6` on a dark card `#1A1D20` | 15.51:1 | |
+| `#101214` on the dark slab `#E6E8EA` | 15.28:1 | the button label |
+| `#13181E` on the light ground `#F0F2F4` | 15.90:1 | |
+| `#13181E` on a light card `#FAFBFC` | 17.22:1 | |
+| `#FAFBFC` on the light slab `#1D232B` | 15.27:1 | the button label |
 
 **What this replaced, and why.** Dark led `#7FA8FF` and light led burnt orange `#C2410C` — the one token whose hue differed between schemes. That cost the product twice. It had no colour anybody could picture, because the only colour on screen changed when the sun went down. And the light accent sat at hue 17°, 25° off the `#FFB200` door light; the note that used to stand here defended that by darkness alone, and on a phone the two read as one warm family — with the one colour the product has to teach. The old light accent was also 3.70:1 on the ground, large type and fills only, which is what `--accent-ink` was bought to work around.
+
+**The cold bias is amber's, not ours.** `#FFB200` is hue 42 and warm, so on a cool field it is the warmest thing on the screen and it carries. On a warm field it goes muddy, which is exactly what happened to the burnt orange this replaced.
 
 **A second blue would have fixed the clash and not the point.** Amber is at hue 42°, so its complement is 222° — almost exactly the blue the dark scheme already had. Taking the colour out of the controls instead leaves amber alone on the screen, which is the strongest thing that can be done for it, and gives the same identity in both schemes: steel and amber, which is a cabinet in a corridor.
 
@@ -197,7 +203,9 @@ So the accent is not a colour. It is **the end of the value scale** — near whi
 
 **One wash, and it comes off `--lip`.** A wash is light, not colour. Drawn from the accent it would put a shadow across the top of every screen in the light scheme.
 
-**`--accent-ink` survives with the same value as `--accent`.** It was a third orange, bought to carry the 10px `See all` link at 5.17:1 on the ground. At 13.46:1 there is nothing left for it to fix, and it is still named in four places, so it stays as a name.
+**`--accent-ink` survives with the same value as `--accent`.** It was a third orange, bought to carry the 10px `See all` link at 5.17:1 on the ground. At 15.90:1 there is nothing left for it to fix, and it is still named in four places, so it stays as a name.
+
+**The slab's sheen catches an edge, not a face.** It ran the full 52dp of the button at 22% white, which lifted the head of a near-black slab by twenty points of value. That is a gradient painted onto a face. It is now 10% over the top eighth in light, 7% under the bottom eighth in dark, and the slab reads as one flat piece of material with a light on it.
 
 ### The door light
 
@@ -292,7 +300,7 @@ So Home is built like a claim ticket. A cloakroom tag, a luggage stub, a lottery
 - **The seam is a real cut**, not a divider rule: two circular bites out of the card edges with the ground showing through, and a dashed line between them. Two pseudo-elements, no images, and it is the one shape on this screen that could not belong to any other app.
 - **The empty Home is the same ticket with a different number.** `06` in the free-box green where the door number goes, labelled *Boxes free*. Six boxes free is a fact worth a whole screen — it is what lets you tell a courier to send one today. Nothing is redesigned for the empty case.
 - **Grey means there is time; amber means there is not.** The drain rule's calm fill was `--accent`, which was `#C2410C` in light before ADR 0024 — so the parcel with 31 hours on it drew a two-thirds-width burnt-orange bar, louder than the 12% amber dash beside it and near enough to the primary button to read as a second alarm. The calm state has to be genuinely calm or the urgent one carries nothing.
-- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the signal: a darkened amber is a brown, and a brown that means *this door is yours* teaches nobody anything. (Until ADR 0024 there was a second reason - the nearest legible amber is hue 28 and the light accent was hue 17, so the two would have read as one colour. The accent is no longer a colour, and that reason has gone; this one has not.) So amber is a **surface** — `#FFB200` on `#241A00`, at 11.5:1, identical in both schemes.
+- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the signal: a darkened amber is a brown, and a brown that means *this door is yours* teaches nobody anything. (Until ADR 0024 there was a second reason - the nearest legible amber is hue 28 and the light accent was hue 17, so the two would have read as one colour. The accent is no longer a colour, and that reason has gone; this one has not.) So amber is a **surface** — `#FFB200` on `#241A00`, at 9.50:1, identical in both schemes. (That figure stood at 11.5:1 here for months and was never measured; it passes AAA either way.)
 
 ### The notch is why the hairline moved layers
 

@@ -25,11 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -85,9 +82,9 @@ fun LockerToggle(
 /** The bottom nav — floating, and clearly above the page.
  *
  * The selected tab is a second piece of glass lifted off the first; two
- * materials stacked is what gives the bar depth. The pill's fill is a 24%
- * accent wash with a neutral offset shadow and a raised lip — edge first,
- * shadow second, fill last. */
+ * materials stacked is what gives the bar depth. The selected tab is a plate
+ * lifted out of that glass: one shadow, one surface fill, and the ink stepping
+ * from `ink3` to `ink`. Nothing else marks it. */
 @Composable
 fun BottomNav(
     selected: Int,
@@ -115,46 +112,35 @@ fun BottomNav(
                         .weight(1f)
                         .then(
                             if (isSelected) {
-                                // Shadow first, then clip, then the two
-                                // fills — edge, shadow, fill, as the pane
-                                // above it does.
+                                // A plate, raised out of the glass. One
+                                // shadow, one fill, and the ink does the
+                                // rest.
+                                //
+                                // It was six materials: a 34% black shadow, a
+                                // 24% accent wash, a white gradient over that,
+                                // a 26% accent hairline round it, a lit top
+                                // edge and a dark foot. That reads as depth
+                                // one material at a time and as sludge all
+                                // together. It was also tuned when the accent
+                                // was a colour — a 24% wash of a colour is a
+                                // tint, a 24% wash of near-black is a smear.
                                 Modifier
                                     .shadow(
-                                        elevation = 2.dp,
+                                        elevation = 3.dp,
                                         shape = RoundedCornerShape(999.dp),
-                                        ambientColor = Color.Black.copy(alpha = 0.34f),
-                                        spotColor = Color.Black.copy(alpha = 0.34f),
+                                        ambientColor = t.shadow,
+                                        spotColor = t.shadow,
                                     )
                                     .clip(RoundedCornerShape(999.dp))
-                                    .background(t.accent.copy(alpha = 0.24f))
-                                    // The white wash stops at 62%, not at the
-                                    // foot. Run to the foot it lightens the
-                                    // whole pill evenly and the lift goes.
-                                    .background(
-                                        Brush.verticalGradient(
-                                            0.0f to Color.White.copy(alpha = 0.13f),
-                                            0.62f to Color.Transparent,
-                                            1.0f to Color.Transparent,
-                                        )
-                                    )
-                                    .border(1.dp, t.accent.copy(alpha = 0.26f), RoundedCornerShape(999.dp))
-                                    // `inset 0 1px 0 0 rgba(255,255,255,.42)`
-                                    // and `inset 0 -1px 0 0 rgba(0,0,0,.14)`.
-                                    // The lit top edge is what lifts the pill
-                                    // off the bar; without it the 24% wash is
-                                    // a flat coloured lozenge.
-                                    .drawBehind {
-                                        val px = 1.dp.toPx()
-                                        drawRect(
-                                            color = Color.White.copy(alpha = 0.42f),
-                                            size = Size(size.width, px),
-                                        )
-                                        drawRect(
-                                            color = Color.Black.copy(alpha = 0.14f),
-                                            topLeft = Offset(0f, size.height - px),
-                                            size = Size(size.width, px),
-                                        )
-                                    }
+                                    .background(t.surface)
+                                    // The one hairline that earns itself. The
+                                    // pane under the plate has already sampled
+                                    // the ground and darkened it, so the four
+                                    // points that separate a card from the
+                                    // ground are not there to separate a plate
+                                    // from glass, and in the dark scheme the
+                                    // plate all but vanished.
+                                    .border(1.dp, t.lip, RoundedCornerShape(999.dp))
                             } else Modifier.clip(RoundedCornerShape(999.dp)),
                         )
                         .clickable { onSelect(i) }
@@ -183,7 +169,7 @@ fun BottomNav(
                                         Modifier.offset(y = (-1).dp).scale(1.06f)
                                     } else Modifier
                                 ),
-                            tint = if (isSelected) t.accent else t.ink3,
+                            tint = if (isSelected) t.ink else t.ink3,
                         )
                         Text(
                             text = label.uppercase(),
@@ -208,7 +194,7 @@ fun BottomNav(
                                 letterSpacing = 0.07.em,
                                 fontWeight = FontWeight.SemiBold,
                             ),
-                            color = if (isSelected) t.accent else t.ink3,
+                            color = if (isSelected) t.ink else t.ink3,
                         )
                     }
                 }

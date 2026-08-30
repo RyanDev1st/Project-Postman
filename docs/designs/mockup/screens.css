@@ -57,57 +57,73 @@
 @property --ink      { syntax: "<color>"; inherits: true; initial-value: #E8EDF4; }
 @property --ink-2    { syntax: "<color>"; inherits: true; initial-value: #8E9AA8; }
 @property --ink-3    { syntax: "<color>"; inherits: true; initial-value: #5C6874; }
-@property --accent   { syntax: "<color>"; inherits: true; initial-value: #F2F7FF; }
-@property --accent-deep { syntax: "<color>"; inherits: true; initial-value: #E7EEFA; }
-@property --accent-ink  { syntax: "<color>"; inherits: true; initial-value: #F2F7FF; }
-@property --on-accent   { syntax: "<color>"; inherits: true; initial-value: #0A0E14; }
+@property --accent   { syntax: "<color>"; inherits: true; initial-value: #F4F5F6; }
+@property --accent-deep { syntax: "<color>"; inherits: true; initial-value: #E6E8EA; }
+@property --accent-ink  { syntax: "<color>"; inherits: true; initial-value: #F4F5F6; }
+@property --on-accent   { syntax: "<color>"; inherits: true; initial-value: #101214; }
 @property --free     { syntax: "<color>"; inherits: true; initial-value: #3FD69A; }
 @property --refuse   { syntax: "<color>"; inherits: true; initial-value: #FF9B92; }
-@property --shadow   { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.62); }
-@property --bezel    { syntax: "<color>"; inherits: true; initial-value: #171E25; }
-@property --recess-in  { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.55); }
-@property --recess-lit { syntax: "<color>"; inherits: true; initial-value: rgba(180,214,255,.07); }
+@property --shadow   { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.48); }
+@property --bezel    { syntax: "<color>"; inherits: true; initial-value: #191C1F; }
+@property --recess-in  { syntax: "<color>"; inherits: true; initial-value: rgba(0,0,0,.40); }
+@property --recess-lit { syntax: "<color>"; inherits: true; initial-value: rgba(180,200,220,.06); }
 
 /* The app's own tokens. `data-theme` moves these and nothing else. */
 :root {
-  --ground: #090B0E; --ground-2: #0F141A;
-  --surface: #161D27; --surface-2: #10161E;
-  --field: rgba(2,5,10,.55);
-  --hair: rgba(150,186,232,.13); --lip: rgba(176,208,255,.20);
-  --glass: rgba(255,255,255,.055); --glass-2: rgba(255,255,255,.085);
-  --glass-edge: rgba(160,196,240,.13); --glass-lip: rgba(176,208,255,.24);
-  --ink: #E8EDF4; --ink-2: #8E9AA8; --ink-3: #5C6874;
+  --ground: #101214; --ground-2: #151719;
+  --surface: #1A1D20; --surface-2: #17191C;
+  --field: #0B0D0E;
+  --hair: rgba(168,186,204,.08); --lip: rgba(176,196,220,.12);
+  --glass: rgba(255,255,255,.05); --glass-2: rgba(255,255,255,.08);
+  --glass-edge: rgba(168,186,204,.10); --glass-lip: rgba(176,196,220,.16);
+  --ink: #ECEDEF; --ink-2: #969DA6; --ink-3: #7D858E;
 
   /* Colour means something, so the accent is not one. ADR 0024.
      Amber is your door, green is a free box, red is a refusal; the accent is
      the end of the value scale and nothing else on screen is coloured at all.
 
-       #F2F7FF on the ground #090B0E  -> 18.32:1
-       #F2F7FF on a card    #161D27   -> 15.76:1
-       #E7EEFA the slab, just under the marks so thin ones read as brighter
-       #0A0E14 on the slab            -> 16.58:1   the button label */
-  --accent: #F2F7FF; --accent-deep: #E7EEFA; --accent-ink: #F2F7FF;
-  --on-accent: #0A0E14;
+       #F4F5F6 on the ground #101214  -> 17.20:1
+       #F4F5F6 on a card    #1A1D20   -> 15.51:1
+       #E6E8EA the slab, just under the marks so thin ones read as brighter
+       #101214 on the slab            -> 15.28:1   the button label */
+  --accent: #F4F5F6; --accent-deep: #E6E8EA; --accent-ink: #F4F5F6;
+  --on-accent: #101214;
   /* A pale slab is shaded at its foot, a dark one is caught along its head.
-     Either way the light comes from above. */
-  --slab-sheen: rgba(0,0,0,0); --slab-edge: rgba(0,0,0,.10);
+     Either way the light comes from above — and it catches an EDGE. The
+     sheen used to run the full height of the button at 22%, which lifted the
+     head of a near-black slab by twenty points of value. That is a gradient
+     painted on a face, not light falling across one. */
+  --slab-sheen: rgba(0,0,0,.07); --slab-edge: rgba(0,0,0,.07);
   --free: #3FD69A;
   --refuse: #FF9B92;
-  --shadow: rgba(0,0,0,.62);
-  --bezel: #171E25;
+  --shadow: rgba(0,0,0,.48);
+  --bezel: #191C1F;
 
   /* The other half of the material system — see the note above `.recess`. */
-  --recess-in: rgba(0,0,0,.55); --recess-lit: rgba(180,214,255,.07);
+  --recess-in: rgba(0,0,0,.40); --recess-lit: rgba(180,200,220,.06);
 }
 
-/* Light is a second design, not an inversion, and it breaks the 4-to-8 rule
-   on purpose: white on #D3DBE3 is +13 L*. The card cannot go higher than
-   white, so on this side the separation is made by pulling the *ground*
-   down to a real mid steel. Same decision, taken from the other end - which
-   is exactly why one formula cannot serve both schemes. */
+/* Light is a second design, not an inversion, and it steps by FOUR points,
+   the same as dark.
+
+   It used to step by fourteen: a pure white card on a #D3DBE3 ground. This
+   side steps 3.5 and dark steps 4.3. The
+   note that stood here defended that - a card cannot go higher than white, so
+   pull the ground down until it lifts - and the arithmetic was right and the
+   result was wrong. Fourteen points is not a step, it is a stage: the screen
+   read as a grey backdrop with sheets of paper laid on it, rather than as one
+   material with things raised out of it. Measured against the systems this is
+   drawn from, Radix Slate steps -1.0 in light and Vercel's Geist +2.0.
+
+   So the ground comes UP to #F0F2F4 and the card stops just short of white at
+   #FAFBFC. Neither is neutral: both are hue 210, two points of channel
+   spread across red and blue - the same trace of steel Radix Slate carries,
+   and a long way from our old neutrals, which ran twenty to twenty-eight
+   percent saturation. A ground saturated enough to name as blue is a
+   colour, and colour is spoken for. ADR 0025. */
 :root[data-theme="light"] {
-  --ground: #D3DBE3; --ground-2: #E8EEF3;
-  --surface: #FFFFFF; --surface-2: #F3F7FB;
+  --ground: #F0F2F4; --ground-2: #E9ECEF;
+  --surface: #FAFBFC; --surface-2: #F6F7F9;
   /* A recess has to be DARKER than what it is cut into, and this was lighter.
      Measured: ground rgb(211,219,227), field rgb(231,237,244) - twenty points
      up. Every "recessed" thing in the light scheme was therefore reading as a
@@ -115,25 +131,25 @@
      soft-UI mistake the material was written to avoid.
      #C6D0DA is thirteen points down instead, and carries `--ink-2` at 4.67:1
      so the ledger's box numbers and the field prefixes still pass. */
-  --field: #C6D0DA;
+  --field: #E5E8EB;
   /* The `cabinet full` dim. 0.82 on a dark render is a clear step down;
      on the light scheme's pale steel it reads as a shadow across the
      picture, so light takes a shallower one and leans on the badge. */
   --taken: .88;
-  --hair: rgba(14,32,48,.10); --lip: rgba(255,255,255,.9);
+  --hair: rgba(14,32,48,.08); --lip: rgba(255,255,255,.60);
   --glass: rgba(255,255,255,.7); --glass-2: rgba(255,255,255,.88);
-  --glass-edge: rgba(255,255,255,.95); --glass-lip: #fff;
-  --ink: #0F161B; --ink-2: #4C5862; --ink-3: #7A8792;
+  --glass-edge: rgba(255,255,255,.9); --glass-lip: rgba(255,255,255,.95);
+  --ink: #191E24; --ink-2: #5C6570; --ink-3: #676F7B;
 
   /* Light leads orange.
      Burnt orange at hue 17, not the red-brown that came before it at hue 12
      and not a yellow one. Measured, not chosen by eye:
 
-       #C2410C on the ground #D3DBE3  -> 3.70:1   large type and fills only
-       #0A121B on the ground #D3DBE3  -> 13.46:1
-       #0A121B on a white card        -> 18.83:1
-       #14202C the slab, lifted just off the marks
-       #F4F8FE on the slab            -> 15.48:1   the button label
+       #C2410C on the old ground      -> 3.70:1   large type and fills only
+       #13181E on the ground #F0F2F4  -> 15.90:1
+       #13181E on a card    #FAFBFC   -> 17.22:1
+       #1D232B the slab, lifted just off the marks
+       #FAFBFC on the slab            -> 15.27:1   the button label
 
      This was burnt orange, and it is the change ADR 0024 records. The old
      note here read: "the door light is #FFB200 at hue 42, this is 25 degrees
@@ -145,18 +161,18 @@
      --accent-ink survives with the same value as --accent. It was a third
      orange bought to carry small text at 5.17:1; at 13.46:1 there is nothing
      left for it to fix, and it is still named in four places. */
-  --accent: #0A121B; --accent-deep: #14202C; --accent-ink: #0A121B;
-  --on-accent: #F4F8FE;
-  --slab-sheen: rgba(255,255,255,.22); --slab-edge: rgba(255,255,255,.26);
+  --accent: #13181E; --accent-deep: #1D232B; --accent-ink: #13181E;
+  --on-accent: #FAFBFC;
+  --slab-sheen: rgba(255,255,255,.10); --slab-edge: rgba(255,255,255,.12);
   /* #0E7A54 measured 3.82:1 on the light ground, and the free count sits on
      the ground rather than on a card. #0B6B49 is 4.67:1 there and 6.53:1 on
      a white card. */
   --free: #0B6B49;
-  --refuse: #B3261E; --shadow: rgba(12,24,36,.22); --bezel: #AFBAC4;
+  --refuse: #B3261E; --shadow: rgba(12,24,36,.12); --bezel: #C8CED4;
 
   /* A recess on a pale ground is a shadow cast INTO the surface with a bright
      return along the bottom lip. Same two shadows as dark, opposite roles. */
-  --recess-in: rgba(14,32,48,.15); --recess-lit: rgba(255,255,255,.95);
+  --recess-in: rgba(14,32,48,.08); --recess-lit: rgba(255,255,255,.70);
 }
 
 /* ----------------------------------------------------------------------

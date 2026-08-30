@@ -173,23 +173,18 @@ fun CardMaterial(
             // tokens cannot be interpolated, so on a theme change half the
             // card animates and half of it jumps. Fixed white and black
             // alphas over one flat surface colour never have that problem.
-            .background(t.surface, shape)
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color.White.copy(alpha = 0.028f), Color.Black.copy(alpha = 0.05f)),
-                ),
-                shape,
-            )
-            .border(1.dp, t.hair, shape)
-            // The lit top edge: `border-top-color` and `inset 0 1px 0 0`,
-            // which is two lit pixels stacked, not one. Drawn after the
-            // border so it replaces the hairline along the top rather than
-            // sitting under it.
-            .drawBehind {
-                clipPath(Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawBehind)) }) {
-                    drawRect(color = t.lip, size = Size(size.width, 2.dp.toPx()))
-                }
-            },
+            // One fill and one shadow. That is the whole card.
+            //
+            // It used to be five materials stacked: the shadow, this fill, a
+            // vertical gradient over it, a 1dp hairline all the way round and
+            // a 2dp lit top edge. Every one of them was defensible on its own
+            // and together they are the thing that reads as cheap - a card
+            // outlined, shaded, lit and lifted all at once is a card shouting
+            // that it is a card. The two published systems this palette is
+            // drawn from separate a surface with about four points of value
+            // and nothing else; the shadow here is the one concession, and it
+            // is what tells you the ticket is a physical thing.
+            .background(t.surface, shape),
         content = content,
     )
 }

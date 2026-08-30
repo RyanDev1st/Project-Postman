@@ -41,7 +41,6 @@ import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.LockerToggle
 import vn.edu.vgu.smartlocker.ui.Recess
-import vn.edu.vgu.smartlocker.ui.ThemeSwitch
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 
@@ -97,7 +96,7 @@ fun SettingsScreen(
             shape = RoundedCornerShape(22.dp),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -168,12 +167,20 @@ fun SettingsScreen(
                 value = stringResource(language.labelRes),
                 onClick = { picking = true },
             )
-            // Not a LockerToggle. Dark mode gets the day/night switch from
-            // the mock-up — the sun, the moon crossing it, the clouds and
-            // the stars. The other two rows are plain on/off and keep the
-            // plain control.
+            // A LockerToggle, like the two rows above it.
+            //
+            // It was the day/night switch from the mock-up — a daylight-blue
+            // sky, a yellow sun, white clouds, stars. It is a lovely piece of
+            // drawing and it is the only saturated colour in the app that is
+            // not amber, on a screen where amber is supposed to mean *your
+            // parcel is running out of time*. ADR 0024 says one colour, and
+            // it says why. It also sat third in a stack of three on/off rows,
+            // two plain and one illustrated, so the odd one out was the least
+            // important switch of the three.
+            //
+            // `ui/ThemeSwitch.kt` still holds it. Nothing calls it now.
             SettingsRow(icon = AppIcons.Moon, title = stringResource(R.string.set_dark_mode)) {
-                ThemeSwitch(checked = dark, onCheckedChange = { onToggleDark() })
+                LockerToggle(checked = dark, onCheckedChange = { onToggleDark() })
             }
             // Which build this is. Not decoration: without it nobody holding
             // the phone can tell a build that failed to install from a fix
@@ -228,7 +235,7 @@ private fun SettingsRow(
         onClick = onClick,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {

@@ -159,8 +159,8 @@ private fun Cells(
                             .shadow(
                                 elevation = 4.dp,
                                 shape = MaterialTheme.shapes.small,
-                                ambientColor = t.accent.copy(alpha = 0.2f),
-                                spotColor = t.accent.copy(alpha = 0.2f),
+                                ambientColor = t.shadow,
+                                spotColor = t.shadow,
                             )
                             .border(1.5.dp, t.accent, MaterialTheme.shapes.small),
                     )

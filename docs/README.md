@@ -69,6 +69,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0022-a-key-outside-the-database.md](adr/0022-a-key-outside-the-database.md) | Credentials are hashed under a key kept out of the database file. A six-digit pickup code is a million guesses, so a bare digest column was a lookup table anybody holding `locker.db` could build in a second | accepted |
 | [adr/0023-not-on-the-public-internet.md](adr/0023-not-on-the-public-internet.md) | The locker is on the campus network and nowhere else. A distributed denial of service leaves the threat model; the certificate is self-signed forever, which makes a release build unable to talk to the server until it ships our own | accepted |
 | [adr/0024-colour-means-something.md](adr/0024-colour-means-something.md) | Colour is reserved for facts about a box - amber for your door, green for free, red for refused. The accent stops being a hue and becomes the end of the value scale, near white on the dark ground and near black on the pale one, so the product reads the same in both schemes and nothing competes with the door light | accepted |
+| [adr/0025-a-four-point-step.md](adr/0025-a-four-point-step.md) | A card sits about four points of lightness above its ground in both schemes, not fourteen in light. Every neutral is hue 210 with two points of channel spread, measured against Radix Slate and Vercel Geist. A card is a shadow and a fill and nothing else; a highlight catches an edge, never a face | accepted |
 
 ## Findings — dated reports
 

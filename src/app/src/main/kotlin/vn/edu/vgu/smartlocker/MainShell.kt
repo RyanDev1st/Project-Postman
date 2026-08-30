@@ -252,6 +252,7 @@ private fun TabAppBar(
             actions = {
                 ScanButton(
                     icon = AppIcons.Scan,
+                    label = stringResource(R.string.scan_action),
                     contentDescription = stringResource(R.string.cd_scan_cabinet),
                     onClick = onScan,
                 )

@@ -110,6 +110,7 @@
     <!-- Quét -->
     <string name="scan_no_camera">Không có máy ảnh. Hãy nhập mã</string>
     <string name="scan_title">Quét màn hình tủ</string>
+    <string name="scan_action">Quét</string>
     <string name="scan_pick_image">Dùng ảnh</string>
     <string name="scan_no_code_in_picture">Ảnh này không có mã của tủ.</string>
 

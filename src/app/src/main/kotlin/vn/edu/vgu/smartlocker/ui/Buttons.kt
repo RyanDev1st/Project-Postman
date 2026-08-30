@@ -69,17 +69,26 @@ fun GoButton(
                         )
                         .clip(shape)
                         .background(t.accentDeep)
+                        // The light catches the top eighth and stops.
+                        //
+                        // It used to run the full 52dp - white at 22% down to
+                        // nothing - which on a near-black slab lifted the head
+                        // by twenty points of value. That is not light falling
+                        // on a face, it is a gradient painted onto one, and it
+                        // is the single loudest thing the old screens did.
                         .background(
                             if (pale) Brush.verticalGradient(
-                                listOf(Color.Transparent, Color.Black.copy(alpha = 0.10f)),
+                                0.86f to Color.Transparent,
+                                1.0f to Color.Black.copy(alpha = 0.07f),
                             ) else Brush.verticalGradient(
-                                listOf(Color.White.copy(alpha = 0.22f), Color.Transparent),
+                                0.0f to Color.White.copy(alpha = 0.10f),
+                                0.14f to Color.Transparent,
                             )
                         )
                         .border(
                             1.dp,
-                            if (pale) Color.Black.copy(alpha = 0.10f)
-                            else Color.White.copy(alpha = 0.26f),
+                            if (pale) Color.Black.copy(alpha = 0.07f)
+                            else Color.White.copy(alpha = 0.12f),
                             shape,
                         )
                         .clickable(onClick = onClick)
@@ -170,11 +179,11 @@ fun AltButton(
             .fillMaxWidth()
             .heightIn(min = 52.dp)
             .clip(shape)
+            // A hairline and nothing else. The sheen that used to sit
+            // inside it belongs to the slab above, which is the button you
+            // are meant to press; wearing it too, the quiet way out was
+            // shouting the same volume.
             .border(1.dp, t.hair, shape)
-            .background(
-                Brush.verticalGradient(listOf(t.lip.copy(alpha = 0.4f), Color.Transparent)),
-                shape,
-            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
