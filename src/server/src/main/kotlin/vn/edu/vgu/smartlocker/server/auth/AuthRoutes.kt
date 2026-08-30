@@ -3,6 +3,7 @@ package vn.edu.vgu.smartlocker.server.auth
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -156,7 +157,41 @@ fun Route.authRoutes(
         val issued = tokens.mint(me)
         call.respond(SessionResponse(issued.token, issued.expiresAt.toString()))
     }
+
+    /**
+     * 24. Who is signed in.
+     *
+     * The app knew the name and the number only at the moment they were
+     * typed. After a relaunch it had neither, so Settings and the Home
+     * greeting drew the parameter defaults - a real tester registered as
+     * Tran Thi Mai and was greeted as Minh. BUG-021.
+     *
+     * The identity comes from the token and nothing else. There is no
+     * parameter to name somebody else, which is what stops this being a
+     * directory of everyone's phone numbers.
+     */
+    get("/me") {
+        val me = call.receiverId(tokens)
+        call.respond(
+            MeResponse(
+                fullName = Receivers.name(db, me),
+                phoneNumber = Receivers.phone(db, me),
+            ),
+        )
+    }
 }
+
+/**
+ * The account, as its owner. **Not masked**: this is the one screen where the
+ * whole name and the whole number are correct to show, because the person
+ * reading it is the person they belong to. The cabinet screen asks endpoint
+ * 10 instead and gets a masked name.
+ */
+@Serializable
+data class MeResponse(
+    @SerialName("full_name") val fullName: String,
+    @SerialName("phone_number") val phoneNumber: String,
+)
 
 @Serializable
 data class GoogleRequest(@SerialName("id_token") val idToken: String = "")

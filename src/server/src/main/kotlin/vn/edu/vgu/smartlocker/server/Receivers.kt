@@ -90,4 +90,9 @@ object Receivers {
     fun name(db: Db, receiverId: String): String =
         db.row("SELECT full_name FROM receivers WHERE id = ?", receiverId) { it.str("full_name") }
             .orEmpty()
+
+    /** The number in the form it was stored, for endpoint 24 and nothing else. */
+    fun phone(db: Db, receiverId: String): String =
+        db.row("SELECT phone FROM receivers WHERE id = ?", receiverId) { it.str("phone") }
+            .orEmpty()
 }
