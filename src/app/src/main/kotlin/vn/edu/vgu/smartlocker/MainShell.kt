@@ -57,6 +57,13 @@ fun MainShell(
     dark: Boolean,
     onToggleDark: () -> Unit,
     onSelectTab: (Screen) -> Unit,
+    /**
+     * The first name to greet, from endpoint 24. Null until the server has
+     * answered, and null for good if it never does - the bar then carries the
+     * product's name instead. BUG-021: this was the literal "Minh", so every
+     * account was greeted as one particular person.
+     */
+    greetingName: String? = null,
     /** The scanner button in the Home bar. It drew a scanner and did nothing
      * until P5-02, because until P5-02 there was no scanner behind it. */
     onScan: () -> Unit,
@@ -141,6 +148,7 @@ fun MainShell(
 
             TabAppBar(
                 screen = screen,
+                greetingName = greetingName,
                 onToggleDark = onToggleDark,
                 onScan = onScan,
                 backdrop = backdrop,
@@ -218,16 +226,20 @@ private fun tabOf(i: Int): Screen = when (i) {
 @Composable
 private fun TabAppBar(
     screen: Screen,
+    greetingName: String?,
     onToggleDark: () -> Unit,
     onScan: () -> Unit,
     backdrop: BackdropState,
     modifier: Modifier = Modifier,
 ) {
     when (screen) {
-        // "Minh" is sample data — the name the server will send. The greeting
-        // around it is the app's own word and moves with the language.
+        // The name comes from endpoint 24 and the greeting around it is the
+        // app's own word, so it moves with the language. With no name yet
+        // the bar says what the app is rather than guessing who you are.
         Screen.HOME -> AppBar(
-            brand = stringResource(R.string.greeting, "Minh"),
+            brand = greetingName
+                ?.let { stringResource(R.string.greeting, it) }
+                ?: stringResource(R.string.app_name),
             modifier = modifier,
             leading = {
                 AppBarBead(

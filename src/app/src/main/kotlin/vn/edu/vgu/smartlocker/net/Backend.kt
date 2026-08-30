@@ -113,5 +113,16 @@ class Backend(context: Context) {
     suspend fun refreshSettings(): Boolean =
         io { api.fetchSettings() }.let { it is Answer.Ok && it.value }
 
+    /**
+     * Who is signed in - endpoint 24.
+     *
+     * Null on any failure, and the caller keeps whatever it already had. The
+     * one thing it must never do is hand back a made-up account: the screens
+     * that use this draw a name at 22sp beside a phone number, and a wrong
+     * one there is worse than none.
+     */
+    suspend fun me(): Account? =
+        io { api.me() }.let { if (it is Answer.Ok) it.value else null }
+
     private suspend fun <T> io(work: () -> T): T = withContext(Dispatchers.IO) { work() }
 }

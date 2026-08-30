@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +30,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
+import vn.edu.vgu.smartlocker.ui.AppIcons
+import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Pill
 import vn.edu.vgu.smartlocker.ui.PillKind
@@ -127,7 +132,16 @@ fun HomeScreen(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
     ) {
-        if (parcels.isEmpty()) {
+        if (parcels.isEmpty() && note != null) {
+            // Nothing cached and no answer. **Not the free-box ticket.**
+            //
+            // That is what stood here, and it drew a green dash and a green
+            // dot over the sentence saying the server could not be reached -
+            // green means *a box is free*, so the loud half of the card was
+            // stating a fact the quiet half was disclaiming. The same fault
+            // as BUG-024 one screen over, and the card is the loud part.
+            TroubleCard(note)
+        } else if (parcels.isEmpty()) {
             // The empty state is the same ticket with a different number on
             // it: *nothing waiting* and *room to send you something* are
             // different facts, and only the second is useful.
@@ -137,12 +151,12 @@ fun HomeScreen(
                     box = freeCount?.let { "%02d".format(it) } ?: "-",
                     dropped = "",
                     collectBy = "",
-                    left = if (note == null) stringResource(R.string.home_nearest) else "",
+                    left = stringResource(R.string.home_nearest),
                     pct = 0f,
                     soon = false,
                 ),
                 isFree = true,
-                freeNote = stringResource(note ?: R.string.home_nothing_waiting),
+                freeNote = stringResource(R.string.home_nothing_waiting),
             )
         } else {
             ClaimTicket(claim = parcels.first())
@@ -167,11 +181,65 @@ fun HomeScreen(
         SectionLabel(stringResource(R.string.home_where_to_walk))
         MapCard(onClick = onMap)
 
-        SectionLabel(stringResource(R.string.home_collected))
-        Ledger(entries = ledger)
+        // A heading over nothing is a section that failed to load. With an
+        // empty ledger there is simply no history yet, and saying so twice -
+        // once as a title and once as a blank - says it worse than not
+        // drawing it.
+        if (ledger.isNotEmpty()) {
+            SectionLabel(stringResource(R.string.home_collected))
+            Ledger(entries = ledger)
+        }
 
         // Room to scroll the last row out from under the floating nav.
         Spacer(Modifier.height(NavClearance))
+    }
+}
+
+/**
+ * No parcels, and no answer either. Same shape as the ticket it stands in
+ * place of, and no colour: not knowing is not a fact about a box.
+ */
+@Composable
+private fun TroubleCard(note: Int) {
+    val t = LocalLockerTokens.current
+    CardMaterial(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(t.ink2.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = AppIcons.Warn,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = t.ink2,
+                )
+            }
+            Column {
+                Text(
+                    text = stringResource(R.string.home_no_answer),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    color = t.ink,
+                )
+                Text(
+                    text = stringResource(note),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = t.ink2,
+                )
+            }
+        }
     }
 }
 

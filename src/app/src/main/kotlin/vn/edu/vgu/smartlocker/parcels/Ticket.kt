@@ -99,13 +99,21 @@ fun ClaimTicket(
                 verticalAlignment = Alignment.Bottom,
             ) {
                 Column {
-                    Text(
-                        text = stringResource(
-                            if (isFree) R.string.ticket_boxes_free else R.string.ticket_door,
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = t.ink3,
-                    )
+                    // "Door" is not drawn. The cabinet name is already above
+                    // this and a two-digit number at display size on a card
+                    // shaped like a cloakroom ticket has never been anything
+                    // else. Three stacked labels over one number - BACK GATE,
+                    // Door, 08 - is two more than the number needs.
+                    //
+                    // "Boxes free" stays, because a bare number there really
+                    // could be a door.
+                    if (isFree) {
+                        Text(
+                            text = stringResource(R.string.ticket_boxes_free),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = t.ink3,
+                        )
+                    }
                     Text(
                         text = claim.box,
                         style = MaterialTheme.typography.displayMedium.copy(

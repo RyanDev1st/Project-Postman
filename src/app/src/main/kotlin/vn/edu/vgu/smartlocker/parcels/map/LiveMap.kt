@@ -3,6 +3,7 @@ package vn.edu.vgu.smartlocker.parcels.map
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.view.Gravity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -108,6 +109,8 @@ internal fun LiveMap(
     // Room round the walk so neither end sits on the edge. The card is small
     // and can spare little; opened out there is room to breathe.
     val edgePad = with(LocalDensity.current) { (if (interactive) 56.dp else 16.dp).roundToPx() }
+    val hairPad = with(LocalDensity.current) { 6.dp.roundToPx() }
+    val quietInk = LocalLockerTokens.current.ink3.toArgb()
 
     AndroidView(
         factory = { view },
@@ -126,8 +129,18 @@ internal fun LiveMap(
                     isCompassEnabled = false
                     isLogoEnabled = false
                     // Required by OpenFreeMap and by OSM's licence. Not ours
-                    // to switch off.
+                    // to switch off - but ours to place and to tint.
+                    //
+                    // Left alone it drew a teal circled i floating in the
+                    // middle of the card, in a colour that appears nowhere
+                    // else in the product, and it read as a bug. MapLibre's
+                    // default margins are written for a full-screen map; on
+                    // a 112dp card they put the mark in the picture. Corner,
+                    // small margin, and the same ink as a caption.
                     isAttributionEnabled = true
+                    setAttributionGravity(Gravity.BOTTOM or Gravity.END)
+                    setAttributionMargins(0, 0, hairPad, hairPad)
+                    setAttributionTintColor(quietInk)
                 }
                 // Frame by the route's own bounds, not by a zoom number.
                 //

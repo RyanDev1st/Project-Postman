@@ -57,6 +57,20 @@ object VnMobile {
 
     /** `+84912345678`, the form the server takes. Only for a complete number. */
     fun e164(local: String): String = "+84$local"
+
+    /**
+     * `+84 912 345 678` - the account's own number, as Settings draws it.
+     *
+     * Endpoint 24 answers in the form the server stores, which is E.164. Put
+     * on the screen unchanged it was a fourteen-digit run with no grouping,
+     * beside a field two screens away that groups the same number.
+     * Anything that does not parse is returned as it came: a number nobody
+     * can read beats a number that is wrong.
+     */
+    fun display(e164: String): String {
+        val local = clean(e164.removePrefix("+84").removePrefix("84"))
+        return if (isComplete(local)) "+84 " + spaced(local) else e164
+    }
 }
 
 /**
@@ -158,11 +172,14 @@ fun PhoneField(
                 ),
                 decorationBox = { field ->
                     if (number.isEmpty()) {
+                        // Half weight, because it is set in the same face
+                        // and size as a real number beside a real +84 prefix.
+                        // At full ink3 it reads as a number already typed in.
                         Text(
                             text = VnMobile.spaced("912345678"),
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontFamily = NumberFace,
-                                color = t.ink3,
+                                color = t.ink3.copy(alpha = 0.5f),
                             ),
                         )
                     }

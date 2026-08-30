@@ -54,8 +54,17 @@ import vn.edu.vgu.smartlocker.ui.theme.NumberFace
  */
 @Composable
 fun SettingsScreen(
-    name: String = "Minh Nguyễn",
-    phone: String = "0912 345 678",
+    /**
+     * The account, from endpoint 24. Both blank until the server has
+     * answered, and blank for good if it never does.
+     *
+     * These were `"Minh Nguyễn"` and `"0912 345 678"` and nothing ever passed
+     * anything else, so every account on every phone showed one particular
+     * stranger. BUG-021. Defaults on a screen that draws a name at 22sp are
+     * how that happens, so there are none: a caller has to say.
+     */
+    name: String,
+    phone: String,
     dark: Boolean = false,
     onToggleDark: () -> Unit = {},
     language: AppLanguage = AppLanguage.ENGLISH,
@@ -100,7 +109,9 @@ fun SettingsScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = name.split(" ").map { it.firstOrNull() ?: "" }.joinToString("").take(2).uppercase(),
+                        text = name.split(" ").mapNotNull { it.firstOrNull() }
+                            .joinToString("").take(2).uppercase()
+                            .ifEmpty { "–" },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                         color = t.accentInk,
                     )

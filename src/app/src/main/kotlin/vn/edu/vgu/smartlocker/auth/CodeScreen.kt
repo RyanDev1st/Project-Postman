@@ -48,10 +48,11 @@ private fun AuthDisplay(
     Text(
         text = buildAnnotatedString {
             append("$first\n")
-            withStyle(SpanStyle(color = t.accent)) { append(accent) }
+            // Lead recedes, payoff keeps full ink - see SignInScreen.
+            withStyle(SpanStyle(color = t.ink)) { append(accent) }
         },
         style = MaterialTheme.typography.headlineLarge,
-        color = t.ink,
+        color = t.ink2,
         modifier = modifier,
     )
 }

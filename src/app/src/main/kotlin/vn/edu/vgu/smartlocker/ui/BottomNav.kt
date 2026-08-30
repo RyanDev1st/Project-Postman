@@ -74,7 +74,10 @@ fun LockerToggle(
                 .offset(x = knob.value.dp)
                 .size(18.dp)
                 .clip(CircleShape)
-                .background(if (checked) Color.White else t.ink3),
+                // White knob on a white track is no knob at all: the slab
+                // is near-white in the dark scheme, so the knob takes the
+                // colour that is defined as sitting on it.
+                .background(if (checked) t.onAccent else t.ink3),
         )
     }
 }

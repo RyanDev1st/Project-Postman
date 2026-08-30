@@ -39,8 +39,15 @@ import vn.edu.vgu.smartlocker.ui.QuietButton
 import vn.edu.vgu.smartlocker.ui.Recess
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
-/** The cabinet's four states, as the bench's mode buttons choose them. */
-enum class CabinetMode { TWO, ONE, EMPTY, FULL }
+/**
+ * The cabinet's states, as the bench's mode buttons choose them.
+ *
+ * [UNKNOWN] is the one that was missing, and its absence was BUG-024: with no
+ * way to say *the server did not answer*, a failed fetch arrived as an empty
+ * list and the tab drew [EMPTY] - a green tick and "Room for a drop" - to a
+ * receiver whose parcel was thirty centimetres away behind a locked door.
+ */
+enum class CabinetMode { TWO, ONE, EMPTY, FULL, UNKNOWN }
 
 /**
  * The cabinet tab.
@@ -68,6 +75,15 @@ fun CabinetScreen(
      */
     yours: List<YourDoor>,
     /**
+     * What went wrong the last time this was fetched, already a sentence.
+     * Null when the server answered.
+     *
+     * The screen may not draw a state that claims to know anything about the
+     * cabinet while this is set and nothing is cached. BUG-024, and rule 4 in
+     * architecture.md: an unclear result is never shown as a success.
+     */
+    note: Int? = null,
+    /**
      * Free doors, when anybody knows. **Usually nothing.**
      *
      * A receiver's side of the contract has no endpoint that reports free
@@ -76,16 +92,21 @@ fun CabinetScreen(
      */
     freeDoors: List<String> = emptyList(),
     mode: CabinetMode = when {
-        yours.isEmpty() -> CabinetMode.EMPTY
-        yours.size == 1 -> CabinetMode.ONE
-        else -> CabinetMode.TWO
+        // Cached doors still stand: a fetch that failed is not news that a
+        // parcel has gone, and blanking one somebody can see would say it
+        // had. The note goes underneath them instead.
+        yours.isNotEmpty() -> if (yours.size == 1) CabinetMode.ONE else CabinetMode.TWO
+        note != null -> CabinetMode.UNKNOWN
+        else -> CabinetMode.EMPTY
     },
 ) {
     val t = LocalLockerTokens.current
     var selected by remember(yours) { mutableStateOf(yours.firstOrNull()?.n.orEmpty()) }
     var framed by remember { mutableStateOf<String?>(null) }
 
-    val mine = if (mode == CabinetMode.EMPTY || mode == CabinetMode.FULL) emptyList() else yours
+    val told = mode == CabinetMode.EMPTY || mode == CabinetMode.FULL ||
+        mode == CabinetMode.UNKNOWN
+    val mine = if (told) emptyList() else yours
     val effective = selected.ifEmpty { mine.firstOrNull()?.n.orEmpty() }
 
     // Heading carries the constants; per-door facts live in the panel.
@@ -100,7 +121,15 @@ fun CabinetScreen(
             stringResource(R.string.cab_full_title) to stringResource(R.string.cab_full_sub)
         CabinetMode.EMPTY ->
             stringResource(R.string.cab_room_title) to stringResource(R.string.cab_room_sub)
-        CabinetMode.TWO -> stringResource(R.string.cab_two_title) to freeLine
+        // The card under the render carries the detail. Saying it here
+        // too puts the same two sentences on the screen twice.
+        CabinetMode.UNKNOWN -> stringResource(R.string.cab_unknown_title) to ""
+        // The heading counts, and the line under it says how to reach the one
+        // the button is not about. "Two boxes are yours" over a single ticket
+        // was a screen disagreeing with itself, and the way to the second one
+        // was written down nowhere.
+        CabinetMode.TWO ->
+            stringResource(R.string.cab_two_title) to stringResource(R.string.cab_tap_a_door)
         CabinetMode.ONE -> stringResource(R.string.cab_one_title) to freeLine
     }
 
@@ -125,10 +154,15 @@ fun CabinetScreen(
         // says "behind the surface" rather than "on top of it". It is also
         // where the screen's depth went when the switch below it was removed:
         // that switch was the only recessed thing on the tab.
+        // Sized to the render, not to whatever is left over. The render is
+        // square and the well was taking the whole remaining column, so on a
+        // tall phone about 300px of empty well sat under the cabinet - inside
+        // the one material on this tab whose job is to read as depth. The
+        // slack goes below instead, between the render and the panel, where
+        // it reads as air rather than as a hole.
+        Spacer(Modifier.weight(0.55f))
         Recess(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
         ) {
             CabinetArt(
@@ -150,6 +184,8 @@ fun CabinetScreen(
             }
         }
 
+        Spacer(Modifier.weight(1f))
+
         // One panel, and only one.
         //
         // There used to be a segmented switch above this naming your boxes.
@@ -163,8 +199,8 @@ fun CabinetScreen(
         // What is left says which box the button will open and when it has to
         // be collected, which is the only thing the switch was really for.
         Column(modifier = Modifier.padding(top = 12.dp)) {
-            if (mode == CabinetMode.EMPTY || mode == CabinetMode.FULL) {
-                StatusCard(mode)
+            if (told) {
+                StatusCard(mode, note)
             } else {
                 val d = mine.firstOrNull { it.n == effective } ?: mine.first()
                 SmallTicket(
@@ -177,6 +213,16 @@ fun CabinetScreen(
                         soon = d.soon,
                     ),
                 )
+                // Cached doors with a failed refresh behind them. The doors
+                // stay, and the screen says it could not check.
+                note?.let {
+                    Text(
+                        text = stringResource(it),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = t.ink3,
+                        modifier = Modifier.padding(top = 8.dp, start = 2.dp),
+                    )
+                }
             }
         }
 
@@ -189,7 +235,8 @@ fun CabinetScreen(
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             when (mode) {
-                CabinetMode.EMPTY -> {}
+                // Nothing to open, and nothing to pretend about.
+                CabinetMode.EMPTY, CabinetMode.UNKNOWN -> {}
                 CabinetMode.FULL -> AltButton(
                     text = stringResource(R.string.cab_show_library),
                     onClick = {},
@@ -210,13 +257,30 @@ fun CabinetScreen(
     }
 }
 
-/** Nothing waiting, or nowhere to put anything. Same height as the ticket. */
+/**
+ * Nothing waiting, nowhere to put anything, or no answer at all. Same height
+ * as the ticket.
+ *
+ * The tick is only drawn for something the server actually said. A tick is
+ * the mark for *checked, and fine*, and spending it on a guess is how this
+ * screen came to confirm a free box to somebody holding a parcel. BUG-024.
+ */
 @Composable
-private fun StatusCard(mode: CabinetMode) {
+private fun StatusCard(mode: CabinetMode, note: Int?) {
     val t = LocalLockerTokens.current
     val free = mode == CabinetMode.EMPTY
-    val icon = if (free) AppIcons.Check else AppIcons.NoEntry
-    val colour = if (free) t.free else t.refuse
+    val unknown = mode == CabinetMode.UNKNOWN
+    val icon = when {
+        free -> AppIcons.Check
+        unknown -> AppIcons.Warn
+        else -> AppIcons.NoEntry
+    }
+    // Not knowing is not a fact about a box, so it gets no colour.
+    val colour = when {
+        free -> t.free
+        unknown -> t.ink2
+        else -> t.refuse
+    }
     CardMaterial(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
@@ -230,7 +294,7 @@ private fun StatusCard(mode: CabinetMode) {
                 modifier = Modifier
                     .size(34.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(colour.copy(alpha = if (free) 0.15f else 0.16f)),
+                    .background(colour.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -243,15 +307,21 @@ private fun StatusCard(mode: CabinetMode) {
             Column {
                 Text(
                     text = stringResource(
-                        if (free) R.string.cab_room_title else R.string.cab_inuse_title,
+                        when {
+                            free -> R.string.cab_room_title
+                            unknown -> R.string.cab_unknown_title
+                            else -> R.string.cab_inuse_title
+                        },
                     ),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = t.ink,
                 )
                 Text(
-                    text = stringResource(
-                        if (free) R.string.cab_room_sub else R.string.cab_inuse_sub,
-                    ),
+                    text = when {
+                        free -> stringResource(R.string.cab_room_sub)
+                        unknown -> note?.let { stringResource(it) }.orEmpty()
+                        else -> stringResource(R.string.cab_inuse_sub)
+                    },
                     style = MaterialTheme.typography.labelLarge,
                     color = t.ink2,
                 )

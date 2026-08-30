@@ -80,12 +80,13 @@ fun SetPasswordScreen(
             Text(
                 text = buildAnnotatedString {
                     append(stringResource(R.string.pw_set_title_lead) + "\n")
-                    withStyle(SpanStyle(color = t.accent)) {
+                    // Lead recedes, payoff keeps full ink - see SignInScreen.
+                    withStyle(SpanStyle(color = t.ink)) {
                         append(stringResource(R.string.pw_set_title_accent))
                     }
                 },
                 style = MaterialTheme.typography.headlineLarge,
-                color = t.ink,
+                color = t.ink2,
             )
             Text(
                 text = stringResource(R.string.pw_set_sub),

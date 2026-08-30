@@ -1,19 +1,16 @@
 package vn.edu.vgu.smartlocker.auth
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -24,14 +21,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Recess
@@ -69,29 +71,39 @@ fun SignInScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         AuthHero()
 
+        // The slack in this screen belongs above the headline, where the
+        // hero is already fading into the ground, and not below it. Arranged
+        // from the top it left a 250px hole between the sub-headline and the
+        // phone field, which reads as a screen missing an element rather than
+        // as a composed one.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.Bottom,
         ) {
             Text(
                 text = buildAnnotatedString {
                     append(stringResource(R.string.signin_headline_lead))
                     append("\n")
-                    withStyle(SpanStyle(color = t.accent)) {
+                    // The lead recedes and the payoff keeps full ink.
+                    // Emphasis used to be a hue on the last line; with the
+                    // accent at the end of the value scale that would be a
+                    // near-white word among near-white words. Value carries
+                    // it instead, which is what the type scale is for.
+                    withStyle(SpanStyle(color = t.ink)) {
                         append(stringResource(R.string.signin_headline_accent))
                     }
                 },
                 style = MaterialTheme.typography.displaySmall,
-                color = t.ink,
-                modifier = Modifier.padding(top = 16.dp),
+                color = t.ink2,
             )
             Text(
                 text = stringResource(R.string.signin_sub),
                 style = MaterialTheme.typography.labelLarge,
-                color = t.ink2,
+                color = t.ink3,
+                modifier = Modifier.padding(top = 12.dp, bottom = 22.dp),
             )
         }
 
@@ -138,13 +150,21 @@ fun SignInScreen(
             // It is not conditional on anything. The app cannot know whether
             // a number has a password without asking the server, and asking
             // would be an endpoint that answers "is this number registered".
+            // Underlined rather than tinted. It is the only way in that
+            // works while BUG-016 keeps one-time codes from arriving, so it
+            // cannot look like the small print two rows below it - and with
+            // the accent at the end of the value scale, a tint would make it
+            // look like heavier body text rather than a link.
             Text(
                 text = stringResource(R.string.pw_use_password),
-                style = MaterialTheme.typography.labelMedium,
-                color = t.accent,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                ),
+                color = t.ink,
                 modifier = Modifier
                     .clickable(onClick = onUsePassword)
-                    .padding(start = 2.dp),
+                    .padding(start = 2.dp, top = 2.dp, bottom = 2.dp),
             )
 
             // The Google and VGU buttons were here. Both are removed until
@@ -206,7 +226,8 @@ fun SignInScreen(
 @Composable
 private fun AuthHero() {
     val t = LocalLockerTokens.current
-    BoxWithConstraints(
+    val cabinet = ImageBitmap.imageResource(R.drawable.cabinet)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(214.dp)
@@ -214,25 +235,30 @@ private fun AuthHero() {
             // to clip or it paints over the form below it.
             .clipToBounds(),
     ) {
-        val boxW = maxWidth
-        val boxH = 214.dp
-        Image(
-            painter = painterResource(R.drawable.cabinet),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier
-                // requiredSize, not fillMaxWidth(1.75f): that fraction is
-                // declared 0..1 and is coerced back to the parent's width,
-                // so the zoom silently never happened and the -80% offset
-                // then dragged the un-zoomed render off the left edge. All
-                // that was left was a sliver. requiredSize ignores the
-                // parent's maximum, which is the whole point here.
-                .requiredSize(boxW * 1.75f)
-                .offset(
-                    x = boxW * -0.80f,
-                    y = boxH * -0.19f,
+        // The crop is drawn, not laid out. BUG-004.
+        //
+        // It used to be an oversized child: `requiredSize(boxW * 1.75f)` and
+        // then an offset back. The numbers were right - reproduced against
+        // the bitmap they give the picture the comment above describes - and
+        // on a real GPU the screen did not. What arrived was the far right
+        // edge of the cabinet at roughly twice the intended zoom, ending in a
+        // hard vertical cut a third of the way across, on hardware GL as well
+        // as on the software rasteriser, which is what ruled out the
+        // rasteriser. Three modifiers deciding one rectangle between them is
+        // one too many to reason about, so the rectangle is now stated.
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val side = size.width * 1.75f
+            drawImage(
+                image = cabinet,
+                srcOffset = IntOffset.Zero,
+                srcSize = IntSize(cabinet.width, cabinet.height),
+                dstOffset = IntOffset(
+                    (size.width * -0.80f).roundToInt(),
+                    (size.height * -0.19f).roundToInt(),
                 ),
-        )
+                dstSize = IntSize(side.roundToInt(), side.roundToInt()),
+            )
+        }
         // Masked out at the bottom: the ground comes up through the cabinet.
         Box(
             modifier = Modifier

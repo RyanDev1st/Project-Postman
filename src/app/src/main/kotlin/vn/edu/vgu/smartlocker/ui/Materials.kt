@@ -96,9 +96,13 @@ fun Modifier.lockerGround(topInWindow: Float = 0f): Modifier {
 
     return this
         .background(t.ground)
+        // The one wash, from above the app bar. It is drawn from the lit edge
+        // rather than from the accent, because a wash is light and not colour:
+        // the accent is now the end of the value scale, so in the light scheme
+        // an accent wash would put a shadow across the top of every screen.
         .background(
             Brush.verticalGradient(
-                listOf(t.accent.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
+                listOf(t.lip.copy(alpha = 0.14f), Color.Transparent, Color.Transparent),
                 startY = -topInWindow,
                 endY = 900f - topInWindow,
             ),

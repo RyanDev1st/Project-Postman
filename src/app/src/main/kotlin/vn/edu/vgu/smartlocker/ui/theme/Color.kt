@@ -18,6 +18,18 @@ import androidx.compose.ui.graphics.Color
  *
  * Amber is identical in both schemes: a door being open is a fact about the
  * world, not about the phone's settings.
+ *
+ * **Colour means something.** Amber says *this door is yours*, [LockerTokens.free]
+ * says a box is empty, [LockerTokens.refuse] says something was turned down.
+ * Nothing else is coloured: the accent is the end of the value scale, near
+ * white on the dark ground and near black on the pale one.
+ *
+ * It used to be a hue, and a different hue in each scheme — `#7FA8FF` dark,
+ * `#C2410C` light. That cost the product twice. A brand nobody could picture,
+ * because the only colour on screen changed when the sun went down. And a
+ * burnt orange 25 degrees off the door light, which the note below defended
+ * by darkness alone and which reads on a phone as one warm family with the
+ * one colour the product has to teach. ADR 0024.
  */
 
 /** A full token set for one scheme. Names carry over from the mock-up. */
@@ -36,9 +48,10 @@ data class LockerTokens(
     val ink: Color,         // text
     val ink2: Color,        // second-rank text
     val ink3: Color,        // captions and disabled
-    val accent: Color,      // the colour, wherever it is large or on a card
+    val accent: Color,      // the emphasis, wherever it is large or on a card
     val accentDeep: Color,  // the filled button
     val accentInk: Color,   // small accent text on the ground
+    val onAccent: Color,    // what sits ON accentDeep - a label, a switch knob
     val free: Color,        // a box nobody has taken
     val refuse: Color,      // a wrong code, a faulty box
     val shadow: Color,      // what a raised thing casts
@@ -90,9 +103,10 @@ private val Dark = LockerTokens(
     ink = Color(0xFFE8EDF4),
     ink2 = Color(0xFF8E9AA8),
     ink3 = Color(0xFF798591), // 5.23:1 on the ground, 4.50:1 on a card
-    accent = Color(0xFF7FA8FF),
-    accentDeep = Color(0xFF3D74F0),
-    accentInk = Color(0xFF7FA8FF),
+    accent = Color(0xFFF2F7FF),     // 18.3:1 on the ground, brighter than ink
+    accentDeep = Color(0xFFE7EEFA),  // the slab, pulled just under the marks
+    accentInk = Color(0xFFF2F7FF),
+    onAccent = Color(0xFF0A0E14),    // 16.6:1 on the slab
     free = Color(0xFF3FD69A),
     refuse = Color(0xFFFF9B92),
     shadow = Color(0x9E000000), // rgba(0,0,0,.62)
@@ -105,16 +119,15 @@ private val Dark = LockerTokens(
 // --- light, the second design ---------------------------------------------
 
 /**
- * Light leads burnt orange — chosen over a second blue because the cool steel
- * ground has nothing to push against from another blue, and a warm control on
- * cold metal is the reason the scheme exists.
+ * Light is the same design with the value scale turned over. Ink goes dark,
+ * the ground comes down to mid-steel, and the accent follows ink to the end
+ * of the scale rather than flipping to a second hue.
  *
- * Three accent values because orange is lighter than a red at the same chroma
- * and loses contrast against the mid-steel ground: `#C2410C` is 3.70:1 on the
- * ground (large type and fills only), 5.18:1 on a white card, and the small
- * accent text that sits on the ground needs `--accent-ink` `#98380A` at 5.17:1.
- * The button fill is deliberately not darker: at `#98380A` the largest orange
- * area on the screen goes brown.
+ * `accentInk` survives with the same value as `accent`. It was a third orange,
+ * two points darker, bought to carry small text at 5.17:1 on the ground; at
+ * 13.5:1 there is nothing left for it to fix. It is still called in four
+ * places and still means *accent, small, on the ground*, so it stays as a
+ * name rather than becoming a rename across four files.
  */
 private val Light = LockerTokens(
     ground = Color(0xFFD3DBE3),
@@ -131,9 +144,10 @@ private val Light = LockerTokens(
     ink = Color(0xFF0F161B),
     ink2 = Color(0xFF4C5862),
     ink3 = Color(0xFF54616C), // 4.54:1 on the ground, 6.36:1 on a card
-    accent = Color(0xFFC2410C),
-    accentDeep = Color(0xFFB83E0B),
-    accentInk = Color(0xFF98380A),
+    accent = Color(0xFF0A121B),      // 13.5:1 on the ground, 18.8:1 on a card
+    accentDeep = Color(0xFF14202C),  // the slab, lifted just off the marks
+    accentInk = Color(0xFF0A121B),
+    onAccent = Color(0xFFF4F8FE),    // 15.5:1 on the slab
     free = Color(0xFF0B6B49), // 4.67:1 on the light ground, 6.53:1 on white
     refuse = Color(0xFFB3261E),
     shadow = Color(0x380C1824), // rgba(12,24,36,.22)

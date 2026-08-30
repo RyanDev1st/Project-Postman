@@ -30,7 +30,7 @@ val LocalLockerTokens = staticCompositionLocalOf { LightTokens }
 
 private val LightScheme = lightColorScheme(
     primary            = LightTokens.accentDeep,
-    onPrimary          = androidx.compose.ui.graphics.Color.White,
+    onPrimary          = LightTokens.onAccent,
     primaryContainer   = LightTokens.surface2,
     onPrimaryContainer = LightTokens.ink,
 
@@ -57,7 +57,7 @@ private val LightScheme = lightColorScheme(
 
 private val DarkScheme = darkColorScheme(
     primary            = DarkTokens.accentDeep,
-    onPrimary          = androidx.compose.ui.graphics.Color.White,
+    onPrimary          = DarkTokens.onAccent,
     primaryContainer   = DarkTokens.surface2,
     onPrimaryContainer = DarkTokens.ink,
 

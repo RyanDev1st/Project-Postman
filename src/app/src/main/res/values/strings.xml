@@ -99,6 +99,7 @@
     <string name="home_open_door">Open door %1$s</string>
     <string name="home_also_waiting">Also waiting</string>
     <string name="home_where_to_walk">Where to walk</string>
+    <string name="home_no_answer">We could not check</string>
     <string name="home_collected">Collected</string>
 
     <!-- The claim ticket -->
@@ -126,6 +127,8 @@
     <string name="cab_show_library">Show the Library cabinet</string>
     <string name="cab_scan_to_open">Scan to open %1$s</string>
     <string name="cab_use_code">Use a code</string>
+    <string name="cab_unknown_title">We could not check the cabinet</string>
+    <string name="cab_tap_a_door">Tap a lit door to switch</string>
     <string name="cab_room_title">Room for a drop</string>
     <string name="cab_room_sub">Give a courier your number and one is yours</string>
     <string name="cab_inuse_title">All 20 boxes in use</string>

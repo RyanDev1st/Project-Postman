@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,6 +81,15 @@ fun CabinetArt(
     // with each other, which is what happened when they were separate.
     val travel = remember { Animatable(0f) }
     var framing by remember { mutableStateOf<Zoom?>(null) }
+
+    // Which door is under a finger right now.
+    //
+    // The render is the door selector - the segmented switch that used to do
+    // this job was removed as a duplicate - and until now it was the only
+    // control in the app with no pressed state at all. A picture that does
+    // not answer a touch is a picture, so a receiver with two parcels had no
+    // way of learning that the second one was reachable.
+    var pressed by remember { mutableStateOf<String?>(null) }
 
     // Which door the camera is on: the one that was tapped, or — when a
     // single box is yours — that one, because the screen frames it unasked.
@@ -147,10 +157,20 @@ fun CabinetArt(
             // render's own coordinates and the polygons still fit it however
             // far the camera has pushed in.
             .pointerInput(yours) {
-                detectTapGestures { at ->
-                    doorAt(at, size.width.toFloat(), size.height.toFloat(), yours)
-                        ?.let(onDoorTapped)
-                }
+                detectTapGestures(
+                    onPress = { at ->
+                        val n = doorAt(at, size.width.toFloat(), size.height.toFloat(), yours)
+                        if (n != null) {
+                            pressed = n
+                            tryAwaitRelease()
+                            pressed = null
+                        }
+                    },
+                    onTap = { at ->
+                        doorAt(at, size.width.toFloat(), size.height.toFloat(), yours)
+                            ?.let(onDoorTapped)
+                    },
+                )
             },
     ) {
         // Which doors are lit, and how strongly — the dimming below and the
@@ -216,6 +236,16 @@ fun CabinetArt(
                     if (f > 0f) drawDoorLight(door.n, f, tintAlpha = light.value)
                 }
                 free.forEach { n -> drawFreeDoor(n, t.free) }
+
+                // The pressed door, brightened while a finger is on it. Drawn
+                // over the light rather than instead of it, and in white
+                // rather than in more amber: amber says *this door is yours*,
+                // and a door does not become more yours for being touched.
+                pressed?.let { n ->
+                    clipPath(doorPath(n, size.width, size.height)) {
+                        drawRect(Color.White.copy(alpha = 0.20f))
+                    }
+                }
             }
         }
     }

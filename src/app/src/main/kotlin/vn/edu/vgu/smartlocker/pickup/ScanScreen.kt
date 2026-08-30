@@ -234,7 +234,15 @@ fun Aperture(
             val corner = 28.dp.toPx()
             val inset = 16.dp.toPx()
             val stroke = 3.dp.toPx()
-            val accent = t.accent
+            // Fixed white, and not the accent.
+            //
+            // This frame is the one piece of chrome in the app that sits over
+            // a camera feed rather than over the app's own ground, so it has
+            // no ground to take its contrast from. The accent is near-black
+            // in the light scheme, which on a dark parcel in a dim corridor
+            // is no frame at all. White over an unknown image is what every
+            // camera reticle is, and for this reason.
+            val accent = Color.White
             // Top-left corner
             drawLine(accent, Offset(inset, inset + corner), Offset(inset, inset), stroke)
             drawLine(accent, Offset(inset, inset), Offset(inset + corner, inset), stroke)

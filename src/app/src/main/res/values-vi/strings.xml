@@ -72,6 +72,7 @@
     <string name="home_open_door">Mở hộp %1$s</string>
     <string name="home_also_waiting">Đang chờ khác</string>
     <string name="home_where_to_walk">Đường đi</string>
+    <string name="home_no_answer">Không kiểm tra được</string>
     <string name="home_collected">Đã lấy</string>
 
     <!-- Phiếu nhận hàng -->
@@ -96,6 +97,8 @@
     <string name="cab_show_library">Xem tủ Thư viện</string>
     <string name="cab_scan_to_open">Quét để mở %1$s</string>
     <string name="cab_use_code">Dùng mã</string>
+    <string name="cab_unknown_title">Không kiểm tra được tủ</string>
+    <string name="cab_tap_a_door">Chạm vào ô đang sáng để đổi</string>
     <string name="cab_room_title">Còn chỗ để gửi</string>
     <string name="cab_room_sub">Đưa số điện thoại cho người giao là có một hộp</string>
     <string name="cab_inuse_title">Cả 20 hộp đang dùng</string>

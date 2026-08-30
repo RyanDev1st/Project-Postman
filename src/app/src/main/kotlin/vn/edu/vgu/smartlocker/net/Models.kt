@@ -81,3 +81,20 @@ data class Opened(val boxNumber: String, val cabinetName: String) {
         )
     }
 }
+
+/**
+ * The signed-in account, from endpoint 24.
+ *
+ * Both fields are read leniently: an older server answers 404 and the caller
+ * keeps whatever it had, and a server that answers without a name gives an
+ * empty one rather than a wrong one. A blank name means the app says nothing
+ * about who you are, which is the honest state - it never invents one.
+ */
+data class Account(val name: String, val phone: String) {
+    companion object {
+        fun from(json: JSONObject) = Account(
+            name = json.optString("full_name"),
+            phone = json.optString("phone_number"),
+        )
+    }
+}

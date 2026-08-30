@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
@@ -43,6 +44,12 @@ fun GoButton(
 ) {
     val t = LocalLockerTokens.current
     val shape = MaterialTheme.shapes.large
+    // Which way the light has to fall. The slab is near-white in the dark
+    // scheme and near-black in the light one, so a fixed white top highlight
+    // is a highlight on one and nothing at all on the other. Either way the
+    // light comes from above: a pale slab is shaded at its foot, a dark one
+    // is caught along its head.
+    val pale = t.dark
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -63,16 +70,31 @@ fun GoButton(
                         .clip(shape)
                         .background(t.accentDeep)
                         .background(
-                            Brush.verticalGradient(
+                            if (pale) Brush.verticalGradient(
+                                listOf(Color.Transparent, Color.Black.copy(alpha = 0.10f)),
+                            ) else Brush.verticalGradient(
                                 listOf(Color.White.copy(alpha = 0.22f), Color.Transparent),
                             )
                         )
-                        .border(1.dp, Color.White.copy(alpha = 0.26f), shape)
+                        .border(
+                            1.dp,
+                            if (pale) Color.Black.copy(alpha = 0.10f)
+                            else Color.White.copy(alpha = 0.26f),
+                            shape,
+                        )
                         .clickable(onClick = onClick)
                 } else {
+                    // Off, and it has to look off.
+                    //
+                    // This was the primary's own fill at 36% under a white
+                    // label, which on the sign-in screen is a solid pill
+                    // sitting exactly where the live button sits. Ryan read
+                    // it as pressable and it is not. A control that cannot be
+                    // used gives up the fill and keeps only the outline.
                     Modifier
                         .clip(shape)
-                        .background(t.accentDeep.copy(alpha = 0.36f))
+                        .background(t.field)
+                        .border(1.dp, t.hair, shape)
                 }
             )
             .padding(horizontal = 16.dp),
@@ -85,14 +107,24 @@ fun GoButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.White,
+                color = if (enabled) t.onAccent else t.ink3,
             )
             trailing?.invoke()
         }
     }
 }
 
-/** The quiet back door under a primary control. Not a second button. */
+/**
+ * The quiet back door under a primary control. Not a second button.
+ *
+ * Quiet, and still obviously a control. It was `ink3` body text under a large
+ * filled button and read as a caption — on the Cabinet tab that caption is
+ * *Use a code*, the way out for somebody whose camera will not focus, which
+ * is to say the person already having trouble. Colour cannot carry that here:
+ * the accent is now the end of the value scale rather than a hue, so a link
+ * tinted with it is just text. The underline does the work instead, which is
+ * what an underline has always been for.
+ */
 @Composable
 fun QuietButton(
     text: String,
@@ -111,8 +143,11 @@ fun QuietButton(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) t.ink3 else t.ink3.copy(alpha = 0.5f),
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.Medium,
+                textDecoration = TextDecoration.Underline,
+            ),
+            color = if (enabled) t.ink2 else t.ink3.copy(alpha = 0.5f),
         )
     }
 }

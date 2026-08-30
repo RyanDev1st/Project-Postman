@@ -137,6 +137,18 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
             json.optJSONArray("events").each { Event.from(it) }
         }
 
+    /**
+     * 24. Who is signed in.
+     *
+     * The only call that asks the server about the person rather than about a
+     * parcel. Until it existed the app knew its own name and number only for
+     * as long as the screen that typed them stayed in memory, so Settings and
+     * the greeting fell back to the placeholders they were written with -
+     * BUG-021, a real account greeted as somebody else.
+     */
+    fun me(): Answer<Account> =
+        get("/me").map { Account.from(it) }
+
     /** 8. Tell the server where to send notifications for this phone. */
     fun registerDevice(deviceId: String): Answer<Unit> =
         post("/devices", JSONObject().put("device_id", deviceId)).map { }

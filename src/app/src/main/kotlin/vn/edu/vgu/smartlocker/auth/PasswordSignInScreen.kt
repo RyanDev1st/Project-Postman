@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
@@ -77,12 +79,13 @@ fun PasswordSignInScreen(
             Text(
                 text = buildAnnotatedString {
                     append(stringResource(R.string.pw_signin_title_lead) + "\n")
-                    withStyle(SpanStyle(color = t.accent)) {
+                    // Lead recedes, payoff keeps full ink - see SignInScreen.
+                    withStyle(SpanStyle(color = t.ink)) {
                         append(stringResource(R.string.pw_signin_title_accent))
                     }
                 },
                 style = MaterialTheme.typography.headlineLarge,
-                color = t.ink,
+                color = t.ink2,
             )
             Text(
                 text = stringResource(R.string.pw_signin_sub),
@@ -124,10 +127,15 @@ fun PasswordSignInScreen(
                     modifier = Modifier.padding(start = 2.dp),
                 )
             }
+            // Underlined rather than tinted - the same rule as the link
+            // that leads here from the sign-in screen.
             Text(
                 text = stringResource(R.string.pw_use_code),
-                style = MaterialTheme.typography.labelMedium,
-                color = t.accent,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                ),
+                color = t.ink,
                 modifier = Modifier.clickable(onClick = onUseCode).padding(start = 2.dp, top = 4.dp),
             )
         }

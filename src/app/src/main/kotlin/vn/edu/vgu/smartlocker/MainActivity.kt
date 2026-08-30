@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import vn.edu.vgu.smartlocker.net.Account
 import vn.edu.vgu.smartlocker.net.Backend
 import vn.edu.vgu.smartlocker.net.Http
 import vn.edu.vgu.smartlocker.net.Refusal
@@ -30,6 +31,7 @@ import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.PasswordSignInScreen
 import vn.edu.vgu.smartlocker.auth.SetPasswordScreen
 import vn.edu.vgu.smartlocker.auth.SignInScreen
+import vn.edu.vgu.smartlocker.auth.VnMobile
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
 import vn.edu.vgu.smartlocker.cabinet.YourDoor
 import vn.edu.vgu.smartlocker.loading.LoadingScreen
@@ -180,6 +182,23 @@ fun AppSkeleton(
     }
     var lastMain by remember { mutableStateOf(Screen.HOME) }
 
+    // Who is signed in - endpoint 24, BUG-021.
+    //
+    // Null until the server answers, and null again if it never does. Every
+    // screen that shows a name has to handle that, because the alternative
+    // is what this replaces: `SettingsScreen` and `MainShell` carried
+    // "Minh Nguyen" and "0912 345 678" as parameter defaults, nothing ever
+    // passed real ones, and a tester who registered as Tran Thi Mai was
+    // greeted by a stranger's name on her own account.
+    //
+    // Keyed on the screen leaving sign-in rather than on Unit, so the fetch
+    // happens again after a sign-in and after a session that expired, not
+    // only on the launch that happened to start signed in.
+    var account by remember { mutableStateOf<Account?>(null) }
+    LaunchedEffect(screen == Screen.HOME || screen == Screen.CABINET || screen == Screen.SETTINGS) {
+        if (backend.signedIn && account == null) account = backend.me()
+    }
+
     // Which box the server said it opened. Not a guess, and not a default:
     // it is written the moment endpoint 6 answers and read only by the
     // "Opened" screen. It used to start at "04", which is how that screen
@@ -263,15 +282,17 @@ fun AppSkeleton(
 
     fun <T> sentenceFor(
         answer: Http.Answer<T>,
-        // What "we do not know" means here. The default is written for the
-        // door: an open may have happened, so go and look before trying again.
+        // What "we do not know" means here, and there is no default.
         //
-        // On the sign-in screens that sentence is nonsense - there is no
-        // cabinet anywhere near asking for a code - and Ryan read it on
-        // 2026-08-18 while the app was aimed at an address that had stopped
-        // existing. Unclear is still the honest answer there; it just has a
-        // different thing to say.
-        unclear: Int = R.string.unclear_result,
+        // It used to default to the door sentence - an open may have
+        // happened, so go and look before trying again - which is nonsense
+        // on a screen with no cabinet near it. Ryan read it on the sign-in
+        // screen on 2026-08-18 (BUG-014), and again on Home on 2026-08-29
+        // when a parcel list failed to load (BUG-025), because that fix was
+        // made one call site at a time and Home was not one of them.
+        //
+        // Required, so the next screen that forgets does not compile.
+        unclear: Int,
     ): Int {
         // Every answer from the server passes through here, which is why the
         // check lives here and not in six screens that would each forget it
@@ -413,6 +434,10 @@ fun AppSkeleton(
 
                 Screen.HOME -> MainShell(
                     screen = screen,
+                    // The first name only. The bar has room for one word and
+                    // "Hi Tran Thi Mai" is not a greeting.
+                    greetingName = account?.name?.trim()?.split(" ")
+                        ?.lastOrNull()?.takeIf { it.isNotBlank() },
                     dark = dark,
                     onToggleDark = onToggleDark,
                     onSelectTab = ::gotoMain,
@@ -426,7 +451,13 @@ fun AppSkeleton(
                             parcels = home.parcels,
                             second = home.second,
                             ledger = home.ledger,
-                            note = home.trouble?.let(::sentenceFor),
+                            // BUG-025. A list that would not load is a
+                            // list that would not load; nothing here opened
+                            // anything, so nothing here sends anybody to a
+                            // cabinet.
+                            note = home.trouble?.let {
+                                sentenceFor(it, R.string.unclear_no_server)
+                            },
                             onOpen = { gotoScan() },
                             onOpenSecond = { gotoScan() },
                             onMap = {},
@@ -452,6 +483,14 @@ fun AppSkeleton(
                             yours = cab.doors.map {
                                 YourDoor(it.box, it.at, it.left, it.pct, it.soon)
                             },
+                            // BUG-024. This was computed and thrown away, so
+                            // a dead network and an empty cabinet arrived as
+                            // the same empty list and the tab drew the
+                            // cheerful one - a green tick and "Room for a
+                            // drop", to somebody with a parcel in box 11.
+                            note = cab.trouble?.let {
+                                sentenceFor(it, R.string.unclear_no_server)
+                            },
                         )
                     },
                 )
@@ -464,6 +503,8 @@ fun AppSkeleton(
                     onScan = { gotoScan() },
                     content = {
                         SettingsScreen(
+                            name = account?.name.orEmpty(),
+                            phone = account?.phone?.let(VnMobile::display).orEmpty(),
                             dark = dark,
                             onToggleDark = onToggleDark,
                             language = language,
@@ -520,7 +561,11 @@ fun AppSkeleton(
                                         }
                                         // Not "failed", and never "opened".
                                         // The request may have arrived.
-                                        else -> scanNote = sentenceFor(answer)
+                                        // The one place the door sentence is
+                                        // the right one: an open really may
+                                        // have happened.
+                                        else -> scanNote =
+                                            sentenceFor(answer, R.string.unclear_result)
                                     }
                                 }
                             }
