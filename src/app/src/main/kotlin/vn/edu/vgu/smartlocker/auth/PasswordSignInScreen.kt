@@ -1,6 +1,5 @@
 package vn.edu.vgu.smartlocker.auth
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +25,7 @@ import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.GoButton
+import vn.edu.vgu.smartlocker.ui.pressable
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
@@ -136,7 +136,7 @@ fun PasswordSignInScreen(
                     textDecoration = TextDecoration.Underline,
                 ),
                 color = t.ink,
-                modifier = Modifier.clickable(onClick = onUseCode).padding(start = 2.dp, top = 4.dp),
+                modifier = Modifier.pressable(onClick = onUseCode).padding(start = 2.dp, top = 4.dp),
             )
         }
     }

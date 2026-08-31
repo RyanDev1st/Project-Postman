@@ -1,6 +1,5 @@
 package vn.edu.vgu.smartlocker.auth
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +20,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.Recess
+import vn.edu.vgu.smartlocker.ui.pressable
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
@@ -103,7 +103,7 @@ fun PasswordField(
                     style = MaterialTheme.typography.labelMedium,
                     color = t.accent,
                     modifier = Modifier
-                        .clickable(onClick = toggle)
+                        .pressable(onClick = toggle, target = 0.9f)
                         .padding(start = 12.dp),
                 )
             }

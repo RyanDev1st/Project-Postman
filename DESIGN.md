@@ -205,6 +205,12 @@ So the accent is not a colour. It is **the end of the value scale** — near whi
 
 **`--accent-ink` survives with the same value as `--accent`.** It was a third orange, bought to carry the 10px `See all` link at 5.17:1 on the ground. At 15.90:1 there is nothing left for it to fix, and it is still named in four places, so it stays as a name.
 
+**Every control answers a finger, and they all answer the same way.** Down is 90ms, up is 200ms, scaling to 0.97 — 0.94 for a small control, 0.985 for a whole card. The asymmetry is the point: a control that returns as fast as it left reads as a rubber sheet, one that snaps down and settles back reads as a key with a spring under it. No ripple anywhere; the squash is the answer to *did the tap land*, and a ripple on top is a second answer to the same question — and the only part of the app that would still look like stock Material. `ui/Press.kt`.
+
+Before this, the glass beads and the theme switch were the only things in the app that moved under a finger. The primary button — the control that opens a locker door — did not.
+
+**The selected nav plate slides.** It used to be drawn inside whichever tab was selected, so on every tap it vanished from one place and appeared in another; the label went dark a plate-length before the plate arrived under it. It is now drawn once behind the row and moved, 260ms, with the ink crossing over on the same curve.
+
 **The slab's sheen catches an edge, not a face.** It ran the full 52dp of the button at 22% white, which lifted the head of a near-black slab by twenty points of value. That is a gradient painted onto a face. It is now 10% over the top eighth in light, 7% under the bottom eighth in dark, and the slab reads as one flat piece of material with a light on it.
 
 ### The door light
@@ -300,7 +306,7 @@ So Home is built like a claim ticket. A cloakroom tag, a luggage stub, a lottery
 - **The seam is a real cut**, not a divider rule: two circular bites out of the card edges with the ground showing through, and a dashed line between them. Two pseudo-elements, no images, and it is the one shape on this screen that could not belong to any other app.
 - **The empty Home is the same ticket with a different number.** `06` in the free-box green where the door number goes, labelled *Boxes free*. Six boxes free is a fact worth a whole screen — it is what lets you tell a courier to send one today. Nothing is redesigned for the empty case.
 - **Grey means there is time; amber means there is not.** The drain rule's calm fill was `--accent`, which was `#C2410C` in light before ADR 0024 — so the parcel with 31 hours on it drew a two-thirds-width burnt-orange bar, louder than the 12% amber dash beside it and near enough to the primary button to read as a second alarm. The calm state has to be genuinely calm or the urgent one carries nothing.
-- **Amber is never ink.** `--door` `#FFB200` measures **1.81:1 on white** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the signal: a darkened amber is a brown, and a brown that means *this door is yours* teaches nobody anything. (Until ADR 0024 there was a second reason - the nearest legible amber is hue 28 and the light accent was hue 17, so the two would have read as one colour. The accent is no longer a colour, and that reason has gone; this one has not.) So amber is a **surface** — `#FFB200` on `#241A00`, at 9.50:1, identical in both schemes. (That figure stood at 11.5:1 here for months and was never measured; it passes AAA either way.)
+- **Amber is never ink.** `--door` `#FFB200` measures **1.61:1 on the light ground** — the *6h left* label was legible in dark and effectively invisible in light. Tinting it darker would fix contrast and break the signal: a darkened amber is a brown, and a brown that means *this door is yours* teaches nobody anything. (Until ADR 0024 there was a second reason - the nearest legible amber is hue 28 and the light accent was hue 17, so the two would have read as one colour. The accent is no longer a colour, and that reason has gone; this one has not.) So amber is a **surface** — `#FFB200` on `#241A00`, at 9.50:1, identical in both schemes. (That figure stood at 11.5:1 here for months and was never measured; it passes AAA either way.)
 
 ### The notch is why the hairline moved layers
 

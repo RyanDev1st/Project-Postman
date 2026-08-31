@@ -2,7 +2,6 @@ package vn.edu.vgu.smartlocker.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
@@ -167,7 +166,10 @@ fun CardMaterial(
             // away its own shadow, so every clickable card — each Settings
             // row, the map — sat flat on the ground with no lift at all.
             .drawBehind { cardShadow(shape, t.shadow) }
-            .then(if (onClick != null) Modifier.clip(shape).clickable(onClick = onClick) else Modifier)
+            .then(
+                if (onClick != null) Modifier.clip(shape).pressable(onClick = onClick, target = 0.985f)
+                else Modifier
+            )
             // The colour that changes with the theme, and the shading that
             // does not, kept apart on purpose. A gradient between two theme
             // tokens cannot be interpolated, so on a theme change half the

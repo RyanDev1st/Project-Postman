@@ -1,7 +1,6 @@
 package vn.edu.vgu.smartlocker.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.CardMaterial
+import vn.edu.vgu.smartlocker.ui.pressable
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 
 /**
@@ -85,7 +85,7 @@ private fun LanguageRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .pressable(onClick = onClick, target = 0.985f)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -1,7 +1,6 @@
 package vn.edu.vgu.smartlocker.pickup
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import vn.edu.vgu.smartlocker.ui.AppBar
 import vn.edu.vgu.smartlocker.ui.AppBarBead
 import vn.edu.vgu.smartlocker.ui.AppIcons
+import vn.edu.vgu.smartlocker.ui.pressable
 import vn.edu.vgu.smartlocker.ui.theme.DoorLight
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
@@ -117,7 +117,7 @@ fun OpenedScreen(
                 .heightIn(min = 52.dp)
                 .clip(MaterialTheme.shapes.large)
                 .background(OnDoorLight)
-                .clickable(onClick = onDone),
+                .pressable(onClick = onDone),
             contentAlignment = Alignment.Center,
         ) {
             Text(

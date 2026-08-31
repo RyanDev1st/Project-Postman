@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,9 @@ fun GoButton(
 ) {
     val t = LocalLockerTokens.current
     val shape = MaterialTheme.shapes.large
+    // The whole slab moves, shadow included, so the scale sits above the
+    // shadow in the chain rather than under it.
+    val press = rememberPress()
     // Which way the light has to fall. The slab is near-white in the dark
     // scheme and near-black in the light one, so a fixed white top highlight
     // is a highlight on one and nothing at all on the other. Either way the
@@ -54,6 +58,7 @@ fun GoButton(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
+            .graphicsLayer { scaleX = press.scale; scaleY = press.scale }
             .then(
                 if (enabled) {
                     Modifier
@@ -91,7 +96,11 @@ fun GoButton(
                             else Color.White.copy(alpha = 0.12f),
                             shape,
                         )
-                        .clickable(onClick = onClick)
+                        .clickable(
+                            interactionSource = press.source,
+                            indication = null,
+                            onClick = onClick,
+                        )
                 } else {
                     // Off, and it has to look off.
                     //
@@ -146,7 +155,7 @@ fun QuietButton(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable(enabled = enabled, onClick = onClick)
+            .pressable(onClick = onClick, enabled = enabled)
             .padding(8.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -213,7 +222,7 @@ fun SocialButton(
             .heightIn(min = 48.dp)
             .clip(shape)
             .border(1.dp, t.hair, shape)
-            .clickable(onClick = onClick)
+            .pressable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,

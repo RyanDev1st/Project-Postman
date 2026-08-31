@@ -2,7 +2,6 @@ package vn.edu.vgu.smartlocker.auth
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +36,7 @@ import kotlin.math.roundToInt
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Recess
+import vn.edu.vgu.smartlocker.ui.pressable
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 import vn.edu.vgu.smartlocker.ui.theme.PreviewTheme
@@ -163,7 +163,7 @@ fun SignInScreen(
                 ),
                 color = t.ink,
                 modifier = Modifier
-                    .clickable(onClick = onUsePassword)
+                    .pressable(onClick = onUsePassword)
                     .padding(start = 2.dp, top = 2.dp, bottom = 2.dp),
             )
 

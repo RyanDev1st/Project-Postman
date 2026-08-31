@@ -1,14 +1,19 @@
 package vn.edu.vgu.smartlocker.ui
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,50 +106,73 @@ fun BottomNav(
         shape = RoundedCornerShape(999.dp),
         backdrop = backdrop,
     ) {
+        BoxWithConstraints(modifier = Modifier.padding(4.dp)) {
+            // The plate is drawn once and moved, rather than drawn inside
+            // whichever tab is selected. Three tabs, `weight(1f)` each, with a
+            // 2dp gap between them: the arithmetic has to be done here because
+            // a sibling laid out behind the row cannot ask the row how wide a
+            // third of it is.
+            val gaps = 2.dp * (icons.size - 1)
+            val tab = (maxWidth - gaps) / icons.size
+            val slide by animateDpAsState(
+                targetValue = (tab + 2.dp) * selected,
+                animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+                label = "tab",
+            )
+            // An outer box sized to the row, so the plate can take the row's
+            // full height without being the thing that decides it.
+            Box(modifier = Modifier.matchParentSize()) {
+            Box(
+                modifier = Modifier
+                    .offset(x = slide)
+                    .width(tab)
+                    .fillMaxHeight()
+                    // A plate, raised out of the glass. One shadow, one fill,
+                    // one edge, and the ink does the rest.
+                    //
+                    // It was six materials: a 34% black shadow, a 24% accent
+                    // wash, a white gradient over that, a 26% accent hairline
+                    // round it, a lit top edge and a dark foot. That reads as
+                    // depth one material at a time and as sludge all together.
+                    // It was also tuned when the accent was a colour — a 24%
+                    // wash of a colour is a tint, a 24% wash of near-black is
+                    // a smear.
+                    .shadow(
+                        elevation = 3.dp,
+                        shape = RoundedCornerShape(999.dp),
+                        ambientColor = t.shadow,
+                        spotColor = t.shadow,
+                    )
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(t.surface)
+                    // The one hairline that earns itself. The pane under the
+                    // plate has already sampled the ground and darkened it, so
+                    // the four points that separate a card from the ground are
+                    // not there to separate a plate from glass, and in the
+                    // dark scheme the plate all but vanished.
+                    .border(1.dp, t.lip, RoundedCornerShape(999.dp)),
+            )
+            }
         Row(
-            modifier = Modifier.padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             icons.forEachIndexed { i, icon ->
                 val label = labels[i]
                 val isSelected = i == selected
+                // The ink crosses over with the plate. Snapped, the label went
+                // dark a whole plate-length before the plate arrived under it.
+                val inkFor = @Composable { on: Boolean ->
+                    animateColorAsState(
+                        targetValue = if (on) t.ink else t.ink3,
+                        animationSpec = tween(durationMillis = 260),
+                        label = "tabInk",
+                    ).value
+                }
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .then(
-                            if (isSelected) {
-                                // A plate, raised out of the glass. One
-                                // shadow, one fill, and the ink does the
-                                // rest.
-                                //
-                                // It was six materials: a 34% black shadow, a
-                                // 24% accent wash, a white gradient over that,
-                                // a 26% accent hairline round it, a lit top
-                                // edge and a dark foot. That reads as depth
-                                // one material at a time and as sludge all
-                                // together. It was also tuned when the accent
-                                // was a colour — a 24% wash of a colour is a
-                                // tint, a 24% wash of near-black is a smear.
-                                Modifier
-                                    .shadow(
-                                        elevation = 3.dp,
-                                        shape = RoundedCornerShape(999.dp),
-                                        ambientColor = t.shadow,
-                                        spotColor = t.shadow,
-                                    )
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(t.surface)
-                                    // The one hairline that earns itself. The
-                                    // pane under the plate has already sampled
-                                    // the ground and darkened it, so the four
-                                    // points that separate a card from the
-                                    // ground are not there to separate a plate
-                                    // from glass, and in the dark scheme the
-                                    // plate all but vanished.
-                                    .border(1.dp, t.lip, RoundedCornerShape(999.dp))
-                            } else Modifier.clip(RoundedCornerShape(999.dp)),
-                        )
-                        .clickable { onSelect(i) }
+                        .clip(RoundedCornerShape(999.dp))
+                        .pressable(onClick = { onSelect(i) }, target = 0.94f)
                         .padding(vertical = 8.dp, horizontal = 2.dp),
                     // The tab is `flex: 1` with `align-items: center`, so its
                     // content sits in the middle of the tab. Without this the
@@ -169,7 +198,7 @@ fun BottomNav(
                                         Modifier.offset(y = (-1).dp).scale(1.06f)
                                     } else Modifier
                                 ),
-                            tint = if (isSelected) t.ink else t.ink3,
+                            tint = inkFor(isSelected),
                         )
                         Text(
                             text = label.uppercase(),
@@ -194,11 +223,12 @@ fun BottomNav(
                                 letterSpacing = 0.07.em,
                                 fontWeight = FontWeight.SemiBold,
                             ),
-                            color = if (isSelected) t.ink else t.ink3,
+                            color = inkFor(isSelected),
                         )
                     }
                 }
             }
+        }
         }
     }
 }
