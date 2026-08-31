@@ -41,6 +41,7 @@ import vn.edu.vgu.smartlocker.ui.AppLanguage
 import vn.edu.vgu.smartlocker.ui.CardMaterial
 import vn.edu.vgu.smartlocker.ui.LockerToggle
 import vn.edu.vgu.smartlocker.ui.Recess
+import vn.edu.vgu.smartlocker.ui.ThemeSwitch
 import vn.edu.vgu.smartlocker.ui.theme.LocalLockerTokens
 import vn.edu.vgu.smartlocker.ui.theme.NumberFace
 
@@ -167,20 +168,25 @@ fun SettingsScreen(
                 value = stringResource(language.labelRes),
                 onClick = { picking = true },
             )
-            // A LockerToggle, like the two rows above it.
+            // Not a LockerToggle. Dark mode gets the day/night switch from
+            // the mock-up — the sun, the moon crossing it, the clouds and
+            // the stars. The other two rows are plain on/off and keep the
+            // plain control.
             //
-            // It was the day/night switch from the mock-up — a daylight-blue
-            // sky, a yellow sun, white clouds, stars. It is a lovely piece of
-            // drawing and it is the only saturated colour in the app that is
-            // not amber, on a screen where amber is supposed to mean *your
-            // parcel is running out of time*. ADR 0024 says one colour, and
-            // it says why. It also sat third in a stack of three on/off rows,
-            // two plain and one illustrated, so the odd one out was the least
-            // important switch of the three.
+            // This is a deliberate exception to ADR 0024, and it is Ryan's,
+            // taken on 2026-08-31 after it had been swapped out for a plain
+            // toggle and he asked for it back twice. The tension is real and
+            // is written down here rather than argued again: the switch is
+            // the only saturated non-amber colour in the app, on a screen
+            // where amber means *your parcel is running out of time*. It
+            // survives because it is a picture OF the setting it controls —
+            // the sky it draws is the thing the toggle changes — and not
+            // because colour was cheap here. Nothing else gets that licence.
             //
-            // `ui/ThemeSwitch.kt` still holds it. Nothing calls it now.
+            // It reads no tokens: seven literal colours, self-contained, so a
+            // palette change cannot silently alter it. See ui/ThemeSwitch.kt.
             SettingsRow(icon = AppIcons.Moon, title = stringResource(R.string.set_dark_mode)) {
-                LockerToggle(checked = dark, onCheckedChange = { onToggleDark() })
+                ThemeSwitch(checked = dark, onCheckedChange = { onToggleDark() })
             }
             // Which build this is. Not decoration: without it nobody holding
             // the phone can tell a build that failed to install from a fix
