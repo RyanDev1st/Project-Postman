@@ -86,6 +86,7 @@
     <string name="map_close">Đóng bản đồ</string>
     <string name="map_walk">đi bộ %1$d phút · %2$d m</string>
     <string name="map_too_far">cách %1$d km · quá xa để đi bộ</string>
+    <string name="map_unrouted">cách %1$d m · chưa có đường đi</string>
     <string name="map_no_app">Không có ứng dụng bản đồ để mở</string>
 
     <!-- Tủ -->

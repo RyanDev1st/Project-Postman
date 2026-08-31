@@ -186,6 +186,16 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.barcode.scanning)
 
+    // Where the phone is (P3-06, and the map card on Home). The fused
+    // provider, not our own loop over LocationManager's providers: it is the
+    // API every Android app uses for this, it merges GPS with wifi, cell and
+    // the motion sensors, and it lets the platform batch fixes in hardware
+    // instead of waking the app for each one. Play Services is already a
+    // dependency by way of ML Kit above, so this costs a library and not a
+    // vendor. `Fixes.kt` still falls back to LocationManager where Play
+    // Services is missing, which is any de-Googled phone and most emulators.
+    implementation(libs.play.services.location)
+
     // Preview support. debugImplementation so the tooling never ships in a
     // release build.
     implementation(libs.androidx.ui.tooling.preview)

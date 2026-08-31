@@ -49,6 +49,15 @@ camerax = "1.6.1"
 # student stands at a locker, with no model to download first. See ADR 0018.
 mlkit = "17.3.0"
 
+# The fused location provider. Google Play Services is already here - ML Kit's
+# barcode scanner drags in play-services-basement either way, which ADR 0018
+# argued and accepted - so this adds a library, not a vendor, and no account
+# or card. What it buys is the standard Android location API rather than our
+# own provider-picking over the raw LocationManager: one fused answer from
+# GPS, wifi, cell and the phone's own motion sensors, batched in hardware,
+# with the battery cost expressed as a priority the platform honours.
+playServicesLocation = "21.3.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -129,6 +138,7 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 

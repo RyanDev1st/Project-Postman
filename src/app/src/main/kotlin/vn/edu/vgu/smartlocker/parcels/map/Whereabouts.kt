@@ -1,19 +1,17 @@
 package vn.edu.vgu.smartlocker.parcels.map
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -22,93 +20,117 @@ import kotlinx.coroutines.withContext
  * Held here rather than inside [LiveMap] because two things need the same
  * answer and must not disagree: the map draws the line, and the card under it
  * writes the distance. They read one [Walk].
+ *
+ * **This used to be a single shot.** It asked the phone for its last known
+ * position once, when the composable first ran, and never again — so the map
+ * was a photograph of wherever the phone had last been told it was, held for
+ * the life of the screen. Two faults came out of that and Ryan hit both from
+ * home: the cached fix had no age check, so a fix taken on the campus was
+ * still "here" days later; and nothing recomputed, so even a correct answer
+ * could not become wrong-then-right again as he moved.
+ *
+ * Now: a fresh cached fix if there is one, then live updates for as long as
+ * this is on screen and the app is in front.
+ *
+ * **What that costs, deliberately bounded.** The listener runs only while this
+ * composable is resumed — walk away from the screen or background the app and
+ * it is torn down, so a phone in a pocket asks the radio for nothing. The
+ * platform will not call back more than every ten seconds or under twenty
+ * metres of movement. And a callback is not a route: the routing call happens
+ * only when the phone has moved [REROUTE_METRES] from wherever the drawn line
+ * starts, or when it crosses the walkable boundary. Standing still with the
+ * card open makes no network calls at all after the first.
  */
 @Composable
 internal fun rememberWalk(granted: Boolean): Walk {
     val context = androidx.compose.ui.platform.LocalContext.current
     var walk by remember { mutableStateOf<Walk>(Walk.Baked) }
+    // Where the drawn walk was worked out from. The distance between this and
+    // a new fix is what decides whether the fix is worth a routing call.
+    var drawnFrom by remember { mutableStateOf<Location?>(null) }
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(granted) {
-        if (!granted) {
+    // Resumed, not merely composed. `LaunchedEffect` would keep the listener
+    // alive behind another app; this stops with the screen and starts again
+    // with it.
+    LifecycleResumeEffect(granted, LocalLifecycleOwner.current) {
+        val job = if (!granted) {
             walk = Walk.Baked
-            return@LaunchedEffect
-        }
-        val here = withContext(Dispatchers.IO) { lastKnown(context) }
-        if (here == null) {
-            walk = Walk.Baked
-            return@LaunchedEffect
-        }
-
-        // Straight-line first, before asking anyone anything. If the gate is
-        // half a province away the answer is a distance, and there is no call
-        // worth making.
-        val asCrow = crowMetres(
-            here.latitude, here.longitude,
-            Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude(),
-        )
-        walk = if (asCrow > WALKABLE_METRES) {
-            Walk.TooFar(
-                metres = asCrow.toInt(),
-                you = org.maplibre.geojson.Point.fromLngLat(here.longitude, here.latitude),
-            )
+            drawnFrom = null
+            null
         } else {
-            withContext(Dispatchers.IO) {
-                routeToGate(here.latitude, here.longitude)
-            } ?: Walk.Baked
+            scope.launch {
+                // The cached fix first, if it is young enough to mean anything.
+                // It is what makes the card draw the right thing immediately
+                // rather than after the radio answers.
+                freshCachedFix(context)?.let { seed ->
+                    walk = walkFrom(seed)
+                    drawnFrom = seed
+                }
+                locationUpdates(context).collectLatest { here ->
+                    if (worthRedrawing(drawnFrom, here, walk)) {
+                        walk = walkFrom(here)
+                        drawnFrom = here
+                    }
+                }
+            }
         }
+        onPauseOrDispose { job?.cancel() }
     }
 
     return walk
 }
 
 /**
- * The freshest fix the phone already has.
+ * Whether a new fix changes the picture enough to redraw it.
  *
- * Last known rather than a live one: this is a 112dp card on a screen a person
- * glances at, and turning on the GPS to draw it would cost battery for an
- * accuracy the card cannot show. If the phone has no fix at all the answer is
- * null and the baked line stands.
+ * Three ways it does, and every other fix is dropped:
  *
- * Both providers are asked and the newer wins — GPS is more accurate and often
- * staler indoors, network is rougher and usually current, and neither is
- * reliably the better one.
+ * - there is nothing drawn yet;
+ * - the phone has moved [REROUTE_METRES] from where the drawn line starts;
+ * - it has crossed the walkable boundary, so the *kind* of answer changes —
+ *   a route becomes a distance or the other way round. That one matters at
+ *   any size of move, because it is the difference between a line and no
+ *   line.
  */
-@SuppressLint("MissingPermission")
-private fun lastKnown(context: Context): Location? {
-    val fine = ContextCompat.checkSelfPermission(
-        context, Manifest.permission.ACCESS_FINE_LOCATION,
-    ) == PackageManager.PERMISSION_GRANTED
-    val coarse = ContextCompat.checkSelfPermission(
-        context, Manifest.permission.ACCESS_COARSE_LOCATION,
-    ) == PackageManager.PERMISSION_GRANTED
-    if (!fine && !coarse) return null
-
-    val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-        ?: return null
-    val providers = buildList {
-        if (fine) add(LocationManager.GPS_PROVIDER)
-        add(LocationManager.NETWORK_PROVIDER)
-    }
-    return providers.mapNotNull { p ->
-        try {
-            lm.getLastKnownLocation(p)
-        } catch (e: SecurityException) {
-            null
-        } catch (e: IllegalArgumentException) {
-            // The provider does not exist on this device. An emulator with no
-            // GPS is the common one.
-            null
-        }
-    }.maxByOrNull { it.time }
+private fun worthRedrawing(from: Location?, here: Location, drawn: Walk): Boolean {
+    if (from == null) return true
+    val moved = crowMetres(from.latitude, from.longitude, here.latitude, here.longitude)
+    if (moved >= REROUTE_METRES) return true
+    val nowFar = crowMetres(
+        here.latitude, here.longitude,
+        Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude(),
+    ) > WALKABLE_METRES
+    // Baked means we had no fix at all, so any fix is worth drawing.
+    if (drawn is Walk.Baked) return true
+    return nowFar != (drawn is Walk.TooFar)
 }
 
-/** Great-circle metres — the same rule [Route] measures its own line with. */
-private fun crowMetres(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-    val r = 6_371_000.0
-    val dLat = Math.toRadians(lat2 - lat1)
-    val dLon = Math.toRadians(lon2 - lon1)
-    val a = kotlin.math.sin(dLat / 2) * kotlin.math.sin(dLat / 2) +
-        kotlin.math.cos(Math.toRadians(lat1)) * kotlin.math.cos(Math.toRadians(lat2)) *
-        kotlin.math.sin(dLon / 2) * kotlin.math.sin(dLon / 2)
-    return r * 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+/**
+ * The walk from one fix. **Blocking on the routing call, so off the main
+ * thread.**
+ *
+ * Straight-line first, before asking anyone anything. If the gate is half a
+ * province away the answer is a distance, and there is no call worth making.
+ */
+private suspend fun walkFrom(here: Location): Walk {
+    val asCrow = crowMetres(
+        here.latitude, here.longitude,
+        Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude(),
+    )
+    if (asCrow > WALKABLE_METRES) {
+        return Walk.TooFar(
+            metres = asCrow.toInt(),
+            you = org.maplibre.geojson.Point.fromLngLat(here.longitude, here.latitude),
+        )
+    }
+    // The router did not answer: no network, a refusal, a shape that will not
+    // parse. Not knowing the path is not the same as not knowing where you
+    // are, and falling back to the baked campus line would claim both.
+    return withContext(Dispatchers.IO) {
+        routeToGate(here.latitude, here.longitude)
+    } ?: Walk.Unrouted(
+        metres = asCrow.toInt(),
+        you = org.maplibre.geojson.Point.fromLngLat(here.longitude, here.latitude),
+    )
 }

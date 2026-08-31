@@ -116,6 +116,9 @@
          Saying "7 min walk" there would be the app lying about the only fact
          on the card. -->
     <string name="map_too_far">%1$d km away · too far to walk</string>
+    <!-- We know where you are, but the router did not answer. States the
+         straight-line distance and promises no path. -->
+    <string name="map_unrouted">%1$d m away · no route right now</string>
     <string name="map_no_app">No maps app to open this in</string>
 
     <!-- 8. Cabinet -->

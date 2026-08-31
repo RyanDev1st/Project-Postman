@@ -21,6 +21,9 @@ import java.net.URLEncoder
  * - [TooFar] — you are kilometres away. **Not a walk, and no line at all.**
  *   It carries the real distance, and where you are, so the map can show you
  *   and the cabinet together.
+ * - [Unrouted] — we know exactly where you are and you are close enough to
+ *   walk, but the router did not answer. Same picture as [TooFar]: your real
+ *   distance, and no line.
  */
 internal sealed interface Walk {
 
@@ -53,6 +56,26 @@ internal sealed interface Walk {
      * exactly as visible at forty kilometres as at four hundred metres.
      */
     data class TooFar(val metres: Int, val you: Point) : Walk
+
+    /**
+     * We know where you are. We could not get you a route.
+     *
+     * This exists because of what [Baked] was being made to cover. Baked is
+     * the honest answer to *we do not know where you are* — it draws the last
+     * stretch to the gate and claims nothing about a starting point. It was
+     * also the fallback when the routing call failed, and there the same
+     * picture is a lie: the caption reads "7 min walk · 543 m" over a line
+     * around the campus, to somebody standing in another city, and it is
+     * stated with the same confidence as a real route.
+     *
+     * Found on 2026-08-31 with the emulator's DNS broken, which is a good
+     * model of a phone on bad campus wifi — the exact condition a receiver
+     * walking to a locker is most likely to be in.
+     *
+     * So: the straight-line distance from where you actually are, and no
+     * line. Less than a route, and true.
+     */
+    data class Unrouted(val metres: Int, val you: Point) : Walk
 }
 
 /**

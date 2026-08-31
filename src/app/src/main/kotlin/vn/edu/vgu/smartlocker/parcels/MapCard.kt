@@ -39,10 +39,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.parcels.map.LiveMap
 import vn.edu.vgu.smartlocker.parcels.map.Route
 import vn.edu.vgu.smartlocker.parcels.map.Walk
+import vn.edu.vgu.smartlocker.parcels.map.hasLocationPermission
 import vn.edu.vgu.smartlocker.parcels.map.rememberWalk
 import vn.edu.vgu.smartlocker.ui.AppIcons
 import vn.edu.vgu.smartlocker.ui.CardMaterial
@@ -142,14 +145,30 @@ fun MapCard(
     }
 }
 
-/** Whether the map may ask the phone where it is. Read here as well as inside
- * [LiveMap] because the walk is worked out before the map is composed. */
+/**
+ * Whether the map may ask the phone where it is. Read here as well as inside
+ * [LiveMap] because the walk is worked out before the map is composed.
+ *
+ * **Re-read on resume, not once.** This was a bare `checkSelfPermission` in
+ * composition with no state behind it, so the value it returned on first
+ * composition was the value forever. Grant the permission on the map — which
+ * is where the app asks for it — and this copy still said no, so the walk
+ * stayed baked until the whole screen was thrown away and rebuilt. Anything
+ * granted in the system settings had the same problem, and that path never
+ * recomposes anything at all.
+ *
+ * Coarse counts. The card would rather draw a rough position than none, and
+ * `Fixes` already asks only for the providers the granted permission allows.
+ */
 @Composable
 private fun locationGranted(): Boolean {
     val ctx = LocalContext.current
-    return ContextCompat.checkSelfPermission(
-        ctx, android.Manifest.permission.ACCESS_FINE_LOCATION,
-    ) == PackageManager.PERMISSION_GRANTED
+    var granted by remember { mutableStateOf(hasLocationPermission(ctx)) }
+    LifecycleResumeEffect(ctx, LocalLifecycleOwner.current) {
+        granted = hasLocationPermission(ctx)
+        onPauseOrDispose { }
+    }
+    return granted
 }
 
 /**
@@ -173,6 +192,10 @@ private fun walkLabel(walk: Walk): String = when (walk) {
         stringResource(R.string.map_walk, (walk.seconds + 30) / 60, walk.metres)
     is Walk.TooFar ->
         stringResource(R.string.map_too_far, walk.metres / 1000)
+    // A distance, and no claim about a path. This used to read as a finished
+    // route with the baked numbers in it — see Walk.Unrouted.
+    is Walk.Unrouted ->
+        stringResource(R.string.map_unrouted, walk.metres)
     Walk.Baked ->
         stringResource(R.string.map_walk, (Route.SECONDS + 30) / 60, Route.METRES)
 }

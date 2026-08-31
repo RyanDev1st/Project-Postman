@@ -24,6 +24,7 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.engine.LocationEngineRequest
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
@@ -219,6 +220,11 @@ private fun boundsOf(walk: Walk): LatLngBounds = when (walk) {
     is Walk.FromYou -> LatLngBounds.Builder()
         .includes(walk.line.map { LatLng(it.latitude(), it.longitude()) })
         .build()
+    is Walk.Unrouted -> LatLngBounds.Builder()
+        .include(LatLng(walk.you.latitude(), walk.you.longitude()))
+        .include(LatLng(Route.GATE_POINT.latitude(), Route.GATE_POINT.longitude()))
+        .build()
+
     is Walk.TooFar -> LatLngBounds.Builder()
         .includes(
             listOf(
@@ -245,6 +251,7 @@ private fun Style.addRoute(walk: Walk, accent: Int, underlay: Int) {
         is Walk.FromYou -> walk.line
         Walk.Baked -> Route.LINE
         is Walk.TooFar -> null
+        is Walk.Unrouted -> null
     }
 
     if (line != null) {
@@ -287,8 +294,26 @@ private fun MapLibreMap.showWhereYouAre(
     ctx: android.content.Context,
     style: Style,
 ) {
+    // MapLibre's own engine request, slowed to what this card can use.
+    //
+    // Left at its default the component asks for a fix **every second**. On
+    // the emulator that measured 140 fixes in three minutes against our own
+    // eight, so the blue dot was costing seventeen times what the route did —
+    // to move a dot a few pixels on a 112 dp card. `dumpsys location` showed
+    // both requests side by side, ours at `@+10s0ms` and its at `@+1s0ms`.
+    //
+    // Matched to our own interval, and balanced rather than high accuracy:
+    // wifi-and-cell precision is about a hundred metres, which at this size
+    // is under a pixel of error.
+    val engine = LocationEngineRequest.Builder(DOT_INTERVAL_MS)
+        .setPriority(LocationEngineRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+        .setFastestInterval(DOT_INTERVAL_MS)
+        .setDisplacement(DOT_MOVE_M)
+        .build()
     locationComponent.activateLocationComponent(
-        LocationComponentActivationOptions.builder(ctx, style).build()
+        LocationComponentActivationOptions.builder(ctx, style)
+            .locationEngineRequest(engine)
+            .build()
     )
     locationComponent.isLocationComponentEnabled = true
     // The camera stays on the walk. Following the dot would swing the card
@@ -303,3 +328,7 @@ private const val SRC_GATE = "route-gate"
 private const val LAYER_UNDER = "route-underlay"
 private const val LAYER_LINE = "route-accent"
 private const val LAYER_GATE = "route-gate-dot"
+
+/** What the blue dot costs. See the note in [showWhereYouAre]. */
+private const val DOT_INTERVAL_MS = 10_000L
+private const val DOT_MOVE_M = 20f
