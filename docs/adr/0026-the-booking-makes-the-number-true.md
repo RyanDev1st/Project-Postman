@@ -36,7 +36,7 @@ That reframes the risk. A number proved by SMS defends against one thing: somebo
 
 ## Decision
 
-We choose **C**. Two changes, and everything else in 0012 stands.
+We choose **C**. Five changes, and everything else in 0012 stands. Sections 3 to 5 arrived with the second amendment above.
 
 ### 1. Google, on a university domain, makes the account
 
@@ -64,7 +64,7 @@ The one-time code goes. Its only remaining job was proving a number, which a boo
 
 ### 2. A booking makes the number true
 
-A signed-in receiver books a box before the parcel arrives, and types their phone number as part of that booking. The number is confirmed on a second panel before it is accepted, because a typo here is the only thing that can go wrong and it is silent when it does.
+A signed-in receiver books a box before the parcel arrives, and types their phone number the first time they do it - see section 5. The number is confirmed on a second panel before it is accepted, because a typo here is the only thing that can go wrong and it is silent when it does.
 
 **The panel shows the number in its stored form, not as it was typed.** `Phone.normalise` already takes `+84908619328`, `0908619328` and `908619328` and stores one `+84…`; the panel echoes that back, spaced — `+84 908 619 328`. A panel that repeats the same shape somebody just typed is a panel the eye slides over.
 
@@ -78,7 +78,7 @@ A signed-in receiver books a box before the parcel arrives, and types their phon
 
 ### 3. What the shipper sees
 
-The shipper types a number on the cabinet screen, and the answer is one of three:
+The shipper types a number on the cabinet screen, and the answer is one of five:
 
 1. **It matches a live booking.** The reserved box opens. The screen shows the receiver's **masked** name to confirm against the label.
 2. **It matches a registered receiver with no booking.** The drop is allowed and `claimFree` takes any free box, which is what the cabinet does today.
