@@ -5,7 +5,7 @@
 - **Deciders:** Ryan
 - **Supersedes:** [0012](0012-passwords-on-a-phone-account.md)
 
-> **Amended twice on 2026-09-02, before any code was written against it.** Recorded here rather than in new ADRs because nothing had been built on the old wording; the rule that an accepted ADR is immutable still stands for anything that has.
+> **Amended twice on 2026-09-02, before any code was written against it.** Amending in place is what [the ADR rule](README.md) asks for while nothing is built on a decision yet; a reversal after code follows it gets a new ADR instead. Both notes below are dated on purpose - a reader has to be able to see that this page changed and what it used to say.
 >
 > **First:** the domain test was `hd == "vgu.edu.vn"`, which would have shut out every student. Staff are on `vgu.edu.vn` and students on `student.vgu.edu.vn`, so it is now an allow-list with a dot boundary — see [1. Google, on a university domain, makes the account](#1-google-on-a-university-domain-makes-the-account).
 >
