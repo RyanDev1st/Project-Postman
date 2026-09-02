@@ -35,15 +35,75 @@ object Schema {
      */
     fun migrate(db: Db) {
         val from = db.userVersion()
-        MIGRATIONS.forEachIndexed { index, steps ->
-            val version = index + 1
-            if (version <= from) return@forEachIndexed
-            db.transaction {
-                steps.forEach(db::exec)
-                db.setUserVersion(version)
+        if (MIGRATIONS.size <= from) return
+
+        // Foreign keys are OFF for the duration, and this is not laziness.
+        //
+        // SQLite cannot relax a column constraint in place, so a migration
+        // that has to - migration 7 does - rebuilds the table: copy out, drop,
+        // rename in. With `foreign_keys=ON` that `DROP TABLE` performs an
+        // implicit `DELETE FROM` first, and the implicit delete **fires
+        // `ON DELETE CASCADE`**. Dropping `receivers` would therefore take
+        // every token, device and parcel with it, silently, inside a
+        // transaction that then commits.
+        //
+        // `defer_foreign_keys` is not a substitute: it defers *violations* to
+        // commit and does nothing about cascade *actions*, which fire at once.
+        //
+        // So: off around the whole run, back on afterwards, and then
+        // `foreign_key_check` to prove nothing was orphaned while they were
+        // off. The pragma cannot be changed inside a transaction, which is why
+        // it is here and not in a migration's own steps.
+        // Counted before as well as after, and the difference is what matters.
+        //
+        // A refusal to start has to name something this run did. The live
+        // database was already carrying 180 orphaned tokens on 2026-09-03,
+        // from a load-test cleanup that deleted receivers over a connection
+        // with foreign keys off (BUG-030) - damage no migration caused and
+        // none can be blamed for. Refusing to start on that turns an old data
+        // wart into a total outage, which is a worse failure than the one
+        // being guarded against.
+        val before = orphanCounts(db)
+
+        db.exec("PRAGMA foreign_keys=OFF")
+        try {
+            MIGRATIONS.forEachIndexed { index, steps ->
+                val version = index + 1
+                if (version <= from) return@forEachIndexed
+                db.transaction {
+                    steps.forEach(db::exec)
+                    db.setUserVersion(version)
+                }
             }
+        } finally {
+            db.exec("PRAGMA foreign_keys=ON")
+        }
+
+        // A table that has MORE rows with no parent than it started with is a
+        // migration that destroyed something, and starting anyway would serve
+        // a database whose parcels point at receivers that are gone.
+        val after = orphanCounts(db)
+        val worse = after.filter { (table, count) -> count > (before[table] ?: 0) }
+        check(worse.isEmpty()) {
+            "migration orphaned rows: " +
+                worse.entries.joinToString { "${it.key} ${before[it.key] ?: 0} -> ${it.value}" }
+        }
+
+        // What was already broken is said out loud on every start rather than
+        // swallowed. Nobody fixes what nothing mentions.
+        after.forEach { (table, count) ->
+            System.err.println(
+                "schema    WARNING: $count row(s) in `$table` point at a parent that is gone. " +
+                    "Not caused by a migration - see BUG-030.",
+            )
         }
     }
+
+    /** How many rows in each table have no parent row. Empty is healthy. */
+    private fun orphanCounts(db: Db): Map<String, Int> =
+        db.rows("PRAGMA foreign_key_check") { it.str("table") }
+            .groupingBy { it }
+            .eachCount()
 
     /**
      * One entry per version, in order. Never reordered, never rewritten.
@@ -145,6 +205,94 @@ object Schema {
             listOf(
                 "ALTER TABLE receivers ADD COLUMN google_sub TEXT",
                 "CREATE UNIQUE INDEX IF NOT EXISTS receivers_google ON receivers(google_sub)",
+            ),
+
+            // 7 - an account may exist without a phone number, and a box may
+            // be held before a parcel arrives. ADR 0026, tasks P2-12 and P2-13.
+            //
+            // **Why the table is rebuilt.** `phone` was `NOT NULL UNIQUE`,
+            // which was right while a one-time code was the only way to make
+            // an account: no number, no account. Google makes accounts now,
+            // and a number arrives later at the first booking - so the column
+            // has to accept NULL. SQLite cannot drop NOT NULL in place, and
+            // `''` cannot stand in for absent because the second account
+            // without a number would collide on UNIQUE. Hence copy, drop,
+            // rename. `migrate` turns foreign keys off around this, or the
+            // drop would cascade every token and parcel away.
+            //
+            // NULL is deliberate rather than `''`: SQLite lets any number of
+            // rows hold NULL in a unique column, which is exactly the rule we
+            // want - many accounts with no number yet, never two with the
+            // same one. The same reason `google_sub` is NULL when unlinked.
+            listOf(
+                """CREATE TABLE receivers_new (
+                     id                    TEXT PRIMARY KEY,
+                     phone                 TEXT UNIQUE,
+                     full_name             TEXT NOT NULL DEFAULT '',
+                     created_at            INTEGER NOT NULL,
+                     password_hash         TEXT NOT NULL DEFAULT '',
+                     password_tries        INTEGER NOT NULL DEFAULT 0,
+                     password_locked_until INTEGER NOT NULL DEFAULT 0,
+                     google_sub            TEXT
+                   )""",
+                """INSERT INTO receivers_new
+                     (id, phone, full_name, created_at,
+                      password_hash, password_tries, password_locked_until, google_sub)
+                   SELECT id, phone, full_name, created_at,
+                          password_hash, password_tries, password_locked_until, google_sub
+                     FROM receivers""",
+                "DROP TABLE receivers",
+                "ALTER TABLE receivers_new RENAME TO receivers",
+                "CREATE UNIQUE INDEX IF NOT EXISTS receivers_google ON receivers(google_sub)",
+
+                // A booking holds one named door at one named cabinet.
+                //
+                // `receiver_id` is UNIQUE, which is how "one live booking per
+                // account" stops being a rule somebody has to remember to
+                // check. A booking that expires, is cancelled, or is filled is
+                // deleted, so the constraint always describes live bookings
+                // and nothing else.
+                //
+                // `(cabinet_id, box_number)` is UNIQUE for the same kind of
+                // reason: two people cannot be promised the same door. The box
+                // itself is moved to state 'booked' so `Boxes.claimFree`,
+                // which only ever selects 'free', cannot hand it to a walk-up
+                // drop without a line of it changing.
+                """CREATE TABLE IF NOT EXISTS bookings (
+                     id           TEXT PRIMARY KEY,
+                     receiver_id  TEXT NOT NULL UNIQUE
+                                    REFERENCES receivers(id) ON DELETE CASCADE,
+                     cabinet_id   TEXT NOT NULL REFERENCES cabinets(id) ON DELETE CASCADE,
+                     box_number   TEXT NOT NULL,
+                     created_at   INTEGER NOT NULL,
+                     expires_at   INTEGER NOT NULL,
+                     UNIQUE (cabinet_id, box_number)
+                   )""",
+                "CREATE INDEX IF NOT EXISTS bookings_expiry ON bookings(expires_at)",
+            ),
+
+            // 8 - throw away tokens whose owner is gone. BUG-030.
+            //
+            // Found on the live file: 180 of its 199 tokens pointed at
+            // receivers that no longer exist, each at a different one. They
+            // came from `scripts/stress.py`, which deleted the accounts a load
+            // run made over a Python SQLite connection - and Python leaves
+            // `foreign_keys` OFF, so `ON DELETE CASCADE` never fired. The
+            // script is fixed; this clears what it left.
+            //
+            // **These are not harmless dead rows.** `Tokens.receiverFor`
+            // reads `receiver_id` straight off the row without a join, so one
+            // of these still authenticates - as an account that does not
+            // exist. The holder gets a session with no parcels, an empty
+            // name, and a `set-password` call that updates no rows and says
+            // it worked. Nothing here can be recovered by keeping them: there
+            // is no account left for them to belong to.
+            //
+            // Written as a `DELETE` and not a `foreign_key_check` sweep
+            // because it must be exact about what it removes. Anything else
+            // with no parent is left alone and reported on every start.
+            listOf(
+                "DELETE FROM tokens WHERE receiver_id NOT IN (SELECT id FROM receivers)",
             ),
         )
     }

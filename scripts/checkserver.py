@@ -342,6 +342,8 @@ MIGRATIONS_EXPECTED = [
     "commands.purpose",
     "password_hash, tries and lockout",
     "google_sub",
+    "a number that may be absent, and the bookings table",
+    "tokens whose owner is gone (BUG-030)",
 ]
 
 

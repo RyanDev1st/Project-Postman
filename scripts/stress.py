@@ -283,14 +283,28 @@ def tidy(since_ms: int) -> None:
     real rows with it.
     """
     db = sqlite3.connect(DB)
+    # BUG-030. **Foreign keys are OFF by default on every SQLite connection**,
+    # and Python does not turn them on. Without this line the delete below
+    # removes the accounts and leaves their tokens behind, pointing at rows
+    # that are gone - 180 of them by the time it was noticed, each still good
+    # enough to authenticate as an account that no longer exists. The server
+    # sets this pragma on its own connection; a script that writes to the same
+    # file has to set it too, or it is not playing by the schema's rules.
+    db.execute("PRAGMA foreign_keys=ON")
     n = db.execute("DELETE FROM otp WHERE last_sent_at >= ?", (since_ms,)).rowcount
     r = db.execute(
         "DELETE FROM receivers WHERE full_name = 'Load Test User' AND created_at >= ?",
         (since_ms,),
     ).rowcount
     db.commit()
+
+    left = db.execute(
+        "SELECT COUNT(*) FROM tokens WHERE receiver_id NOT IN (SELECT id FROM receivers)"
+    ).fetchone()[0]
     db.close()
     print(f"cleaned up: {n} codes and {r} test accounts this run made")
+    if left:
+        print(f"WARNING: {left} token(s) point at an account that is gone - see BUG-030")
 
 
 def main() -> None:
