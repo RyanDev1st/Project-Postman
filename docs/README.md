@@ -57,7 +57,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0009-start-phase-1-early.md](adr/0009-start-phase-1-early.md) | Start Phase 1 before Phase 0 is finished. Cabinet screen is a web page | accepted |
 | [adr/0010-c4-offline-exception.md](adr/0010-c4-offline-exception.md) | The one case a pickup may happen with no server | accepted |
 | [adr/0011-google-sign-in-no-passwords.md](adr/0011-google-sign-in-no-passwords.md) | Google is a second door onto a phone-proved account. No passwords | superseded by 0012 |
-| [adr/0012-passwords-on-a-phone-account.md](adr/0012-passwords-on-a-phone-account.md) | Passwords after all, set on a phone account. No email, no reset flow, lockout on disk | accepted |
+| [adr/0012-passwords-on-a-phone-account.md](adr/0012-passwords-on-a-phone-account.md) | Passwords after all, set on a phone account. No email, no reset flow, lockout on disk | superseded by 0026 |
 | [adr/0013-a-real-map-and-its-key.md](adr/0013-a-real-map-and-its-key.md) | A real Google map on Home, its key in gitignored `local.properties`, the drawn plan as fallback | superseded by 0014 |
 | [adr/0014-openfreemap-not-google.md](adr/0014-openfreemap-not-google.md) | OpenFreeMap tiles drawn by MapLibre. No key, no account, no card. The baked plan deleted | accepted |
 | [adr/0015-language-in-the-composition.md](adr/0015-language-in-the-composition.md) | The language is swapped in the composition, not on the Activity. The platform's own API is API 33, and both platform routes restart the screen | accepted |
@@ -71,6 +71,7 @@ One short file per hard decision. Never edited after it is `accepted`. Reverse i
 | [adr/0023-not-on-the-public-internet.md](adr/0023-not-on-the-public-internet.md) | The locker is on the campus network and nowhere else. A distributed denial of service leaves the threat model; the certificate is self-signed forever, which makes a release build unable to talk to the server until it ships our own | accepted |
 | [adr/0024-colour-means-something.md](adr/0024-colour-means-something.md) | Colour is reserved for facts about a box - amber for your door, green for free, red for refused. The accent stops being a hue and becomes the end of the value scale, near white on the dark ground and near black on the pale one, so the product reads the same in both schemes and nothing competes with the door light | accepted |
 | [adr/0025-a-four-point-step.md](adr/0025-a-four-point-step.md) | A card sits about four points of lightness above its ground in both schemes, not fourteen in light. Every neutral is hue 210 with two points of channel spread, measured against Radix Slate and Vercel Geist. A card is a shadow and a fill and nothing else; a highlight catches an edge, never a face | accepted |
+| [adr/0026-the-booking-makes-the-number-true.md](adr/0026-the-booking-makes-the-number-true.md) | No SMS anywhere. Google on the vgu.edu.vn domain is what makes an account, and the phone number is claimed inside a booking rather than proved by a one-time code - a number only its owner can enter, against a parcel only they are expecting, so a typo breaks nobody else's delivery. A booking holds one box for 24 hours, one per person | accepted |
 
 ## Findings — dated reports
 

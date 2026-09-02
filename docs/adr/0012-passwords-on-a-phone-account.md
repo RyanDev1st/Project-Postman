@@ -1,9 +1,11 @@
 # 0012 — Passwords, set on a phone account. No email anywhere
 
-- **Status:** accepted
+- **Status:** superseded by [0026](0026-the-booking-makes-the-number-true.md)
 - **Date:** 2026-08-11
 - **Deciders:** Ryan
 - **Supersedes:** [0011](0011-google-sign-in-no-passwords.md)
+
+> **Superseded 2026-09-02, on account creation only.** The passwords decision below is unchanged and was restated in [0026](0026-the-booking-makes-the-number-true.md). What changed: the one-time SMS code is gone, Google on the university domain is what makes an account, and the phone number is claimed inside a booking rather than proved by a code. Read [0026](0026-the-booking-makes-the-number-true.md) for what is true now.
 
 ## Context
 
