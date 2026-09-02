@@ -108,9 +108,9 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       Empty app on the Android phone, empty cabinet screen in a browser, both reach the server.
 - [ ] **Phase 1.5 — Design parity** · [phase-1.5-design-parity.md](phase-1.5-design-parity.md) · `4/10` · **CURRENT**
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
-- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `1/9`
+- [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `1/16`
       A receiver registers with a phone number and stays logged in.
-- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/7`
+- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/12`
       The cabinet screen. A shipper finds the receiver and a box opens.
 - [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/5`
       The notification arrives and the parcel shows in the app.
@@ -123,7 +123,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/13`
       Device tests, bug fixing, release build, rollback page, and the Play listing.
 
-**Total: 22 / 91.**  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 22 / 103.**  ·  4 marked `⛔ SUPERSEDED` by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) — P2-01, P2-02, P2-03, P2-06, all one-time-code work that no longer exists  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

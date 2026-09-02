@@ -2,26 +2,30 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 1 / 9.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 is the real blocker and it is an account setting at SpeedSMS. See `docs/findings/2026-08-21-otp-channel-choice.md`.
+**Progress: 1 / 16.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Seven new tasks, P2-10 to P2-16, carry the work 0026 created. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
 ## Tasks
 
-- [ ] **P2-01** — Screen: type a phone number, ask for a one-time code
+- [ ] **P2-01** — ⛔ SUPERSEDED — Screen: type a phone number, ask for a one-time code
       - Owner: _unassigned_ · Needs: P1-05 · Blocks: P2-02
       - Verify: a real phone number is entered on the real Android phone and the server log shows the request
+      - Superseded 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): there is no one-time code any more. The way in is Google on a VGU domain, and the number is claimed inside a booking. Kept, never renumbered, and it can never be ticked. Replaced by P2-13.
       - Notes: P0-04 was dropped from the Needs by [ADR 0009](../adr/0009-start-phase-1-early.md) — we build against our own proposed contract, per [ADR 0005](../adr/0005-we-propose-they-object.md). **The shape of endpoints 1 and 2 must be agreed with the Server team before this is built**, because a shape change here rebuilds the screen. The field names and the path can change cheaply; the call existing at all cannot
       - Status 2026-08-21: **built and working, not ticked.** `Verify` says a real Android phone; this was the emulator `parity` (Android 16) against the real server over TLS, driven through the real screens. Typed `+84 912 340 001`, the server logged the request and generated a code. What is left is one run on Ryan's phone, not code.
 
-- [ ] **P2-02** — The one-time code arrives on the phone
+- [ ] **P2-02** — ⛔ SUPERSEDED — The one-time code arrives on the phone
       - Owner: _unassigned_ · Needs: P2-01 · Blocks: P2-03
       - Verify: a real code arrives on a real phone within the agreed time
+      - Superseded 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): there is no one-time code any more. The way in is Google on a VGU domain, and the number is claimed inside a booking. Kept, never renumbered, and it can never be ticked. Replaced by P2-13.
+      - This was the phase blocker. It is now moot: no account ever waits on SpeedSMS again.
       - Status 2026-08-21: **blocked, and not on us.** The code reaches a terminal, not a phone. The SpeedSMS request was wrong in three ways and all three are fixed (BUG-016), but the account has no registered sender, so the provider refuses every send. That is a job in SpeedSMS's dashboard. Free alternative if money is the objection: `sms_type` 5, their Android gateway app, which sends from Ryan's own SIM.
 
-- [ ] **P2-03** — Send the code back and get a token
+- [ ] **P2-03** — ⛔ SUPERSEDED — Send the code back and get a token
       - Owner: _unassigned_ · Needs: P2-02 · Blocks: P2-04, P2-06
       - Verify: a real phone number and its real code reach the empty parcel list screen
+      - Superseded 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): there is no one-time code any more. The way in is Google on a VGU domain, and the number is claimed inside a booking. Kept, never renumbered, and it can never be ticked. Replaced by P2-13.
       - Status 2026-08-21: **built and working, not ticked.** Emulator `parity` (Android 16), real server over TLS, real screens: typed the code, reached Home, and the server issued a token. Same as P2-01 - it needs a real phone to close, not work.
 
 - [ ] **P2-04** — Store the token in the phone's secure store
@@ -35,9 +39,10 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Verify: close the app fully, reopen it, and it does not ask to register again
       - Status 2026-08-21: **built and working, not ticked.** Emulator `parity` (Android 16), real server over TLS, real screens: `am force-stop`, relaunch, and the app opened straight to Home without asking to register. Needs a real phone to close.
 
-- [ ] **P2-06** — Plain messages for a wrong code, an expired code, and too many tries
+- [ ] **P2-06** — ⛔ SUPERSEDED — Plain messages for a wrong code, an expired code, and too many tries
       - Owner: _unassigned_ · Needs: P2-03 · Blocks: —
       - Verify: each of the three cases shows its own plain sentence on a real phone. No code shown raw
+      - Superseded 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): there is no one-time code any more. The way in is Google on a VGU domain, and the number is claimed inside a booking. Kept, never renumbered, and it can never be ticked. Replaced by P3-09, P3-10 and P3-11.
       - Status 2026-08-21: **half done.** Two of the sentences were missing entirely - a cooldown and a failed send both showed "Something went wrong. Try again.", which invites the one action that cannot work (BUG-018, fixed, both languages). The three code cases in this task's `Verify` - wrong, expired, too many tries - have still not been walked on a screen.
 
 - [x] **P2-07** — Log out, and handle an expired token
@@ -50,6 +55,7 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Owner: _unassigned_ · Needs: P2-05 · Blocks: —
       - Verify: on a real Android phone, tapping "Continue with Google" on an account that has already registered by phone reaches the parcel list without a code being typed; and a Google account that has never registered is asked for a phone number first
       - Notes: decided in [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoint 19 in [api-contract.md](../reference/api-contract.md). No passwords are added by this task, on purpose
+      - Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): **Google now makes the account**, which 0011 forbade. The `PHONE_REQUIRED` answer stays and is still the cue to take a number - it just leads to a booking rather than to a code. The domain check is P2-11
       - Notes: **the server half is done and live as of 2026-08-22. The app half is blocked on an OAuth client id, which only Ryan can create.** `GoogleTokens` and `GoogleCerts` were ported out of `src/otp-server/`, which is not a Gradle module and was never built, so the shipping server had no answer for endpoint 19 at all. It has one now: `/auth/google` signs in a linked Google account, links one when a receiver token rides along, and answers `PHONE_REQUIRED` otherwise - which is a cue, not a failure. Google can still never **make** an account, because a Google account has no phone number and the shipper finds people by number
       - Notes: the ID token is checked here rather than at Google's `tokeninfo`, so the login path carries no network call to somebody else's rate limit. Thirteen tests attack the verifier with tokens minted in the test itself - `alg: none`, RS256 swapped for HMAC, a token minted for another app, another issuer, expired, signed by somebody else, claims edited after signing. Five more, on a real database file, hold the rule that decides whose parcels a Google sign-in reaches: **one Google account reaches one receiver and never two**, kept by a unique index. Schema migration 6
       - Notes: probed on the running server over TLS. With no `GOOGLE_CLIENT_ID` the endpoint answers `501 GOOGLE_OFF`, so the app can hide the button rather than show one that cannot work. With one set, four different bad tokens all came back `400 GOOGLE_INVALID` - one answer for every way a token can be wrong, so the verifier cannot be probed for which check failed
@@ -60,12 +66,48 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Notes: decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md), which reverses the no-passwords half of [ADR 0011](../adr/0011-google-sign-in-no-passwords.md). Endpoints 20 and 21. **No email anywhere, and no reset screen** — forgetting a password is the one-time code, then set a new one, which is why the set screen is reachable only from a live session
       - Notes: **built on both sides and walked end to end on 2026-08-22; not ticked, because `Verify` says *a real Android phone*.** The server half was ported out of `src/otp-server/`, which is not a Gradle module and was never built - Argon2id through BouncyCastle, schema migration 5, eight tests. The app half is `SetPasswordScreen` from Settings, `PasswordSignInScreen` from the sign-in screen, and a shared `PasswordField`.
         Walked on the `parity` emulator against the real server over TLS, through the real screens. Set `vgu-locker-2026` on a real account: the server stored `argon2id$19456$2$1$…` and the password itself appears nowhere. Logged out, tapped *Sign in with a password instead*, typed the number and the password, and reached the parcel list with box 07 on it. Then five wrong guesses through the same screen: the fifth set a lock 14.9 minutes ahead, and the **correct** password straight after was still refused - which is the half that matters.
+        Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md): the reset path in the note above was *sign in with a code, then set a new one*. There is no code now, so it is *sign in with Google, then set a new one*. Same shape, nothing new to build.
+
         Two properties were checked rather than assumed. The screen says the same sentence for a wrong password, an unknown number and a locked account, so it never answers *is this number registered*; and it never says *locked*, because being told the lockout started is being told the password was right. And the counter survives a power cut: `PRAGMA synchronous` is `2`, FULL, held by `DurabilityTest` so a driver upgrade cannot quietly take it away
 
+- [ ] **P2-10** — Rewrite the contract for a booked box and a Google-made account
+      - Owner: _unassigned_ · Needs: — · Blocks: P2-11, P2-12, P2-13, P3-08
+      - Verify: `api-contract.md` has no endpoint 1 or 2, endpoint 19 makes an account, and three booking endpoints are written with every field named. Both front-ends can be built from it without asking a question
+      - Notes: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md). **The contract changes first.** The cabinet screen and the app both move off it, and a shape change after they are built rebuilds both
+
+- [ ] **P2-11** — The `hd` allow-list, and the dot that makes it safe
+      - Owner: _unassigned_ · Needs: P2-10 · Blocks: P2-13
+      - Verify: a token carrying `hd` of `vgu.edu.vn` signs in, and so does one of `student.vgu.edu.vn`. `notvgu.edu.vn`, `vgu.edu.vn.example.com` and a token with no `hd` at all are each refused. Tests mint their own tokens, the way `GoogleTokensTest` already does
+      - Notes: `hd == "vgu.edu.vn" || hd.endsWith(".vgu.edu.vn")`. **The leading dot is the check** - without it `notvgu.edu.vn` is accepted. Domains come from `google_allowed_domains` in `config/settings.json`, so a new subdomain is a text edit. The claim read is `hd`, never the email address, which can be an alias
+
+- [ ] **P2-12** — Schema: a number that may be absent, and a table of bookings
+      - Owner: _unassigned_ · Needs: P2-10 · Blocks: P2-13
+      - Verify: the migration runs on a copy of the live database file, and a second start on the same file does not try to add the column again. An account with no number is legal; two accounts with the same number are not
+      - Notes: `receivers.phone` becomes nullable and unique only when set. New `bookings` table - one live booking to a receiver, the box it holds, and an expiry 24 hours out
+
+- [ ] **P2-13** — Book a box, and read the number back before it is taken
+      - Owner: _unassigned_ · Needs: P2-11, P2-12 · Blocks: P2-14, P4-01
+      - Verify: on a real Android phone, sign in with a `@student.vgu.edu.vn` account, book a box, and see the number echoed as `+84 908 619 328` on a second panel before it is accepted. `0908619328`, `908619328` and `+84908619328` all reach that same confirmed number. A second booking, while one is still live, is refused
+      - Notes: the panel shows the **stored** form, not the typed one. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent
+
+- [ ] **P2-14** — Take the one-time code out
+      - Owner: _unassigned_ · Needs: P2-13 · Blocks: —
+      - Verify: `Otp.kt`, `Sms.kt` and the SpeedSMS dependency are gone, `speedSmsToken` is out of `config/settings.json`, and the server starts and serves every remaining endpoint with no SMS provider configured at all
+      - Notes: this is what closes P2-01, P2-02, P2-03 and P2-06. **After P2-13 works, not before** - the new way in has to exist before the old one is taken away
+
+- [ ] **P2-15** — First tests for `Phone.normalise` and `maskName`
+      - Owner: _unassigned_ · Needs: — · Blocks: P2-13
+      - Verify: the three accepted shapes all reach one stored form; a landline and a service range are refused; `Nguyễn Văn An` masks to `Nguyễn V. A***`; a one-word name and an empty one do not crash. Change the rule and a test goes red
+      - Notes: both are untested in the shipped server today, though the `src/otp-server/` prototype has tests for them. With no code sent, `normalise` is the **only** automatic guard between a typo and a misdelivery
+
+- [ ] **P2-16** — Vietnamese is what the app speaks first
+      - Owner: _unassigned_ · Needs: — · Blocks: —
+      - Verify: on a real Android phone set to English, the app opens in **Vietnamese**, and the Language row switches it to English on the next frame with no restart
+      - Notes: `values/` holds English today and `values-vi/` Vietnamese, so every non-Vietnamese phone gets English. Vietnamese moves to `values/`, English to `values-en/`. The switch itself already exists - [ADR 0015](../adr/0015-language-in-the-composition.md) built it
 ## Exit check
 
-- [ ] All nine tasks ticked
-- [ ] A real phone number registers on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
+- [ ] All sixteen tasks ticked, less the four marked `⛔ SUPERSEDED`
+- [ ] A real `@student.vgu.edu.vn` account signs in and books a box on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The token is in the secure store and in no log line
-- [ ] Every error case shows a plain sentence
+- [ ] Every error case shows a plain sentence, in Vietnamese first
 - [ ] Counts updated in [README.md](README.md)
