@@ -2,7 +2,7 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 1 / 16.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Seven new tasks, P2-10 to P2-16, carry the work 0026 created. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
+**Progress: 2 / 16.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Seven new tasks, P2-10 to P2-16, carry the work 0026 created. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
@@ -70,10 +70,12 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
 
         Two properties were checked rather than assumed. The screen says the same sentence for a wrong password, an unknown number and a locked account, so it never answers *is this number registered*; and it never says *locked*, because being told the lockout started is being told the password was right. And the counter survives a power cut: `PRAGMA synchronous` is `2`, FULL, held by `DurabilityTest` so a driver upgrade cannot quietly take it away
 
-- [ ] **P2-10** — Rewrite the contract for a booked box and a Google-made account
-      - Owner: _unassigned_ · Needs: — · Blocks: P2-11, P2-12, P2-13, P3-08
+- [x] **P2-10** — Rewrite the contract for a booked box and a Google-made account
+      - Owner: Claude · Needs: — · Blocks: P2-11, P2-12, P2-13, P3-08
       - Verify: `api-contract.md` has no endpoint 1 or 2, endpoint 19 makes an account, and three booking endpoints are written with every field named. Both front-ends can be built from it without asking a question
       - Notes: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md). **The contract changes first.** The cabinet screen and the app both move off it, and a shape change after they are built rebuilds both
+      - Done: 2026-09-02 — Rewrote the contract so a person signs in with their VGU Google account and books a box, and no text message is ever sent to anybody. Read the whole file back afterwards: the two one-time-code calls are struck out and nothing new takes their numbers, signing in with Google now creates the account, and there are three new calls for booking a box plus one that tells the cabinet who is expecting a parcel. Two holes were found by reading it as somebody who had to build from it - the booking never said which cabinet it was for, and the two password calls had lost their table heading and would have printed as a row of broken bars - and both were fixed. Every link in the file opens, and all eighteen tables draw.
+      - Notes: the shipper's screen is written down as a ladder of five rungs, A to E, ending at ABO. Lettered rather than numbered because every other number at the start of a row in this file is an endpoint
 
 - [ ] **P2-11** — The `hd` allow-list, and the dot that makes it safe
       - Owner: _unassigned_ · Needs: P2-10 · Blocks: P2-13

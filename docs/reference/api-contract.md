@@ -6,7 +6,9 @@ That changes what this file is for. It was a draft to be argued with; it is now 
 
 What has *not* changed is that every number here is a guess with a default, living in `config/settings.json`. See the settings table in [architecture.md](architecture.md).
 
-Endpoints 1 to 15 and 18 are built and checked by `python scripts/checkserver.py`. Endpoints 16, 17, 19, 20 and 21 are written down here and **not built** — they are marked where they appear.
+Endpoints 3 to 15 and 18 are built and checked by `python scripts/checkserver.py`. Endpoints 16, 17, 20 and 21 are written down here and **not built**. Endpoint 19 is built but does not yet make an account or check `hd`.
+
+**Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md), and not yet built.** Endpoints 1 and 2 are retired, 19 becomes the way in, and 25 to 28 are new. `checkserver.py` still walks the old shape and will fail against the new one — that is expected until **P2-14**, and the rewrite of that script goes with it.
 
 Every number in here is a **guess with a default**, and every one of them lives in the settings file (task **P0-15**) so correcting it costs five minutes, not a release. See the settings table in [architecture.md](architecture.md).
 
@@ -41,7 +43,7 @@ A call from the cabinet may never return a full name, a phone number, or a list 
 | --- | --- |
 | Transport | HTTPS only. No plain HTTP, not even in test. **Fixed, not a setting** |
 | Format | JSON |
-| Auth — app | Receiver token in the request header, after the one-time code |
+| Auth — app | Receiver token in the request header, issued by Google sign-in at endpoint 19 |
 | Auth — cabinet | Cabinet key in the request header, on every call |
 | Time | UTC, ISO 8601, everywhere. **Our proposal** |
 | Errors | Every failure has a stable code the front-end can switch on, plus a message the server does **not** expect it to show raw |
@@ -52,31 +54,71 @@ A call from the cabinet may never return a full name, a phone number, or a list 
 
 | # | What the app wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
-| 1 | Ask for a one-time code | `POST /auth/request-code` | phone number | sent, or a refusal code |
-| 2 | Send the one-time code back | `POST /auth/verify-code` | phone number, code | token, expiry |
+| ~~1~~ | ~~Ask for a one-time code~~ | ~~`POST /auth/request-code`~~ | — | **Removed 2026-09-02.** [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) |
+| ~~2~~ | ~~Send the one-time code back~~ | ~~`POST /auth/verify-code`~~ | — | **Removed 2026-09-02.** [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) |
 | 3 | Refresh or check the token | `POST /auth/refresh` | token | new token, or not valid |
 | 4 | Log out | `POST /auth/logout` | token | ok |
-| 19 | **Sign in with Google, or link Google to this account** | `POST /auth/google` | Google ID token, and a receiver token when linking | token, expiry, or a refusal code |
+| 19 | **Sign in with Google. This is the way in** | `POST /auth/google` | Google ID token | token, expiry, or a refusal code |
 
-**Endpoint 19 never makes an account.** A Google account has no phone number, and the shipper finds the receiver by phone number at the cabinet — so an account made from Google alone could never be sent a parcel. Google is a faster way back into an account that a one-time code already proved.
+**Numbers 1 and 2 are retired, not reused.** They are struck through above rather than deleted so that a build reading an older copy of this file, or a log line naming an endpoint, still resolves to something. Nothing new ever takes those numbers.
 
-One path, told apart by whether a receiver token is sent:
+**Endpoint 19 makes the account.** This reverses [ADR 0011](../adr/0011-google-sign-in-no-passwords.md), which forbade it, and the reason 0011 gave — a Google account has no phone number, so nobody could ever send it a parcel — is answered by the booking at endpoint 25. See [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).
 
-| Sent | Means | Answer |
-| --- | --- | --- |
-| Google ID token only | "Let me in as whoever this Google account belongs to" | The token, when that Google account has been linked. `PHONE_REQUIRED` when it has not — the app then falls back to endpoints 1 and 2 |
-| Google ID token **and** a receiver token | "I am signed in as this phone. Remember this Google account for it" | The token. Both proofs are on the wire at once, so nothing has to be remembered between two calls |
+The account is keyed on Google's `sub`, never on the email address, because a person can change their address and `sub` outlives it.
 
+**The domain is the gate.** The ID token must carry an `hd` claim on a VGU domain:
+
+| `hd` | Answer |
+| --- | --- |
+| `vgu.edu.vn` | Staff and teachers. Allowed |
+| `student.vgu.edu.vn`, or anything else under `.vgu.edu.vn` | Students. Allowed |
+| Absent | Refused with `GOOGLE_DOMAIN`. A personal Gmail carries no `hd`, so requiring it is what keeps personal accounts out |
+| Anything else | Refused with `GOOGLE_DOMAIN` |
+
+The test is `hd == "vgu.edu.vn" || hd.endsWith(".vgu.edu.vn")`. **The leading dot is the check**: without it, `endsWith("vgu.edu.vn")` also accepts `notvgu.edu.vn`, which anybody can register for a few dollars. The allowed domains live in `google_allowed_domains` in `config/settings.json`, so a new subdomain is a text edit rather than a release. The claim read is `hd` and never the email address, which can be an alias.
+
+A signed-in account with no phone number yet is a normal state, not an error. It can read its own parcels and its own settings; it cannot be sent a parcel until it books at endpoint 25.
+
+| # | What the app wants | Path we propose | Sends | Gets back |
+| --- | --- | --- | --- | --- |
 | 20 | Set or change the password | `POST /auth/set-password` | token, new password | ok, or a refusal code |
 | 21 | Sign in with a password | `POST /auth/password-login` | phone number, password | token, expiry, or a refusal code |
 
-**Endpoints 20 and 21 carry no email address, and there is no register-with-a-password route.** A password is set on an account a one-time code already proved, and you sign in with the phone number. Same reason as endpoint 19: an account identified by an email could never be sent a parcel, because the shipper types a phone number. Decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md). Task **P2-09**.
+**Endpoints 20 and 21 carry no email address, and there is no register-with-a-password route.** A password is set on an account that already exists, and you sign in with the phone number that account booked with. Decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md). Task **P2-09**.
 
-**There is no password reset endpoint and no reset email.** Forgetting a password is endpoints 1 and 2, then endpoint 20 — calls that already exist. Setting a password clears any lockout, because the person just proved themselves another way.
+**There is no password reset endpoint and no reset email.** Forgetting a password is endpoint 19, then endpoint 20 — sign in with Google, set a new one. Until 2026-09-02 that path was endpoints 1 and 2; the shape is unchanged, only the door. Setting a password clears any lockout, because the person just proved themselves another way.
+
+**Endpoint 21 needs an account that has booked at least once.** Signing in by password takes a phone number, and an account that has never booked has none. Such an account signs in with Google, which it must have to exist at all.
 
 **Hashing is Argon2id** at OWASP's minimum, with the parameters stored inside each hash so they can be raised later without stranding what came before. **Five wrong tries lock the account for fifteen minutes, and that counter is on disk** — a counter in memory resets when the process dies, so anyone who can crash the server gets their guesses back.
 
-**The server checks the ID token itself, offline** — signature against Google's published keys, `iss`, `aud` equal to our own client id, and `exp`. It never asks Google's tokeninfo endpoint, which would put the network and a rate limit on the login path. The account is keyed on Google's `sub`, never on the email address, because a person can change their Gmail address. Task **P2-08**.
+**The server checks the ID token itself, offline** — signature against Google's published keys, `iss`, `aud` equal to our own client id, `exp`, and now `hd`. It never asks Google's tokeninfo endpoint, which would put the network and a rate limit on the login path. Task **P2-08**; the domain check is **P2-11**.
+
+### Booking a box
+
+The receiver books before the parcel arrives. This is what makes the phone number trustworthy without an SMS ever being sent: the number can only be typed by somebody signed in on a VGU domain, against a delivery they are expecting themselves, so a wrong digit breaks their own delivery and nobody else's. [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).
+
+| # | What the app wants | Path we propose | Sends | Gets back |
+| --- | --- | --- | --- | --- |
+| 25 | **Book a box** | `POST /bookings` | token, **cabinet ref**, phone number, parcel size | cabinet ref, box number, the number as stored, expiry, or a refusal code |
+| 26 | My booking | `GET /bookings` | token | the live booking — cabinet ref, box number, the number as stored, expiry — or nothing |
+| 27 | Cancel my booking | `DELETE /bookings` | token | ok |
+
+**Endpoint 25 takes a cabinet ref, because there is more than one cabinet.** A booking holds a door at a named cabinet, and a parcel dropped at a different one has no booking to match — it falls to rung B of the ladder below and takes any free box there. The app reads the free doors at each cabinet from endpoint 18 before booking, which is what that endpoint was built for.
+
+**`NO_FREE_BOX` is returned here too**, and it means at booking time rather than at drop time. Asked for `large` when none is free, the answer is the refusal and not a quiet `small` — same rule endpoint 11 already follows, for the same reason: only the person holding the parcel knows whether a smaller door will do.
+
+| Rule | Value |
+| --- | --- |
+| What a booking holds | **One specific box.** Reserved, and no other drop may take it |
+| How long | **24 hours**, then it expires and the box is free. Adjustable |
+| How many at once | **One per account.** A second call while one is live is refused with `BOOKING_EXISTS` |
+| The number | Stored in one form by `Phone.normalise` — `+84` and nine digits. Returned in that form so the app can show it back |
+| A number already claimed | Refused with `PHONE_IN_USE`, naming nobody. First claim wins |
+
+**Endpoint 25 returns the number it stored, not the number it was sent.** `0908619328`, `908619328` and `+84908619328` all store as `+84908619328`, and the app shows that back on a confirm panel before the booking is accepted. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent — there is no code arriving to contradict it. Task **P2-13**.
+
+**A booking is the only thing that writes a phone number.** There is no set-my-number endpoint. The number and the intent to receive arrive together, which is what keeps a number from being claimed by somebody with no parcel coming.
 
 ### Parcels and pickup
 
@@ -93,8 +135,9 @@ One path, told apart by whether a receiver token is sent:
 | # | What the cabinet wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
 | 9 | Get the QR session code to display | `GET /cabinet/session` | cabinet key | session code, how long it lives |
-| 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | **masked** name, or a refusal code |
+| 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | **masked** name and any booking, a **near miss**, or a refusal code |
 | 11 | Start a drop | `POST /cabinet/drop` | cabinet key, receiver ref, parcel size | which box opened, or a refusal code |
+| 28 | **Who is expecting a parcel** | `GET /cabinet/expecting` | cabinet key | **masked** names of live bookings. Never a number |
 | 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next. **The server works the purpose out itself** and logs a disagreement — see below |
 | 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
@@ -108,6 +151,20 @@ One path, told apart by whether a receiver token is sent:
 The full protocol, and a reference sketch, are in [cabinet-firmware.md](cabinet-firmware.md).
 
 **Endpoint 10 returns a masked name.** `Nguyễn V. A***`, never the full name. The shipper already knows who he is delivering to — he only needs to confirm he has the right person. Without masking, anyone can stand at the cabinet, type phone numbers, and collect names. See task P0-08.
+
+**Endpoints 10, 28 and 11 are a ladder, and the shipper walks down it.** Added 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md). The number the shipper types came off a parcel label, which came from whatever the receiver typed into a shop — so a miss is far more often a typo than a stranger.
+
+| Rung | The number | What the screen does | Task |
+| --- | --- | --- | --- |
+| A | Matches a **live booking** | Shows the masked name. Endpoint 11 opens **that booking's box and no other** | P3-08 |
+| B | Matches a **registered account with no booking** | Shows the masked name. Endpoint 11 takes any free box, as it does today | P3-08 |
+| C | Is **one digit or one transposition** off a live booking | Offers that one booking: *"Did you mean Nguyễn V. A***?"* | P3-09 |
+| D | Matches nothing | Endpoint 28 lists the masked names of everyone with a live booking, so the shipper can recognise their customer | P3-10 |
+| E | Still nothing | `PHONE_NOT_REGISTERED`. Contact the recipient, and leave the parcel at **ABO**, the grocery store facing the campus back gate | P3-11 |
+
+**Rungs C and D are the only places this contract widens what a public terminal may know, and both are bounded.** Rung C answers at most one booking, and only to somebody already holding an almost-correct number; it is rate-limited for that reason, or it becomes a way to sweep the campus one digit at a time. Rung D returns masked names and **no numbers anywhere in the body**, not merely none on the screen — rule 6 in [architecture.md](architecture.md) is about what crosses the wire, not about what is drawn. Neither rung ever names a person without a parcel on the way.
+
+**Endpoint 11 prefers the booking's box.** When the receiver has a live booking, the drop goes into the door they reserved, and `claimFree` is not consulted. Without a booking it behaves exactly as before. A reserved box is never handed to a walk-up drop for somebody else, which is the whole point of reserving it.
 
 **A command says why the door is opening, and the server checks the answer anyway.** Endpoint 12 needs `drop` or `collect` and they do opposite things — a collect closing writes the parcel off and frees the box, a drop closing does neither. Until 2026-08-22 endpoint 22 handed the hardware only `open`, so an ESP32 filling that field in had to guess, and a wrong guess either books a collection that never happened or loses one that did (BUG-009). Endpoint 22 now carries `purpose`, which is **additive** — firmware built against the older shape keeps working.
 
@@ -231,22 +288,29 @@ Every failure the server can send, with the code we propose and the exact words 
 
 | Code | Means | Who sees it | What the screen says |
 | --- | --- | --- | --- |
-| `PHONE_NOT_REGISTERED` | Phone number is not registered | Cabinet | "Not signed up yet. Ask them to install the app." |
+| `PHONE_NOT_REGISTERED` | Phone number matches nobody, and no near miss did either | Cabinet | "Nobody here with that number. Call them, and leave the parcel at ABO by the back gate." |
+| `GOOGLE_DOMAIN` | The Google account is not on a VGU domain, or carries no `hd` | App | "Use your VGU account — the one ending vgu.edu.vn." |
+| `PHONE_IN_USE` | That number is already booked to another account | App | "That number is already in use. Check the digits." |
+| `BOOKING_EXISTS` | This account already has a live booking | App | "You already have a box booked. Cancel it first." |
 | `NO_FREE_BOX` | No free box of that size | Cabinet | "No box this size. Try a smaller one." |
 | `BOX_FAULTY` | Box faulty or offline | Both | "That box is out of order. Staff know." |
 | `BOX_ALREADY_FULL` | A box thought to be free is occupied | Cabinet | "That box is not empty. Tell staff." |
 | `SESSION_EXPIRED` | QR session code expired | App | "Code expired. Scan again." |
 | `NO_PARCEL_HERE` | No parcel for you at this cabinet | App | "Nothing waiting here." |
 | `TOKEN_EXPIRED` | Token expired | App | *(send to register, no message)* |
-| `WRONG_CODE` | Wrong one-time code, at register | App | "Wrong code. Try again." |
+| ~~`WRONG_CODE`~~ | ~~Wrong one-time code, at register~~ | — | **Retired 2026-09-02.** There is no one-time code. Not reused |
 | `CODE_REJECTED` | Wrong, used, or expired pickup code | Cabinet | "That code did not work. Scan with the app instead." |
 | `BOX_LOCKED_OUT` | Too many wrong tries | Cabinet | "Too many tries. Unlocks at 14:35." |
 
-**The reference server (docs/superpowers/specs/2026-08-09-otp-sender-design.md) adds three codes for auth: `PHONE_INVALID` (the number is not a Vietnamese mobile), `RATE_LIMITED` (a code was requested within the last 60 seconds) and `SEND_FAILED` (the SMS provider did not confirm delivery). The app's Refusal enum does not name them; they fall to `UNKNOWN`, which shows the generic sentence. `WRONG_CODE` and `TOKEN_EXPIRED` are already in the table.**
+**`PHONE_INVALID` survives the removal of the code, and matters more than it did.** It means the number is not a Vietnamese mobile — `Phone.normalise` accepts `+84908619328`, `0908619328` and `908619328`, stores one form, and refuses a landline or a service range. With no code being sent, that check is the **only** automatic guard standing between a typo and a parcel handed to the wrong student, which is why it gets its first tests in the shipped server at task **P2-15**.
 
-**Endpoints 20 and 21 add three more.** `PASSWORD_TOO_SHORT` and `PASSWORD_TOO_LONG` are the only rules on a password, and they come back from endpoint 20 only. `WRONG_PASSWORD` is the single answer endpoint 21 ever gives: it covers a wrong password, a locked-out account, and a phone number nobody has registered, on purpose. Telling them apart would answer two questions a sign-in screen must not answer — whether that number is a user here, and whether the lockout has started. It is the same rule `WRONG_CODE` already follows.
+**`RATE_LIMITED` and `SEND_FAILED` are retired with the code path.** Both described an SMS provider that no longer exists in this system.
 
-**Endpoint 19 adds three more.** `PHONE_REQUIRED` is not a failure — it is the app's cue to ask for a phone number and a one-time code, then call endpoint 19 again with the receiver token to link. `GOOGLE_INVALID` covers every way an ID token can be wrong, in one code and on purpose: telling a caller *which* check failed helps only somebody probing it. `GOOGLE_OFF` means no client id is configured on that server, so the app must hide the Google button rather than show one that cannot work.
+**Endpoints 20 and 21 add three more.** `PASSWORD_TOO_SHORT` and `PASSWORD_TOO_LONG` are the only rules on a password, and they come back from endpoint 20 only. `WRONG_PASSWORD` is the single answer endpoint 21 ever gives: it covers a wrong password, a locked-out account, and a phone number nobody has registered, on purpose. Telling them apart would answer two questions a sign-in screen must not answer — whether that number is a user here, and whether the lockout has started. It is the same rule `CODE_REJECTED` follows at the keypad, and the rule the retired `WRONG_CODE` followed before it.
+
+**Endpoint 19 adds three more.** `GOOGLE_INVALID` covers every way an ID token can be wrong, in one code and on purpose: telling a caller *which* check failed helps only somebody probing it. `GOOGLE_OFF` means no client id is configured on that server, so the app must hide the Google button rather than show one that cannot work. `GOOGLE_DOMAIN` is the one exception to the single-answer rule, and deliberately: a student signing in with a personal Gmail has made an ordinary mistake and needs to be told which account to use, and the fact that this system only serves VGU is not a secret — it is written on the cabinet.
+
+**`PHONE_REQUIRED` changed meaning on 2026-09-02.** It used to be the cue to ask for a phone number and a one-time code. There is no code, and the account already exists by the time it can be returned — so it is now the cue to send the person to the booking screen, endpoint 25. It is still not a failure.
 
 **`CODE_REJECTED` covers three different failures on purpose.** Wrong, already used, and expired all return the same code and the same words. Splitting them would let somebody at the keypad work out which codes are real.
 
@@ -263,8 +327,13 @@ Three of the four questions on this list were addressed to the Server team. Two 
 
 **Still open, and now ours to decide:**
 
-1. **What does endpoint 10 return when two people share one phone number?** Today the phone number is `UNIQUE` in the schema, so the second person cannot register at all — which is an answer, but not one anybody chose. It decides whether the shipper sees a list or an error. (blocks P3-03)
-2. **Endpoints 16, 17, 19, 20 and 21 are written and not built.** Offline pickup, reconciliation, Google sign-in and passwords. Nothing depends on them yet and none is on the path to a working pickup.
+1. **Endpoints 16, 17, 20 and 21 are written and not built.** Offline pickup, reconciliation and passwords. Nothing depends on them yet and none is on the path to a working pickup.
+2. **Endpoints 25 to 28 are written and not built**, and endpoint 19 is built to the old shape. Tasks **P2-10** to **P2-14** and **P3-08** to **P3-11**.
+3. **What happens when every box is booked and none is full?** Twenty live bookings fill a twenty-box cabinet with nothing inside it. The 24-hour expiry and the one-per-account limit are what bound it, and a walk-up drop then falls to rung E and goes to ABO. If it bites, the answer written down in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) is to stop holding a specific door and hold only the claim. Nobody has seen it happen yet, because nobody has used this yet.
+
+**Answered on 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md):**
+
+- *What does endpoint 10 return when two people share one phone number?* They cannot. The number is claimed at endpoint 25 and the second claim is refused with `PHONE_IN_USE`, naming nobody. The schema kept `UNIQUE` and that is now a chosen answer rather than an accident of it. **P3-03** is unblocked.
 
 **Still open for the hardware team:** the three questions at the end of [cabinet-firmware.md](cabinet-firmware.md) — how a key reaches a board, how long a latch needs, and what happens on a power cut mid-open.
 
