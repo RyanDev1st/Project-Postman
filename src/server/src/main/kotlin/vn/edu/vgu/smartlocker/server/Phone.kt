@@ -33,11 +33,20 @@ object Phone {
             else -> return null
         }
 
-        // A Vietnamese mobile prefix never starts with 0 or 1 after the trunk
-        // zero is removed - those are landline and service ranges. Checked
-        // here rather than in the route, so the cabinet and the app cannot
-        // disagree about what a valid number is.
-        if (national.first() in "01") return null
+        // **Every Vietnamese mobile starts 3, 5, 7, 8 or 9** once the trunk
+        // zero is off. That has been the whole list since the 2018
+        // renumbering; 2 is landline, and 1 was the old eleven-digit mobile
+        // range that the renumbering emptied. Checked here rather than in the
+        // route, so the cabinet and the app cannot disagree about what a valid
+        // number is.
+        //
+        // Tightened from "not 0 or 1" on 2026-09-03, with P2-15. It used to be
+        // the loosest rule that kept landlines out, which was enough while a
+        // one-time code proved the number anyway. With no code sent, this
+        // function is the **only** automatic thing between a typo and a parcel
+        // that never arrives (ADR 0026), so it rejects four leading digits it
+        // used to wave through.
+        if (national.first() !in MOBILE_LEADS) return null
 
         return "+84$national"
     }
@@ -52,6 +61,9 @@ object Phone {
      */
     fun masked(e164: String): String =
         if (e164.length < 5) "***" else e164.take(3) + "*".repeat(e164.length - 5) + e164.takeLast(2)
+
+    /** The first digit of a Vietnamese mobile, trunk zero removed. */
+    private const val MOBILE_LEADS = "35789"
 }
 
 /**

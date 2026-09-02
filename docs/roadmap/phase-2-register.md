@@ -2,7 +2,7 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 4 / 17.** Ticked, that is - more than three are done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Eight new tasks, P2-10 to P2-17, carry the work 0026 created, and P2-10, P2-11 and P2-12 are ticked. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
+**Progress: 5 / 17.** Ticked, that is - more than three are done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Eight new tasks, P2-10 to P2-17, carry the work 0026 created, and P2-10, P2-11, P2-12 and P2-15 are ticked. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
@@ -103,10 +103,12 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Verify: `Otp.kt`, `Sms.kt` and the SpeedSMS dependency are gone, `speedSmsToken` is out of `config/settings.json`, and the server starts and serves every remaining endpoint with no SMS provider configured at all
       - Notes: this is what closes P2-01, P2-02, P2-03 and P2-06. **After P2-13 works, not before** - the new way in has to exist before the old one is taken away
 
-- [ ] **P2-15** — First tests for `Phone.normalise` and `maskName`
-      - Owner: _unassigned_ · Needs: — · Blocks: P2-13
+- [x] **P2-15** — First tests for `Phone.normalise` and `maskName`
+      - Owner: Claude · Needs: — · Blocks: P2-13
       - Verify: the three accepted shapes all reach one stored form; a landline and a service range are refused; `Nguyễn Văn An` masks to `Nguyễn V. A***`; a one-word name and an empty one do not crash. Change the rule and a test goes red
       - Notes: both are untested in the shipped server today, though the `src/otp-server/` prototype has tests for them. With no code sent, `normalise` is the **only** automatic guard between a typo and a misdelivery
+      - Done: 2026-09-03 — Eleven tests, and they found a real gap. The number check used to accept anything that was not a landline, which let through four leading digits no Vietnamese mobile has ever had — including `1900` and `1800`, the numbers a company prints on a poster. It now accepts the five that are real and refuses the rest. Every way a person writes their own number reaches one stored form: with the country code, without it, with the zero, without the zero, with spaces, dashes or brackets. The name check turns `Nguyễn Văn An` into `Nguyễn V. A***` and does not fall over on a one-word name or an empty one. Then both rules were changed on purpose to make sure the tests were not just agreeing with the code: loosening the number rule turned two tests red, and showing one more letter of the name turned four red.
+      - Notes: one test exists only to keep a mistake buried. `Nguyễn Văn Phong`, `Nguyễn Văn Phúc` and `Nguyễn Văn Phương` all mask to the same thing, and that is the measurement that killed the masked list at the cabinet. If somebody ever puts the list back, this test says why they should not
 
 - [ ] **P2-16** — Vietnamese is what the app speaks first
       - Owner: _unassigned_ · Needs: — · Blocks: —
