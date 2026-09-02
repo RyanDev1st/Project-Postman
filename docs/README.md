@@ -36,6 +36,7 @@ Edit these in place. No date in the name.
 | [findings/2026-08-18-audit-and-stress.md](findings/2026-08-18-audit-and-stress.md) | An overnight probe of the server. Three faults fixed, one weakness left for Ryan, and the load answered: 500 concurrent is comfortable |
 | [findings/2026-08-21-hardening-and-load.md](findings/2026-08-21-hardening-and-load.md) | Can the server survive a real network? 300 at once is comfortable - 5,488 reads a second, no errors. The common web attacks, one at a time, each with the test that proves it. And the one thing on the brief that code here cannot deliver |
 | [findings/2026-08-21-otp-channel-choice.md](findings/2026-08-21-otp-channel-choice.md) | Which channel sends the code, decided from what Vietnamese developers recommend. SpeedSMS under a shared brandname - no licence, no card, ~350 VND. Zalo stays second, as an ask to VGU |
+| [findings/2026-08-31-design-and-map-pass.md](findings/2026-08-31-design-and-map-pass.md) | Session handoff. What made the app read premium once the palette was ruled out - press feedback, small value steps, fewer materials. And the map, which had four faults and was drawing a canned walk for somebody in another city |
 | [reference/bug-log.md](reference/bug-log.md) | Running list of bugs found on real devices |
 
 ## ADR — why we chose something
