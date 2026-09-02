@@ -2,7 +2,7 @@
 
 **Goal:** a shipper walks up to the cabinet, finds the receiver, and a box opens.
 
-**Progress: 0 / 12.**
+**Progress: 0 / 13.**
 
 This whole phase is the **cabinet screen**, not the phone app. The shipper installs nothing.
 
@@ -52,19 +52,19 @@ This whole phase is the **cabinet screen**, not the phone app. The shipper insta
       - Notes: offline the drop still works — see P6-07 — but the name check is skipped, so the driver must be told to read the number twice
 
 - [ ] **P3-08** — A typed number finds its booking, and the box it is holding
-      - Owner: _unassigned_ · Needs: P2-10, P3-03 · Blocks: P3-09
+      - Owner: _unassigned_ · Needs: P2-10, P3-03 · Blocks: P3-09, P3-13
       - Verify: a number with a live booking opens **that booking's box and no other**, and the screen shows the masked name. A number whose booking expired an hour ago does not open anything, and falls to P3-09
       - Notes: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md). A number with no booking but a registered account still drops into any free box, which is what the cabinet does today - the booking is a better answer, not the only one
 
-- [ ] **P3-09** — “Did you mean…” when one digit is wrong
-      - Owner: _unassigned_ · Needs: P3-08 · Blocks: P3-10
-      - Verify: a number one digit off a live booking offers that booking's masked name; two digits off offers nothing. A transposition - `...328` typed as `...382` - counts as one
-      - Notes: the likeliest cause of a miss is the person who placed the order typing their **own** number wrong, and they are not standing there to be asked. Rate-limited: it tells somebody at the cabinet that a near number is registered, which is a small oracle and stays small only if it cannot be swept
+- [ ] **P3-09** — “Did you mean…” when the number is within two digits
+      - Owner: _unassigned_ · Needs: P3-08 · Blocks: P3-10, P4-06
+      - Verify: a number within two digits of exactly one live booking offers that booking's masked name. A number within two digits of **two** bookings offers **neither**, and asks for the name instead. A transposition - `...328` typed as `...382` - counts as one
+      - Notes: the likeliest cause of a miss is the person who placed the order typing their **own** number wrong, and they are not standing there to be asked. Damerau-Levenshtein over the nine national digits. **Two was measured, not guessed**: it finds a one-digit typo 100% of the time and a two-digit typo 100% of the time, and wrongly offers a student to somebody else's parcel 0.02% of the time, where one digit finds the two-digit typo only 15% of the time. **More than one candidate means no candidate** - that rule, not the tolerance, is the safety net, because students buy SIMs in batches and adjacent numbers are real. Rate-limited, or it becomes a way to sweep the campus a digit at a time
 
-- [ ] **P3-10** — The list of who is expecting a parcel, masked
-      - Owner: _unassigned_ · Needs: P3-09 · Blocks: P3-11
-      - Verify: the list shows masked names only, holds nobody without a live booking, and **no phone number appears in the response body**, not only on the screen
-      - Notes: Ryan asked for this so a shipper can tell a typo from a number that never registered. Masked rather than full, because the cabinet is a public terminal - rule 6 in [architecture.md](../reference/architecture.md) - and the shipper is holding a label with the name already printed on it. `maskName` exists
+- [ ] **P3-10** — The shipper types the name off the label
+      - Owner: _unassigned_ · Needs: P3-09 · Blocks: P3-11, P4-06
+      - Verify: typing `Nguyen Van Phong` finds Nguyễn Văn Phong and **not** Nguyễn Văn Phúc, with accents and case taken off. A name matching two live bookings resolves to neither. **No list is ever returned**, and no phone number appears in the response body, not only on the screen
+      - Notes: this was a masked **list** until 2026-09-02, and the list was measured and dropped. `Nguyễn Văn Phong` and `Nguyễn Văn Phúc` both mask to `Nguyễn V. P***`, and two masks collide in **56%** of full cabinets - so it failed at its one job in most of them, and a shipper picking between two identical rows is a coin flip that ends with a parcel in a stranger's reserved box. Typing inverts it: the server holds the full names, answers yes or no, and shows a list to nobody. It still solves the case it was built for, because a receiver who mistyped their **number** has the right **name** on the label
 
 - [ ] **P3-11** — Send it to ABO when nobody matches
       - Owner: _unassigned_ · Needs: P3-10 · Blocks: —
@@ -75,6 +75,10 @@ This whole phase is the **cabinet screen**, not the phone app. The shipper insta
       - Owner: _unassigned_ · Needs: P3-01 · Blocks: —
       - Verify: with no browser locale set the cabinet opens in **Vietnamese**, every string on every screen is Vietnamese, and one toggle switches the whole screen to English and back without a reload
       - Notes: `index.html`, `drop.js` and `screen.js` are hardcoded English behind `<html lang="en">`, with no extraction layer at all. This is a strings pass, not a default flip, and it belongs beside P3-08 to P3-11 because it edits the same three files
+- [ ] **P3-13** — The shipper confirms the box number too
+      - Owner: _unassigned_ · Needs: P3-08 · Blocks: —
+      - Verify: after a box is chosen the screen shows a panel naming it - *“Box 07. Put the parcel in box 07 and close it.”* - and no door moves until it is accepted. **Not right** opens nothing and releases the box
+      - Notes: two confirmations, and they are not the same question: the first is *have I got the right person*, the second is *am I about to walk to the right door*. Twenty doors in four rows are easy to misread at arm's length with a parcel under one arm, and a parcel in the wrong open box is collected by the wrong student. Same shape as the receiver's confirm panel at P2-13, for the same reason
 ## Safety rules for this phase
 
 Tick these with the phase. They are not style preferences.
@@ -86,7 +90,7 @@ Tick these with the phase. They are not style preferences.
 
 ## Exit check
 
-- [ ] All twelve tasks ticked
+- [ ] All thirteen tasks ticked
 - [ ] All four safety rules ticked
 - [ ] A real parcel was dropped into a real box by someone who is not on this team
 - [ ] Counts updated in [README.md](README.md)

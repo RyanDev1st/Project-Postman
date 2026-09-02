@@ -8,7 +8,7 @@ What has *not* changed is that every number here is a guess with a default, livi
 
 Endpoints 3 to 15 and 18 are built and checked by `python scripts/checkserver.py`. Endpoints 16, 17, 20 and 21 are written down here and **not built**. Endpoint 19 is built but does not yet make an account or check `hd`.
 
-**Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md), and not yet built.** Endpoints 1 and 2 are retired, 19 becomes the way in, and 25 to 28 are new. `checkserver.py` still walks the old shape and will fail against the new one — that is expected until **P2-14**, and the rewrite of that script goes with it.
+**Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md), and not yet built.** Endpoints 1 and 2 are retired, 19 becomes the way in, and 25 to 29 are new. `checkserver.py` still walks the old shape and will fail against the new one — that is expected until **P2-14**, and the rewrite of that script goes with it.
 
 Every number in here is a **guess with a default**, and every one of them lives in the settings file (task **P0-15**) so correcting it costs five minutes, not a release. See the settings table in [architecture.md](architecture.md).
 
@@ -100,9 +100,10 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 
 | # | What the app wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
-| 25 | **Book a box** | `POST /bookings` | token, **cabinet ref**, phone number, parcel size | cabinet ref, box number, the number as stored, expiry, or a refusal code |
+| 25 | **Book a box** | `POST /bookings` | token, **cabinet ref**, parcel size, and a phone number **only the first time** | cabinet ref, box number, the number as stored, expiry, or a refusal code |
 | 26 | My booking | `GET /bookings` | token | the live booking — cabinet ref, box number, the number as stored, expiry — or nothing |
 | 27 | Cancel my booking | `DELETE /bookings` | token | ok |
+| 29 | **Change my number** | `PUT /me/phone` | token, phone number | the number as stored, or a refusal code |
 
 **Endpoint 25 takes a cabinet ref, because there is more than one cabinet.** A booking holds a door at a named cabinet, and a parcel dropped at a different one has no booking to match — it falls to rung B of the ladder below and takes any free box there. The app reads the free doors at each cabinet from endpoint 18 before booking, which is what that endpoint was built for.
 
@@ -113,12 +114,15 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 | What a booking holds | **One specific box.** Reserved, and no other drop may take it |
 | How long | **24 hours**, then it expires and the box is free. Adjustable |
 | How many at once | **One per account.** A second call while one is live is refused with `BOOKING_EXISTS` |
-| The number | Stored in one form by `Phone.normalise` — `+84` and nine digits. Returned in that form so the app can show it back |
+| The number | Typed **once**, then kept on the account. Stored in one form by `Phone.normalise` — `+84` and nine digits |
+| Later bookings | Send no number. The account already has one, and re-typing it every time is a fresh chance to mistype it |
 | A number already claimed | Refused with `PHONE_IN_USE`, naming nobody. First claim wins |
 
-**Endpoint 25 returns the number it stored, not the number it was sent.** `0908619328`, `908619328` and `+84908619328` all store as `+84908619328`, and the app shows that back on a confirm panel before the booking is accepted. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent — there is no code arriving to contradict it. Task **P2-13**.
+**The number is asked for once and belongs to the account after that.** A student books their second parcel by choosing a cabinet, a size and nothing else. This is not only convenience: every re-typing is another chance to introduce the typo this whole ladder exists to survive, and a number that is entered once is a number that can be checked once and then trusted.
 
-**A booking is the only thing that writes a phone number.** There is no set-my-number endpoint. The number and the intent to receive arrive together, which is what keeps a number from being claimed by somebody with no parcel coming.
+**Endpoint 25 returns the number it stored, not the number it was sent.** `0908619328`, `908619328` and `+84908619328` all store as `+84908619328`, and the app shows that back on a confirm panel before the first booking is accepted. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent — there is no code arriving to contradict it. Task **P2-13**.
+
+**Endpoint 29 is how a wrong number gets fixed**, and it is the other half of the notice at the end of this section. Somebody told *"the courier's label said `…382`, you booked `…328`"* needs one tap that corrects it. It refuses with `PHONE_IN_USE` on the same rule as the first claim, and it does **not** move a live booking to the new number — the parcel already on its way was addressed to the old one.
 
 ### Parcels and pickup
 
@@ -137,7 +141,7 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 | 9 | Get the QR session code to display | `GET /cabinet/session` | cabinet key | session code, how long it lives |
 | 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | **masked** name and any booking, a **near miss**, or a refusal code |
 | 11 | Start a drop | `POST /cabinet/drop` | cabinet key, receiver ref, parcel size | which box opened, or a refusal code |
-| 28 | **Who is expecting a parcel** | `GET /cabinet/expecting` | cabinet key | **masked** names of live bookings. Never a number |
+| 28 | **Is this the name on the parcel?** | `POST /cabinet/confirm-name` | cabinet key, the number already typed, the name off the label | one **masked** name and its box, or nothing. **Never a list, never a number** |
 | 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next. **The server works the purpose out itself** and logs a disagreement — see below |
 | 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
@@ -156,15 +160,57 @@ The full protocol, and a reference sketch, are in [cabinet-firmware.md](cabinet-
 
 | Rung | The number | What the screen does | Task |
 | --- | --- | --- | --- |
-| A | Matches a **live booking** | Shows the masked name. Endpoint 11 opens **that booking's box and no other** | P3-08 |
-| B | Matches a **registered account with no booking** | Shows the masked name. Endpoint 11 takes any free box, as it does today | P3-08 |
-| C | Is **one digit or one transposition** off a live booking | Offers that one booking: *"Did you mean Nguyễn V. A***?"* | P3-09 |
-| D | Matches nothing | Endpoint 28 lists the masked names of everyone with a live booking, so the shipper can recognise their customer | P3-10 |
-| E | Still nothing | `PHONE_NOT_REGISTERED`. Contact the recipient, and leave the parcel at **ABO**, the grocery store facing the campus back gate | P3-11 |
+| A | Matches a **live booking** exactly | Shows the masked name. Endpoint 11 opens **that booking's box and no other** | P3-08 |
+| B | Matches a **registered account with no booking** exactly | Shows the masked name. Endpoint 11 takes any free box, as it does today | P3-08 |
+| C | Is **within two digits** of exactly one live booking | Offers that one booking: *"Did you mean Nguyễn V. A***?"* | P3-09 |
+| D | Is within two digits of **more than one**, or of none | Asks the shipper to **type the name on the parcel**, endpoint 28 | P3-10 |
+| E | The name matches none, or more than one | `PHONE_NOT_REGISTERED`. Contact the recipient, and leave the parcel at **ABO**, the grocery store facing the campus back gate | P3-11 |
 
-**Rungs C and D are the only places this contract widens what a public terminal may know, and both are bounded.** Rung C answers at most one booking, and only to somebody already holding an almost-correct number; it is rate-limited for that reason, or it becomes a way to sweep the campus one digit at a time. Rung D returns masked names and **no numbers anywhere in the body**, not merely none on the screen — rule 6 in [architecture.md](architecture.md) is about what crosses the wire, not about what is drawn. Neither rung ever names a person without a parcel on the way.
+**Two digits, measured rather than guessed.** The distance is Damerau-Levenshtein over the nine national digits, so a substitution, an insertion, a deletion and a transposition each cost one. Simulated against twenty live bookings with real Vietnamese operator prefixes: at a tolerance of two, a receiver who mistyped one digit is found **100%** of the time, one who mistyped two is found **100%** of the time, and a parcel for somebody with no booking at all is wrongly offered a student **0.02%** of the time. At a tolerance of one, the two-digit typo is found only 15% of the time. At three, the false offer rises to 0.35% and keeps climbing.
+
+**The tolerance is not what makes this safe — the count is.** That simulation drew subscriber digits uniformly, and real numbers do not arrive that way: students buy SIMs in batches, so `…382` and `…383` can sit in one cabinet in a way the model never produces. So the rule that matters is **more than one candidate means no candidate**. The screen never offers a choice between two people, at any distance. It asks for the name instead.
+
+**Why the shipper types the name rather than reading a list.** `maskName` keeps a family name, a middle initial and one letter — and in Vietnam that is a small set. `Nguyễn Văn Phong`, `Nguyễn Văn Phúc` and `Nguyễn Văn Phương` all mask to `Nguyễn V. P***`. Simulated over twenty live bookings, two masks are identical **56%** of the time, so a list would fail at its job in most full cabinets, and a shipper choosing between two identical rows is a coin flip that ends with a parcel in a stranger's reserved box — which that stranger can open, because the box really is theirs.
+
+Typing inverts it. The server holds the **full** names and can tell Phong from Phúc; the screen shows a list to nobody. It is also strictly less leaky: a list hands a stranger twenty names at once, while a name check answers yes or no to one guess, only after a plausible number was typed first, and rate-limited. Neither rung ever names a person with no parcel on the way, and **no phone number appears anywhere in a response body** — rule 6 in [architecture.md](architecture.md) is about what crosses the wire, not what is drawn.
+
+### How sure the server has to be
+
+A door is the most expensive thing this system does, so what it takes to open one is written down rather than left to a screen.
+
+| Number | Name typed | Confidence | What happens |
+| --- | --- | --- | --- |
+| Exact | not asked for | **Certain** | Proceed |
+| Within two, one candidate | matches that candidate | **High** | Proceed, **and tell the receiver their booked number looks wrong** |
+| Within two, one candidate | not given, or does not match | Unsure | Ask for the name. Do not proceed on the number alone |
+| Within two, two or more candidates | matches exactly one of them | **High** | Proceed, and tell the receiver |
+| Anything | matches none, or more than one | None | Rung E. ABO |
+
+**"Proceed" never means a door opens by itself.** It means the screen stops asking the shipper for more and shows him the masked name and the box to confirm. The safety rule in [phase 3](../roadmap/phase-3-shipper-drop.md) is unchanged: a door opens only after the shipper confirms, never on a number alone.
+
+**A name is compared with the accents and the case taken off**, and on the whole name, not a part of it. `NGUYEN VAN PHONG`, `Nguyen Van Phong` and `Nguyễn Văn Phong` are one name. `Nguyễn Văn Phúc` is not.
 
 **Endpoint 11 prefers the booking's box.** When the receiver has a live booking, the drop goes into the door they reserved, and `claimFree` is not consulted. Without a booking it behaves exactly as before. A reserved box is never handed to a walk-up drop for somebody else, which is the whole point of reserving it.
+
+**The shipper confirms the box number, not only the person.** Endpoint 11 answers with a box, and the screen shows it as a panel the shipper has to accept before the door moves:
+
+> **Box 07.** Nguyễn V. A***. Put the parcel in box 07 and close it.
+> `[ Open box 07 ]`   `[ Not right ]`
+
+Two confirmations, and they are not the same question. The first is *have I got the right person*; the second is *am I about to walk to the right door*. A cabinet of twenty doors in four rows is easy to misread at arm's length with a parcel under one arm, and a parcel in the wrong open box is a parcel that the wrong student collects. The panel repeats the number in the sentence as well as on the button so a glance at either one is enough. **Not right** returns to the number, opens nothing, and releases the box.
+
+This is the same shape as the receiver's confirm panel at endpoint 25, and for the same reason: the two moments in this system where a person types or reads a number that nothing else will check are the booking and the drop.
+
+### Telling the receiver when the number was wrong
+
+A mismatch resolved is still a mismatch, and the person who mistyped their number has no other way to find out. Whenever a drop completes at rung C or D, or fails to rung E, the server tells the receiver by push and by email — the channels in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md), never SMS.
+
+| What happened | What the receiver is told |
+| --- | --- |
+| Rung C or D — resolved, parcel in the box | "Your parcel is in box 07. **The courier's label said `…382` and you booked `…328`** — tap to fix your number, or the next one may not find you." |
+| Rung E — went to ABO | "A courier could not find you and left your parcel at **ABO**, by the back gate. The number on the label was `…382`; yours is `…328`." |
+
+**The notice names the digits, because a person cannot correct a number they are only told is wrong.** It goes to the account that owns the booking and nowhere else, so it reveals nothing to anybody who was not already the intended receiver. Endpoint 29 is the tap that fixes it.
 
 **A command says why the door is opening, and the server checks the answer anyway.** Endpoint 12 needs `drop` or `collect` and they do opposite things — a collect closing writes the parcel off and frees the box, a drop closing does neither. Until 2026-08-22 endpoint 22 handed the hardware only `open`, so an ESP32 filling that field in had to guess, and a wrong guess either books a collection that never happened or loses one that did (BUG-009). Endpoint 22 now carries `purpose`, which is **additive** — firmware built against the older shape keeps working.
 
@@ -288,7 +334,7 @@ Every failure the server can send, with the code we propose and the exact words 
 
 | Code | Means | Who sees it | What the screen says |
 | --- | --- | --- | --- |
-| `PHONE_NOT_REGISTERED` | Phone number matches nobody, and no near miss did either | Cabinet | "Nobody here with that number. Call them, and leave the parcel at ABO by the back gate." |
+| `PHONE_NOT_REGISTERED` | Neither the number nor the name found exactly one person | Cabinet | "No match here. Call them, and leave the parcel at ABO by the back gate." |
 | `GOOGLE_DOMAIN` | The Google account is not on a VGU domain, or carries no `hd` | App | "Use your VGU account — the one ending vgu.edu.vn." |
 | `PHONE_IN_USE` | That number is already booked to another account | App | "That number is already in use. Check the digits." |
 | `BOOKING_EXISTS` | This account already has a live booking | App | "You already have a box booked. Cancel it first." |
@@ -328,7 +374,7 @@ Three of the four questions on this list were addressed to the Server team. Two 
 **Still open, and now ours to decide:**
 
 1. **Endpoints 16, 17, 20 and 21 are written and not built.** Offline pickup, reconciliation and passwords. Nothing depends on them yet and none is on the path to a working pickup.
-2. **Endpoints 25 to 28 are written and not built**, and endpoint 19 is built to the old shape. Tasks **P2-10** to **P2-14** and **P3-08** to **P3-11**.
+2. **Endpoints 25 to 29 are written and not built**, and endpoint 19 is built to the old shape. Tasks **P2-10** to **P2-14** and **P3-08** to **P3-11**.
 3. **What happens when every box is booked and none is full?** Twenty live bookings fill a twenty-box cabinet with nothing inside it. The 24-hour expiry and the one-per-account limit are what bound it, and a walk-up drop then falls to rung E and goes to ABO. If it bites, the answer written down in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) is to stop holding a specific door and hold only the claim. Nobody has seen it happen yet, because nobody has used this yet.
 
 **Answered on 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md):**

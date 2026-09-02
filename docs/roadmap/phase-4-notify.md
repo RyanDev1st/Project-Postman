@@ -2,7 +2,7 @@
 
 **Goal:** the receiver learns a parcel arrived, without opening the app to check.
 
-**Progress: 0 / 5.** Nothing here is built except the device-token endpoint, and nothing calls it. P4-04's screen is the exception - it is built and drawing real parcels. See P4-01 for what the four missing parts are and which Google credential unblocks them.
+**Progress: 0 / 6.** Nothing here is built except the device-token endpoint, and nothing calls it. P4-04's screen is the exception - it is built and drawing real parcels. See P4-01 for what the four missing parts are and which Google credential unblocks them.
 
 A parcel nobody knows about is a parcel nobody collects.
 
@@ -35,6 +35,10 @@ A parcel nobody knows about is a parcel nobody collects.
       - Owner: _unassigned_ · Needs: P4-03, P4-04 · Blocks: —
       - Verify: tapping a real notice on a real phone lands on the parcel, not on the home screen
 
+- [ ] **P4-06** — Tell the receiver their number did not match
+      - Owner: _unassigned_ · Needs: P3-09, P3-10 · Blocks: —
+      - Verify: a drop resolved by a near miss or by the name sends a notice **naming both numbers** - “the label said …382, you booked …328” - to the receiver and nobody else, by push and by email. A parcel that went to ABO sends its own notice, with the same two numbers
+      - Notes: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md). **The notice names the digits**, because a person cannot correct a number they are only told is wrong, and somebody who mistyped theirs has no other way to find out. Never SMS - there is no SMS in this system any more. P2-17 is the tap that fixes it
 ## Exit check
 
 - [ ] All five tasks ticked

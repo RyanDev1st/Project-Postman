@@ -5,7 +5,11 @@
 - **Deciders:** Ryan
 - **Supersedes:** [0012](0012-passwords-on-a-phone-account.md)
 
-> **Amended 2026-09-02, hours after it was accepted and before any code was written against it.** One change: the domain test was `hd == "vgu.edu.vn"`, which would have shut out every student. Staff are on `vgu.edu.vn` and students on `student.vgu.edu.vn`, so it is now an allow-list with a dot boundary — see [1. Google, on a university domain, makes the account](#1-google-on-a-university-domain-makes-the-account). Recorded here rather than in a new ADR because nothing had been built on the old wording; the rule that an accepted ADR is immutable still stands for anything that has.
+> **Amended twice on 2026-09-02, before any code was written against it.** Recorded here rather than in new ADRs because nothing had been built on the old wording; the rule that an accepted ADR is immutable still stands for anything that has.
+>
+> **First:** the domain test was `hd == "vgu.edu.vn"`, which would have shut out every student. Staff are on `vgu.edu.vn` and students on `student.vgu.edu.vn`, so it is now an allow-list with a dot boundary — see [1. Google, on a university domain, makes the account](#1-google-on-a-university-domain-makes-the-account).
+>
+> **Second:** the masked list at the cabinet is gone, replaced by the shipper typing the name off the label. It was measured and it does not work — `Nguyễn Văn Phong` and `Nguyễn Văn Phúc` both mask to `Nguyễn V. P***`, and two names collide in 56% of full cabinets, so the list would have sent parcels into strangers' reserved boxes on a coin flip. With it: a two-digit tolerance on the typed number, a rule that more than one candidate means none, a second confirmation on the box number, a notice to the receiver naming the digits that did not match, and a phone number typed once and kept on the account.
 
 ## Context
 
@@ -78,9 +82,27 @@ The shipper types a number on the cabinet screen, and the answer is one of three
 
 1. **It matches a live booking.** The reserved box opens. The screen shows the receiver's **masked** name to confirm against the label.
 2. **It matches a registered receiver with no booking.** The drop is allowed and `claimFree` takes any free box, which is what the cabinet does today.
-3. **It matches nobody.** Before giving up, the screen offers any live booking whose number differs from the typed one by a single digit or a transposition — *"Did you mean Nguyễn V. A***?"* — because a typo by the person who placed the order is the likeliest cause. Failing that, it lists the masked names of people with live bookings, and no numbers. If none of them is the right person, the screen tells the shipper to contact the recipient and to leave the parcel at **ABO**, the grocery store facing the campus back gate.
+3. **It is within two digits of exactly one live booking.** The screen offers that one: *"Did you mean Nguyễn V. A***?"* A typo by the person who placed the order is the likeliest cause of a miss, and two digits of Damerau-Levenshtein over the nine national digits finds a one-digit typo 100% of the time, a two-digit typo 100% of the time, and wrongly offers a student to a parcel that was never theirs 0.02% of the time. One digit finds the two-digit typo only 15% of the time; three digits pushes the false offer to 0.35%.
+4. **It is within two digits of more than one, or of none.** The screen asks the shipper to **type the name on the parcel**, and the server answers with one masked name or nothing.
+5. **The name matches none, or more than one.** Contact the recipient, and leave the parcel at **ABO**, the grocery store facing the campus back gate.
 
-Names on that screen are masked, as `maskName` already masks them. The shipper is holding a label with the name printed on it, so a mask is enough to match against, and the cabinet is a public terminal that anybody can walk up to — rule 6 in [architecture.md](../reference/architecture.md).
+**More than one candidate means no candidate, at any distance.** The screen never offers a choice between two people. That rule, not the tolerance, is what makes this safe: the simulation above drew subscriber digits uniformly and real ones do not arrive that way — students buy SIMs in batches, so two numbers a digit apart can sit in one cabinet in a way no model produces.
+
+**The shipper types the name; he is never shown a list.** This reverses what was written here earlier the same day, and the reason is measurable. `maskName` keeps a family name, a middle initial and one letter, and in Vietnam that is a small set: `Nguyễn Văn Phong`, `Nguyễn Văn Phúc` and `Nguyễn Văn Phương` all mask to `Nguyễn V. P***`. Over twenty live bookings, two masks are identical **56%** of the time. A list would therefore fail at its one job in most full cabinets, and worse — a shipper choosing between two identical rows is a coin flip that ends with a parcel in a stranger's reserved box, which that stranger opens legitimately with their own login.
+
+Typing inverts it. The server holds the full names and can tell Phong from Phúc; nobody is shown a list. It leaks strictly less than a list, which hands over twenty names at once, and it still solves the case it was asked to solve: a receiver who mistyped their **number** still has the correct **name** on the label.
+
+Names shown back are masked, as `maskName` already masks them — enough to check against a label, and the cabinet is a public terminal anybody can walk up to, rule 6 in [architecture.md](../reference/architecture.md).
+
+### 4. Two confirmations at the cabinet, and one notice afterwards
+
+The shipper confirms **the person and then the box**. A cabinet of twenty doors in four rows is easy to misread at arm's length with a parcel under one arm, and a parcel in the wrong open box is collected by the wrong student. The box panel repeats the number in the sentence and on the button.
+
+Whenever a drop is resolved at rung 3 or 4, or falls to rung 5, the receiver is told by push and email — never SMS — and **the notice names the digits**: *"the courier's label said `…382`, you booked `…328`"*. A person cannot correct a number they are only told is wrong, and somebody who mistyped their number has no other way to find out. Endpoint 29 is the one tap that fixes it.
+
+### 5. The number is typed once
+
+It is asked for at the first booking and kept on the account. Later bookings send a cabinet and a size and nothing else. Every re-typing is another chance to introduce the very typo this ladder exists to survive, and a number entered once is one that can be checked once and then trusted.
 
 ## Why
 

@@ -2,7 +2,7 @@
 
 **Goal:** a receiver registers with a phone number, gets a token, and stays logged in.
 
-**Progress: 2 / 16.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Seven new tasks, P2-10 to P2-16, carry the work 0026 created. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
+**Progress: 2 / 17.** Ticked, that is - not 1 done: P2-01, P2-03, P2-04 and P2-05 all work and were driven end-to-end on an emulator on 2026-08-21. Every `Verify` in this phase but one says *a real Android phone*, and an emulator is not one, so those stay unticked. The exception is P2-07, whose `Verify` asks only that the token is cleared and that nobody is sent round a loop - both of which an emulator can show, and did. The gap is one session with Ryan's phone, not more building. P2-02 was the real blocker and it is now moot: [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) removed the one-time code, so no account waits on SpeedSMS again. **Four tasks - P2-01, P2-02, P2-03 and P2-06 - are marked `⛔ SUPERSEDED`.** They keep their IDs, are never renumbered, and can never be ticked; P2-14 is what takes their code out. Seven new tasks, P2-10 to P2-16, carry the work 0026 created. `docs/findings/2026-08-21-otp-channel-choice.md` is now history rather than a plan.
 
 The receiver must be registered and logged in before a parcel is ever dropped. Everything later depends on this.
 
@@ -88,9 +88,10 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Notes: `receivers.phone` becomes nullable and unique only when set. New `bookings` table - one live booking to a receiver, the box it holds, and an expiry 24 hours out
 
 - [ ] **P2-13** — Book a box, and read the number back before it is taken
-      - Owner: _unassigned_ · Needs: P2-11, P2-12 · Blocks: P2-14, P4-01
-      - Verify: on a real Android phone, sign in with a `@student.vgu.edu.vn` account, book a box, and see the number echoed as `+84 908 619 328` on a second panel before it is accepted. `0908619328`, `908619328` and `+84908619328` all reach that same confirmed number. A second booking, while one is still live, is refused
+      - Owner: _unassigned_ · Needs: P2-11, P2-12 · Blocks: P2-14, P2-17, P4-01
+      - Verify: on a real Android phone, sign in with a `@student.vgu.edu.vn` account, book a box, and see the number echoed as `+84 908 619 328` on a second panel before it is accepted. `0908619328`, `908619328` and `+84908619328` all reach that same confirmed number. **Book a second time and the number is not asked for again.** A second booking while one is still live is refused
       - Notes: the panel shows the **stored** form, not the typed one. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent
+      - Notes: **the number is typed once and kept on the account.** Later bookings send a cabinet and a size and nothing else. Every re-typing is another chance to introduce the very typo the cabinet's ladder exists to survive
 
 - [ ] **P2-14** — Take the one-time code out
       - Owner: _unassigned_ · Needs: P2-13 · Blocks: —
@@ -106,9 +107,13 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Owner: _unassigned_ · Needs: — · Blocks: —
       - Verify: on a real Android phone set to English, the app opens in **Vietnamese**, and the Language row switches it to English on the next frame with no restart
       - Notes: `values/` holds English today and `values-vi/` Vietnamese, so every non-Vietnamese phone gets English. Vietnamese moves to `values/`, English to `values-en/`. The switch itself already exists - [ADR 0015](../adr/0015-language-in-the-composition.md) built it
+- [ ] **P2-17** — Fix a number that was typed wrong
+      - Owner: _unassigned_ · Needs: P2-13 · Blocks: —
+      - Verify: the notice saying the courier's label and the booked number disagree opens a screen that changes the number in one tap. A number another account already holds is refused, naming nobody. A booking that is already live keeps the old number
+      - Notes: endpoint 29. This is the other half of the notice - somebody told their number is wrong needs a way to correct it, and a live booking must not move, because the parcel already on its way was addressed to the old number
 ## Exit check
 
-- [ ] All sixteen tasks ticked, less the four marked `⛔ SUPERSEDED`
+- [ ] All seventeen tasks ticked, less the four marked `⛔ SUPERSEDED`
 - [ ] A real `@student.vgu.edu.vn` account signs in and books a box on a real Android *(iPhone deferred — [ADR 0007](../adr/0007-android-first.md))*
 - [ ] The token is in the secure store and in no log line
 - [ ] Every error case shows a plain sentence, in Vietnamese first
