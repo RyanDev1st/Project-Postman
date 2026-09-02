@@ -5,6 +5,8 @@
 - **Deciders:** Ryan
 - **Supersedes:** [0012](0012-passwords-on-a-phone-account.md)
 
+> **Amended 2026-09-02, hours after it was accepted and before any code was written against it.** One change: the domain test was `hd == "vgu.edu.vn"`, which would have shut out every student. Staff are on `vgu.edu.vn` and students on `student.vgu.edu.vn`, so it is now an allow-list with a dot boundary — see [1. Google, on a university domain, makes the account](#1-google-on-a-university-domain-makes-the-account). Recorded here rather than in a new ADR because nothing had been built on the old wording; the rule that an accepted ADR is immutable still stands for anything that has.
+
 ## Context
 
 [ADR 0012](0012-passwords-on-a-phone-account.md) made the one-time code the only door that creates an account. Every student therefore costs at least one SMS, and the reason given was that the shipper finds a receiver by typing a phone number, so an account with no proved number could never be sent a parcel.
@@ -32,9 +34,21 @@ That reframes the risk. A number proved by SMS defends against one thing: somebo
 
 We choose **C**. Two changes, and everything else in 0012 stands.
 
-### 1. Google, on the university domain, makes the account
+### 1. Google, on a university domain, makes the account
 
-`GoogleTokens.subjectOf` gains an `hd` check beside the `aud` check it already does: the token must carry `hd == "vgu.edu.vn"`. The account is still keyed by `sub` and never by the email address.
+`GoogleTokens.subjectOf` gains an `hd` check beside the `aud` check it already does. VGU uses two domains — staff on `vgu.edu.vn`, students on `student.vgu.edu.vn` — so the test is:
+
+```kotlin
+hd == "vgu.edu.vn" || hd.endsWith(".vgu.edu.vn")
+```
+
+**The leading dot is the whole check.** Without it, `endsWith("vgu.edu.vn")` also accepts `notvgu.edu.vn`, which anybody can register. `contains("vgu")` is worse again. The domains live in `config/settings.json` as `google_allowed_domains`, so a new subdomain is a text edit rather than a build.
+
+Three rules that go with it:
+
+- **The claim checked is `hd`, never the email address.** An address can be an alias; `hd` is the Workspace domain Google itself asserts.
+- **A missing `hd` is a refusal.** Personal Gmail accounts carry no `hd`, so requiring it is what keeps them out.
+- The account is still keyed by `sub`, never by the email address, exactly as before.
 
 | Way in | How | Makes an account? |
 | --- | --- | --- |
@@ -47,6 +61,10 @@ The one-time code goes. Its only remaining job was proving a number, which a boo
 ### 2. A booking makes the number true
 
 A signed-in receiver books a box before the parcel arrives, and types their phone number as part of that booking. The number is confirmed on a second panel before it is accepted, because a typo here is the only thing that can go wrong and it is silent when it does.
+
+**The panel shows the number in its stored form, not as it was typed.** `Phone.normalise` already takes `+84908619328`, `0908619328` and `908619328` and stores one `+84…`; the panel echoes that back, spaced — `+84 908 619 328`. A panel that repeats the same shape somebody just typed is a panel the eye slides over.
+
+`Phone.normalise` therefore becomes the only automatic check standing between a typo and a misdelivery, now that no code is sent. It has tests in the `otp-server` prototype and **none in the shipped server**, and neither does `maskName`. Both get tests before this ships.
 
 | Rule | Value |
 | --- | --- |
@@ -80,5 +98,7 @@ The number never has to be proved because it can no longer be claimed against so
 - **Supersedes** [0012](0012-passwords-on-a-phone-account.md) on account creation. Passwords are unchanged.
 - **[api-contract.md](../reference/api-contract.md)** — endpoints 1 and 2 (`/auth/request-code`, `/auth/verify-code`) are removed; 19 (`/auth/google`) becomes account-creating; 10 (the cabinet's lookup) gains the near-miss and the booking match; new endpoints for making, reading and cancelling a booking. **The contract changes first**, before either front-end moves.
 - **Schema** — `receivers.phone` becomes nullable, unique only when set. A new `bookings` table.
+- **`config/settings.json`** — gains `google_allowed_domains`; loses `speedSmsToken`.
+- **Tests** — `Phone.normalise` and `maskName` get their first tests in the shipped server.
 - **[Phase 2 — Register](../roadmap/phase-2-register.md)** and **[Phase 3 — Shipper drop](../roadmap/phase-3-shipper-drop.md)** both change shape. New task IDs, taking the next free numbers in each phase.
 - `Otp.kt`, `Sms.kt` and the SpeedSMS dependency come out, along with the `speedSmsToken` setting and the demo sender that prints codes.
