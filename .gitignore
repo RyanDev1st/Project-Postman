@@ -6,6 +6,14 @@
 *.jks
 google-services.json
 GoogleService-Info.plist
+# A Firebase/GCP service-account key. It signs as the project and can send
+# push to every installed app, so it never comes inside this folder. Ryan's
+# lives on A:\ and is passed by path, never copied in. These patterns are a
+# net under that habit, not a substitute for it.
+*-adminsdk-*.json
+*service-account*.json
+*serviceaccount*.json
+firebase-adminsdk*.json
 .claude/settings.local.json
 .claude/worktrees/
 
