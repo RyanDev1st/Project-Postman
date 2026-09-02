@@ -2,6 +2,7 @@ package vn.edu.vgu.smartlocker.server
 
 import java.io.File
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
@@ -44,6 +45,28 @@ class Config private constructor(
      */
     fun flag(key: String, fallback: Boolean): Boolean =
         (settings[key] as? JsonPrimitive)?.content?.let { it == "true" } ?: fallback
+
+    /**
+     * The Google hosted domains that may make an account here. ADR 0026.
+     *
+     * A list, because VGU is two domains - staff on `vgu.edu.vn`, students on
+     * `student.vgu.edu.vn` - and a third could appear. Each entry matches
+     * itself and anything under it, so `vgu.edu.vn` alone covers both; the
+     * matching, and the dot that makes it safe, are in `GoogleTokens`.
+     *
+     * The fallback is not empty and not "allow anything". An empty list would
+     * lock every account out on a typo in the settings file, and an
+     * allow-anything fallback would open the locker to all of Google on the
+     * same typo. It falls back to the domain we actually serve.
+     */
+    val googleAllowedDomains: List<String>
+        get() = (settings["google_allowed_domains"] as? JsonArray)
+            ?.mapNotNull { (it as? JsonPrimitive)?.content?.trim()?.takeIf(String::isNotEmpty) }
+            ?.takeIf { it.isNotEmpty() }
+            ?: listOf("vgu.edu.vn")
+
+    /** How long a booking holds a door before it expires. ADR 0026. */
+    val bookingHours get() = num("booking_hours", 24)
 
     val qrSessionSeconds get() = num("qr_session_seconds", 60)
     val receiverTokenDays get() = num("receiver_token_days", 30)

@@ -3,6 +3,12 @@
 
   "settings_version": 1,
 
+  "_google_allowed_domains": "Which Google accounts may make an account here. Each entry matches itself and anything under it, so vgu.edu.vn admits staff on vgu.edu.vn AND students on student.vgu.edu.vn. It is a list, and a text edit, so a new subdomain never needs a release. A personal Gmail carries no hd claim at all and is refused whatever is written here. ADR 0026.",
+  "google_allowed_domains": ["vgu.edu.vn"],
+
+  "_booking_hours": "How long a booked box is held before the reservation lapses and the door goes back to free. A day covers a parcel posted this afternoon and delivered tomorrow morning. Too long and reservations starve a cabinet of doors with nothing inside them; too short and a slow courier finds no booking. One live booking per account is the other half of that guard. ADR 0026.",
+  "booking_hours": 24,
+
   "qr_session_seconds": 60,
   "qr_refresh_seconds": 30,
 

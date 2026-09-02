@@ -46,21 +46,49 @@ fun interface Jwks {
 class GoogleTokens(
     private val clientId: String,
     private val jwks: Jwks,
+    /**
+     * The hosted domains this server accepts, as `hd` carries them.
+     *
+     * A domain matches itself or anything under it: `vgu.edu.vn` admits staff,
+     * and `student.vgu.edu.vn` matches through the dot. **The dot is the
+     * check** - see [allows].
+     */
+    private val allowedDomains: List<String>,
     private val now: () -> Long = System::currentTimeMillis,
 ) {
     @Volatile private var cached: Map<String, RSAPublicKey> = emptyMap()
     @Volatile private var fetchedAtMs = 0L
 
+    /**
+     * What a token turned out to be.
+     *
+     * [WrongDomain] is told apart from [Invalid] on purpose, and it is the one
+     * exception to this file's "every failure looks the same" rule. A student
+     * tapping the button with their personal Gmail has made an ordinary
+     * mistake and has to be told which account to use; that this system only
+     * serves VGU is written on the cabinet, so saying so reveals nothing.
+     * Every *other* failure stays a single answer, because telling a caller
+     * which check failed helps only somebody probing it.
+     */
+    sealed interface Check {
+        data class Ok(val sub: String) : Check
+        data object Invalid : Check
+        data object WrongDomain : Check
+    }
+
     /** The Google account id behind a token, or null if anything is wrong. */
-    fun subjectOf(idToken: String): String? {
+    fun subjectOf(idToken: String): String? = (check(idToken) as? Check.Ok)?.sub
+
+    /** Every check, with the domain refusal kept separate. */
+    fun check(idToken: String): Check {
         val parts = idToken.split(".")
-        if (parts.size != 3) return null
+        if (parts.size != 3) return Check.Invalid
 
-        val header = decodeJson(parts[0]) ?: return null
-        if (header.text("alg") != "RS256") return null
-        val key = keyFor(header.text("kid") ?: return null) ?: return null
+        val header = decodeJson(parts[0]) ?: return Check.Invalid
+        if (header.text("alg") != "RS256") return Check.Invalid
+        val key = keyFor(header.text("kid") ?: return Check.Invalid) ?: return Check.Invalid
 
-        val signature = decodeBytes(parts[2]) ?: return null
+        val signature = decodeBytes(parts[2]) ?: return Check.Invalid
         val signed = "${parts[0]}.${parts[1]}".toByteArray(Charsets.US_ASCII)
         val genuine = try {
             Signature.getInstance("SHA256withRSA").run {
@@ -71,15 +99,36 @@ class GoogleTokens(
         } catch (e: GeneralSecurityException) {
             false
         }
-        if (!genuine) return null
+        if (!genuine) return Check.Invalid
 
-        val claims = decodeJson(parts[1]) ?: return null
-        if (claims.text("iss") !in ISSUERS) return null
-        if (claims.text("aud") != clientId) return null
-        val expiresAtSec = claims["exp"]?.jsonPrimitive?.longOrNull ?: return null
-        if (now() >= expiresAtSec * 1000) return null
+        val claims = decodeJson(parts[1]) ?: return Check.Invalid
+        if (claims.text("iss") !in ISSUERS) return Check.Invalid
+        if (claims.text("aud") != clientId) return Check.Invalid
+        val expiresAtSec = claims["exp"]?.jsonPrimitive?.longOrNull ?: return Check.Invalid
+        if (now() >= expiresAtSec * 1000) return Check.Invalid
 
-        return claims.text("sub")?.takeIf { it.isNotBlank() }
+        // The domain, and it is checked after the signature on purpose: an
+        // unsigned token's `hd` is whatever the sender typed.
+        val hd = claims.text("hd")
+        if (hd.isNullOrBlank() || !allows(hd)) return Check.WrongDomain
+
+        val sub = claims.text("sub")?.takeIf { it.isNotBlank() } ?: return Check.Invalid
+        return Check.Ok(sub)
+    }
+
+    /**
+     * Whether a hosted domain is one of ours.
+     *
+     * **The leading dot is the whole check.** `hd.endsWith("vgu.edu.vn")`
+     * alone also accepts `notvgu.edu.vn`, which anybody can register for a few
+     * dollars and which would then hold accounts on this locker.
+     */
+    private fun allows(hd: String): Boolean {
+        val seen = hd.lowercase()
+        return allowedDomains.any { raw ->
+            val allowed = raw.lowercase().removePrefix(".")
+            seen == allowed || seen.endsWith(".$allowed")
+        }
     }
 
     /**

@@ -121,15 +121,43 @@ enum class Refusal(val status: HttpStatusCode) {
     GOOGLE_INVALID(HttpStatusCode.BadRequest),
 
     /**
-     * A genuine Google account that is not linked to any phone number here.
+     * A genuine Google token from outside the university. ADR 0026.
      *
-     * **Not a failure.** It is the app's cue to ask for a phone number and a
-     * one-time code, and then call endpoint 19 again carrying the receiver
-     * token, which links the two. A Google account has no phone number and a
-     * shipper finds people by number, so Google can never make an account on
-     * its own - only sign in to one that already exists.
+     * **The deliberate exception to the rule above**, and the only one. Every
+     * other way a token can be wrong is [GOOGLE_INVALID], because naming the
+     * failed check helps a person probing the verifier. This one names it,
+     * because the person seeing it is a student who tapped the button with
+     * their personal Gmail and has to be told which account to use instead.
+     * That this locker serves VGU is written on the cabinet, so saying it
+     * again reveals nothing.
+     *
+     * A missing `hd` lands here too. Personal Google accounts carry no `hd`
+     * at all, so requiring one is what keeps them out.
      */
-    PHONE_REQUIRED(HttpStatusCode.BadRequest),
+    GOOGLE_DOMAIN(HttpStatusCode.Forbidden),
+
+    // --- Booking a box - endpoints 25 and 29 -------------------------------
+
+    /**
+     * That phone number is already on another account.
+     *
+     * **Names nobody.** Not whose account, not whether they have a parcel
+     * coming - only that these digits are taken. First claim wins, and a
+     * second person typing them has almost certainly mistyped their own.
+     */
+    PHONE_IN_USE(HttpStatusCode.Conflict),
+
+    /**
+     * This account already holds a live booking, and may hold only one.
+     *
+     * One per account is what stops twenty reservations filling a twenty-door
+     * cabinet that has nothing inside it. Cancel at endpoint 27, or wait for
+     * the 24 hours to run out.
+     */
+    BOOKING_EXISTS(HttpStatusCode.Conflict),
+
+    /** No live booking on this account. Endpoint 27 with nothing to cancel. */
+    NO_BOOKING(HttpStatusCode.NotFound),
 
     /** The cabinet key was missing, or is not one we issued. */
     CABINET_UNKNOWN(HttpStatusCode.Unauthorized),

@@ -23,6 +23,7 @@ class GoogleTokensTest {
     private val verifier = GoogleTokens(
         clientId = CLIENT,
         jwks = Jwks { fetches++; published },
+        allowedDomains = TestTokens.ALLOWED,
         now = { clock },
     )
 
@@ -117,7 +118,100 @@ class GoogleTokensTest {
 
     @Test
     fun aKeySourceThatIsDownRefusesRatherThanThrows() {
-        val offline = GoogleTokens(CLIENT, Jwks { throw java.io.IOException("no route") })
+        val offline = GoogleTokens(
+            CLIENT,
+            Jwks { throw java.io.IOException("no route") },
+            TestTokens.ALLOWED,
+        )
         assertNull(offline.subjectOf(mint()))
+    }
+
+    // --- The hosted domain. Task P2-11, ADR 0026 ---------------------------
+
+    /**
+     * Staff and students, and the dot between them.
+     *
+     * `student.vgu.edu.vn` is not in the allow-list and is accepted anyway,
+     * because it sits under a domain that is. That is the rule the whole
+     * university runs on: one entry, both populations.
+     */
+    @Test
+    fun `both university domains sign in`() {
+        assertEquals(SUB, verifier.subjectOf(mint(hd = "vgu.edu.vn")))
+        assertEquals(SUB, verifier.subjectOf(mint(hd = "student.vgu.edu.vn")))
+        assertEquals(SUB, verifier.subjectOf(mint(hd = "STUDENT.VGU.EDU.VN")))
+    }
+
+    /**
+     * The one that pays for this test file.
+     *
+     * `notvgu.edu.vn` is a real domain anybody can register for a few
+     * dollars, and a bare `endsWith("vgu.edu.vn")` accepts it. So does a
+     * `contains`. Both would hand a stranger an account on this locker.
+     * `vgu.edu.vn.example.com` is the same trick from the other end, for a
+     * check written as `startsWith`.
+     */
+    @Test
+    fun `a domain that merely looks like ours is refused`() {
+        listOf(
+            "notvgu.edu.vn",
+            "vgu.edu.vn.example.com",
+            "vgu-edu-vn.example.com",
+            "student.vgu.edu.vn.evil.example",
+            "gmail.com",
+        ).forEach { assertNull(verifier.subjectOf(mint(hd = it)), "accepted <$it>") }
+    }
+
+    /**
+     * A personal Google account carries no `hd` at all, so requiring one is
+     * the whole gate. The claim present but empty is the same refusal.
+     */
+    @Test
+    fun `a token with no hosted domain is refused`() {
+        assertNull(verifier.subjectOf(mint(hd = null)))
+        assertNull(verifier.subjectOf(mint(hd = "")))
+    }
+
+    /**
+     * The domain refusal is told apart from every other one - the single
+     * exception in this file, argued in `Refusal.GOOGLE_DOMAIN`. A student
+     * who tapped the button with their personal Gmail has to be told which
+     * account to use; somebody probing a signature is told nothing.
+     */
+    @Test
+    fun `only the domain refusal names itself`() {
+        assertEquals(GoogleTokens.Check.WrongDomain, verifier.check(mint(hd = "gmail.com")))
+        assertEquals(
+            GoogleTokens.Check.Invalid,
+            verifier.check(mint(hd = "gmail.com", signWith = TestTokens.attacker)),
+        )
+        assertEquals(
+            GoogleTokens.Check.Invalid,
+            verifier.check(mint(aud = "999.apps.googleusercontent.com")),
+        )
+    }
+
+    /**
+     * The domain is read from claims that were **signed**, never from the
+     * ones that arrived. A token minted for a personal account and then
+     * edited to say `vgu.edu.vn` is invalid, not merely wrong-domain: the
+     * signature covers the honest claims.
+     */
+    @Test
+    fun `a hosted domain edited in after signing is refused`() {
+        val header = TestTokens.b64("""{"alg":"RS256","kid":"$KID","typ":"JWT"}""")
+        val exp = NOW / 1000 + 3600
+        val honest = TestTokens.b64(
+            TestTokens.claims("https://accounts.google.com", CLIENT, SUB, exp, "gmail.com"),
+        )
+        val forged = TestTokens.b64(
+            TestTokens.claims("https://accounts.google.com", CLIENT, SUB, exp, "vgu.edu.vn"),
+        )
+        val signature = java.security.Signature.getInstance("SHA256withRSA").run {
+            initSign(TestTokens.google.private)
+            update("$header.$honest".toByteArray(Charsets.US_ASCII))
+            TestTokens.b64(sign())
+        }
+        assertEquals(GoogleTokens.Check.Invalid, verifier.check("$header.$forged.$signature"))
     }
 }

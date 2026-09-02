@@ -17,6 +17,12 @@ object TestTokens {
     const val CLIENT = "111222333.apps.googleusercontent.com"
     const val KID = "test-key"
     const val SUB = "108476213905551212121"
+
+    /** The hosted domain a VGU student signs in on. */
+    const val HD = "student.vgu.edu.vn"
+
+    /** Staff and teachers. Both are allowed; see ADR 0026. */
+    val ALLOWED = listOf("vgu.edu.vn")
     const val NOW = 1_786_000_000_000L
 
     val google: KeyPair = rsa()
@@ -26,7 +32,7 @@ object TestTokens {
     fun published(): Map<String, RSAPublicKey> = mapOf(KID to google.public as RSAPublicKey)
 
     /** A verifier wired to [published], on a clock stopped at [NOW]. */
-    fun verifier(): GoogleTokens = GoogleTokens(CLIENT, Jwks { published() }) { NOW }
+    fun verifier(): GoogleTokens = GoogleTokens(CLIENT, Jwks { published() }, ALLOWED) { NOW }
 
     /**
      * A token. Every argument is a check in GoogleTokens, so a test bends
@@ -43,20 +49,23 @@ object TestTokens {
         expSec: Long = NOW / 1000 + 3600,
         signWith: KeyPair = google,
         tamperedSub: String? = null,
+        hd: String? = HD,
     ): String {
         val header = b64("""{"alg":"$alg","kid":"$kid","typ":"JWT"}""")
-        val honest = b64(claims(iss, aud, sub, expSec))
+        val honest = b64(claims(iss, aud, sub, expSec, hd))
         val signature = Signature.getInstance("SHA256withRSA").run {
             initSign(signWith.private)
             update("$header.$honest".toByteArray(Charsets.US_ASCII))
             b64(sign())
         }
-        val sent = tamperedSub?.let { b64(claims(iss, aud, it, expSec)) } ?: honest
+        val sent = tamperedSub?.let { b64(claims(iss, aud, it, expSec, hd)) } ?: honest
         return "$header.$sent.$signature"
     }
 
-    fun claims(iss: String, aud: String, sub: String, expSec: Long) =
-        """{"iss":"$iss","aud":"$aud","sub":"$sub","exp":$expSec,"email_verified":true}"""
+    fun claims(iss: String, aud: String, sub: String, expSec: Long, hd: String? = HD): String {
+        val domain = hd?.let { ""","hd":"$it"""" } ?: ""
+        return """{"iss":"$iss","aud":"$aud","sub":"$sub","exp":$expSec,"email_verified":true$domain}"""
+    }
 
     fun b64(text: String): String = b64(text.toByteArray(Charsets.UTF_8))
 

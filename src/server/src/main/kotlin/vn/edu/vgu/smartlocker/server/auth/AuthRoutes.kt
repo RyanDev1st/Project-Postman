@@ -119,36 +119,44 @@ fun Route.authRoutes(
     }
 
     /**
-     * 19. Sign in with Google, or link Google to the account already signed in.
+     * 19. Sign in with Google. **This is the way in.**
      *
-     * **Google can never make an account here.** A Google account has no
-     * phone number, and the shipper finds a receiver by typing a phone number
-     * on the cabinet screen - so an account made this way could be signed in
-     * to and never be sent a parcel. ADR 0011.
+     * Signing in and registering are one call. A Google account on a VGU
+     * domain that has never been seen becomes a receiver here; one that has
+     * been seen finds its parcels. There is nothing else to remember, so
+     * there is nothing else to lose.
      *
-     * That gives the endpoint two jobs, told apart by whether a receiver
-     * token rides along:
+     * **This reverses ADR 0011**, which forbade Google from making an
+     * account. The reason it gave - a Google account has no phone number, and
+     * the shipper finds people by number, so such an account could never be
+     * sent a parcel - is answered by the booking at endpoint 25: the number
+     * is claimed later, by somebody already signed in, against a delivery
+     * they are expecting themselves. ADR 0026. An account with no number yet
+     * is a normal state and not an error.
      *
-     *  - **No token.** Sign in, if this Google account is already linked. If
-     *    it is not, the answer is `PHONE_REQUIRED`, which is not a failure -
-     *    it is the app's cue to take a phone number and a one-time code and
-     *    come back here with the token.
-     *  - **With a token.** Link this Google account to that receiver, and
-     *    hand back a fresh token. This is the second half of the flow above,
-     *    and the only way a link is ever made.
+     * A receiver token may still ride along, and then this **links** that
+     * Google account to that receiver instead of signing in. That is the path
+     * for an account made before 2026-09-02, which has a number and a
+     * password but no Google link.
      *
      * The ID token is checked here rather than at Google's tokeninfo
      * endpoint: that keeps the network, and somebody else's rate limit, off
      * the login path. Every check is in [GoogleTokens] with a test attacking
-     * it, and every failure is the same refusal.
+     * it, and every failure is the same refusal - except the domain, which
+     * says so, because the person reading it has to know which account to use
+     * instead.
      */
     post("/auth/google") {
         val checker = google ?: call.refuse(Refusal.GOOGLE_OFF)
         val asked = call.receive<GoogleRequest>()
-        val sub = checker.subjectOf(asked.idToken.trim()) ?: call.refuse(Refusal.GOOGLE_INVALID)
+        val sub = when (val checked = checker.check(asked.idToken.trim())) {
+            is GoogleTokens.Check.Ok -> checked.sub
+            GoogleTokens.Check.WrongDomain -> call.refuse(Refusal.GOOGLE_DOMAIN)
+            GoogleTokens.Check.Invalid -> call.refuse(Refusal.GOOGLE_INVALID)
+        }
 
         val me = when (val bearer = call.bearer()) {
-            null -> Receivers.findByGoogle(db, sub) ?: call.refuse(Refusal.PHONE_REQUIRED)
+            null -> Receivers.findOrCreateByGoogle(db, sub, asked.fullName)
             else -> tokens.receiverFor(bearer)
                 ?.also { Receivers.linkGoogle(db, it, sub) }
                 ?: call.refuse(Refusal.TOKEN_EXPIRED)
@@ -194,7 +202,20 @@ data class MeResponse(
 )
 
 @Serializable
-data class GoogleRequest(@SerialName("id_token") val idToken: String = "")
+data class GoogleRequest(
+    @SerialName("id_token") val idToken: String = "",
+    /**
+     * The name off the Google profile, for a brand-new account.
+     *
+     * Taken only when the account has no name yet, so it cannot rename
+     * anybody. Without it every account made by Google masks to `***` at the
+     * cabinet and the shipper is asked to confirm a person the screen cannot
+     * name. The ID token carries a `name` claim of its own, but reading it
+     * would mean trusting a display name for a check the masked name feeds -
+     * the app sends what it showed the user on the sign-in sheet.
+     */
+    @SerialName("full_name") val fullName: String = "",
+)
 
 @Serializable
 data class PasswordRequest(val password: String = "")

@@ -167,10 +167,19 @@ fun Application.locker(db: Db, config: Config) {
     // rejected". The id is an environment variable and not a setting,
     // because `config/settings.json` is served to both front-ends by
     // endpoint 15 and this does not belong in that answer.
+    //
+    // The allowed domains come the other way - out of `settings.json`, where
+    // a person can add a subdomain without a release. They are not a secret
+    // and not machine-specific: which university this locker serves is
+    // written on the cabinet.
     val google = System.getenv("GOOGLE_CLIENT_ID")
         ?.takeIf { it.isNotBlank() }
-        ?.let { GoogleTokens(it, GoogleCerts()) }
-    if (google == null) log.info("google    off - set GOOGLE_CLIENT_ID to turn endpoint 19 on")
+        ?.let { GoogleTokens(it, GoogleCerts(), config.googleAllowedDomains) }
+    if (google == null) {
+        log.info("google    off - set GOOGLE_CLIENT_ID to turn endpoint 19 on")
+    } else {
+        log.info("google    on  - domains ${config.googleAllowedDomains.joinToString(", ")}")
+    }
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
 
     tokens.sweep()
