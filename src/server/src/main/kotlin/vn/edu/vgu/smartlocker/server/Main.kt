@@ -33,6 +33,7 @@ import vn.edu.vgu.smartlocker.server.cabinet.Boxes
 import vn.edu.vgu.smartlocker.server.cabinet.CABINET_KEY_HEADER
 import vn.edu.vgu.smartlocker.server.cabinet.Cabinets
 import vn.edu.vgu.smartlocker.server.cabinet.Commands
+import vn.edu.vgu.smartlocker.server.cabinet.Ladder
 import vn.edu.vgu.smartlocker.server.cabinet.Sessions
 import vn.edu.vgu.smartlocker.server.cabinet.cabinetRoutes
 import vn.edu.vgu.smartlocker.server.cabinet.doorRoutes
@@ -184,6 +185,7 @@ fun Application.locker(db: Db, config: Config) {
     }
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
     val bookings = Bookings(db, boxes, config.bookingHours)
+    val ladder = Ladder(db, bookings)
 
     tokens.sweep()
     otp.sweep()
@@ -203,7 +205,7 @@ fun Application.locker(db: Db, config: Config) {
             bookingRoutes(db, tokens, bookings, boxes)
         }
         rateLimit(CABINET_LIMIT) {
-            cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)
+            cabinetRoutes(db, sessions, boxes, commands, bookings, ladder, config.pickupCodeHours)
             doorRoutes(db, boxes, commands)
         }
 

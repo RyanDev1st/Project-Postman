@@ -67,6 +67,8 @@ LIBRARY = "vgu-library"
 
 ALICE = "0908619328"
 BOB = "0912345678"
+CAROL = "0908619372"  # last two digits differ, so a swap really swaps
+CAROL_NAME = "Nguyễn Văn Phong"
 
 failures: list[str] = []
 
@@ -302,8 +304,14 @@ class Server:
         print(f"  WARN something is still on {PORT} - the next run will refuse to start")
 
 
-def register(server: Server, phone: str) -> str:
-    """A whole registration, and the token it ends with."""
+def register(server: Server, phone: str, name: str = "") -> str:
+    """A whole registration, and the token it ends with.
+
+    The name is optional because most of this file does not need one, and
+    load-bearing where it is given: rung D of the shipper's ladder matches
+    the name off the parcel label, and an account with no name matches
+    nothing at all.
+    """
     status, _ = call("POST", "/auth/request-code", {"phone_number": phone})
     if status != 200:
         sys.exit(f"asking for a code for {phone} answered {status}")
@@ -318,7 +326,8 @@ def register(server: Server, phone: str) -> str:
     if not code:
         sys.exit(f"the demo provider never printed a code for {e164}")
 
-    status, body = call("POST", "/auth/verify-code", {"phone_number": phone, "code": code})
+    status, body = call("POST", "/auth/verify-code",
+                        {"phone_number": phone, "code": code, "full_name": name})
     if status != 200 or not body.get("token"):
         sys.exit(f"verifying {phone} answered {status} {body}")
     return body["token"]
@@ -583,6 +592,74 @@ def main() -> int:
               "cancelling nothing says so rather than pretending")
         _, back_free = call("GET", "/cabinet/free", key=back_gate)
         check(booked in back_free.get("free", []), f"and box {booked} is free again")
+
+        print("\nThe shipper walks the ladder when the number is not exactly right")
+
+        # Carol books a door, which is what the near-miss and name rungs are
+        # about: they only ever offer somebody who is expecting a parcel here.
+        carol = register(server, CAROL, CAROL_NAME)
+        _, booked = call("POST", "/bookings",
+                         {"cabinet_ref": BACK_GATE, "size": "medium"}, token=carol)
+        door = booked.get("box_number", "")
+        check(len(door) == 2, f"Carol booked door {door!r} at the back gate")
+
+        status, exact = call("GET", f"/cabinet/receiver?phone_number={CAROL}", key=back_gate)
+        check(status == 200 and exact.get("match") == "booking",
+              f"rung A - her exact number is answered as a booking: {exact.get('match')!r}")
+        check(exact.get("box_number") == door,
+              f"and it names the door she is holding: {exact.get('box_number')!r}")
+        check(CAROL.lstrip("0") not in json.dumps(exact),
+              "no phone number crosses the wire")
+
+        # Rung C. One digit out is a courier reading a label, not a stranger.
+        near = CAROL[:-1] + ("7" if CAROL[-1] != "7" else "6")
+        status, guess = call("GET", f"/cabinet/receiver?phone_number={near}", key=back_gate)
+        check(status == 200 and guess.get("match") == "near",
+              f"rung C - one digit out is offered as a near miss: {guess.get('match')!r}")
+        check(guess.get("ref") == exact.get("ref"), "and it is the same person")
+
+        swapped = CAROL[:-2] + CAROL[-1] + CAROL[-2]
+        check(swapped != CAROL, f"the swapped number really is different: {swapped}")
+        status, moved = call("GET", f"/cabinet/receiver?phone_number={swapped}", key=back_gate)
+        check(status == 200 and moved.get("ref") == exact.get("ref"),
+              f"and so is {CAROL[-2:]} typed as {CAROL[-1]}{CAROL[-2]} - a swap costs one edit, not two")
+
+        # Rung D. Nothing like it, so the screen has to ask for the name.
+        stranger = "0777000111"
+        check(refusal(call("GET", f"/cabinet/receiver?phone_number={stranger}", key=back_gate))
+              == "PHONE_NOT_REGISTERED", "rung D - a number close to nobody is refused")
+
+        status, named = call("POST", "/cabinet/confirm-name",
+                             {"phone_number": stranger, "name": "Nguyen Van Phong"},
+                             key=back_gate)
+        check(status == 200 and named.get("match") == "named",
+              f"the name off the label finds her, accents and all: {named}")
+        check(named.get("ref") == exact.get("ref"), "and it is the same person again")
+        check(named.get("masked_name", "").endswith("***"),
+              f"the name it shows back is masked: {named.get('masked_name')!r}")
+
+        check(refusal(call("POST", "/cabinet/confirm-name",
+                           {"phone_number": stranger, "name": "Le Minh Khoi"},
+                           key=back_gate)) == "PHONE_NOT_REGISTERED",
+              "rung E - a name nobody here has sends the parcel to ABO")
+        check(refusal(call("POST", "/cabinet/confirm-name",
+                           {"phone_number": stranger, "name": "Phong"},
+                           key=back_gate)) == "PHONE_NOT_REGISTERED",
+              "and part of a name is not a name")
+
+        # The whole point of rung A: the drop goes into HER door, and the
+        # size asked for does not move it.
+        status, dropped = call("POST", "/cabinet/drop",
+                               {"receiver_ref": exact["ref"], "size": "small"},
+                               key=back_gate)
+        check(status == 200 and dropped.get("box_number") == door,
+              f"the drop opened the door she booked, {door!r}, and not a free one")
+        _, hers = call("GET", "/parcels", token=carol)
+        check([pp["box_number"] for pp in hers.get("parcels", [])] == [door],
+              f"and her phone shows the parcel in {door!r}")
+        _, gone = call("GET", "/bookings", token=carol)
+        check(gone.get("booked") is False,
+              "the booking is over - that door holds a parcel now, not a promise")
 
         print("\nThe schema knows which version it is on")
         check(user_version(server.db) == len(MIGRATIONS_EXPECTED),

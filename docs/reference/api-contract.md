@@ -144,9 +144,9 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 | # | What the cabinet wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
 | 9 | Get the QR session code to display | `GET /cabinet/session` | cabinet key | session code, how long it lives |
-| 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | **masked** name and any booking, a **near miss**, or a refusal code |
+| 10 | Look up a receiver by phone number | `GET /cabinet/receiver` | cabinet key, phone number | `ref`, **`masked_name`**, `match`, and `box_number` when a booking here holds a door — or a refusal code |
 | 11 | Start a drop | `POST /cabinet/drop` | cabinet key, receiver ref, parcel size | which box opened, or a refusal code |
-| 28 | **Is this the name on the parcel?** | `POST /cabinet/confirm-name` | cabinet key, the number already typed, the name off the label | one **masked** name and its box, or nothing. **Never a list, never a number** |
+| 28 | **Is this the name on the parcel?** | `POST /cabinet/confirm-name` | cabinet key, the number already typed, the name off the label | the same four fields as 10. **Never a list, never a number** |
 | 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next. **The server works the purpose out itself** and logs a disagreement — see below |
 | 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
@@ -158,6 +158,10 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 **A command is handed over exactly once.** The row is stamped as taken inside the same transaction that reads it, so a board that loses the reply and asks again is handed nothing. That is where "an open never comes from a retry" stops being a wish. Endpoint 23 is for the record only and nothing waits on it: a cabinet that loses power between opening a door and saying so must not leave somebody standing at an open box being told it failed.
 
 The full protocol, and a reference sketch, are in [cabinet-firmware.md](cabinet-firmware.md).
+
+**`match` says which rung answered, and the screen words itself from it.** `booking` and `exact` are statements — *"Nguyễn V. A***"*. `near` is a question — *"Did you mean Nguyễn V. A***?"*. `named` is the answer to a name the shipper typed. The drop reads the same field to decide whether the receiver is told afterwards that the digits disagreed.
+
+**`PHONE_NOT_REGISTERED` from endpoint 10 is rung D, not rung E.** The screen asks for the name; it does not send anybody to ABO yet. The same code from endpoint 28 **is** rung E. One code covers both *nobody matched* and *two people matched*, on purpose: the screen does the same thing either way, and a second code would only tell somebody probing which happened.
 
 **Endpoint 10 returns a masked name.** `Nguyễn V. A***`, never the full name. The shipper already knows who he is delivering to — he only needs to confirm he has the right person. Without masking, anyone can stand at the cabinet, type phone numbers, and collect names. See task P0-08.
 
