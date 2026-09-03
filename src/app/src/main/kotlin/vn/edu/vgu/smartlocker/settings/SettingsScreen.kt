@@ -67,7 +67,7 @@ fun SettingsScreen(
     phone: String,
     dark: Boolean = false,
     onToggleDark: () -> Unit = {},
-    language: AppLanguage = AppLanguage.ENGLISH,
+    language: AppLanguage = AppLanguage.ofSystem(),
     onLanguage: (AppLanguage) -> Unit = {},
     onPin: () -> Unit = {},
     onPassword: () -> Unit = {},

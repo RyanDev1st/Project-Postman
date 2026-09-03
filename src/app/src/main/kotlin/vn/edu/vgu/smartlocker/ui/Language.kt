@@ -17,11 +17,12 @@ import vn.edu.vgu.smartlocker.R
  * The two languages the app is written in.
  *
  * Vietnamese is not a translation of an English app. The product is for VGU,
- * the headline on the sign-in screen was written in Vietnamese first, and the
- * English base is the second version of it. English is the resource default
- * only because that is what `values/` means to Android.
+ * the headline on the sign-in screen was written in Vietnamese first, and
+ * English is the second version of it. As of task **P2-16** the resource
+ * files say so too: `values/` holds Vietnamese and `values-en/` holds
+ * English, where it used to be the other way round.
  *
- * [tag] is a BCP 47 tag, which is what `values-vi` resolves against.
+ * [tag] is a BCP 47 tag, which is what `values-en` resolves against.
  */
 enum class AppLanguage(val tag: String, val labelRes: Int) {
     ENGLISH("en", R.string.lang_en),
@@ -30,11 +31,26 @@ enum class AppLanguage(val tag: String, val labelRes: Int) {
 
     companion object {
         /**
-         * What the phone is set to, if the app speaks it. A Vietnamese phone
-         * gets a Vietnamese app on first run without anyone choosing.
+         * What the app opens in before anybody chooses. **Vietnamese, on
+         * every phone.**
+         *
+         * It used to follow the phone, which meant an English phone opened an
+         * English app. That is the wrong default here for a reason that is
+         * about the users and not about the code: this locker stands on a
+         * Vietnamese campus, most of the people who will use it read
+         * Vietnamese more easily than English, and a phone's language is
+         * often whatever it shipped with rather than a choice anybody made.
+         *
+         * An English reader changes it in Settings once and the app changes
+         * on the next frame. A Vietnamese reader who was handed an English
+         * app may never find the row that fixes it.
+         *
+         * The phone's own locale is deliberately not consulted. It is kept as
+         * a function rather than a constant because the caller reads as a
+         * question - *what does this phone open in* - and because a saved
+         * choice will answer it here when one is stored.
          */
-        fun ofSystem(): AppLanguage =
-            if (Locale.getDefault().language == VIETNAMESE.tag) VIETNAMESE else ENGLISH
+        fun ofSystem(): AppLanguage = VIETNAMESE
     }
 }
 

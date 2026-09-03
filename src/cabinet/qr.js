@@ -53,13 +53,28 @@
 
   /* Say why there is no code, instead of showing one. The countdown goes with
    * it: a clock ticking under a blank square would read as "nearly ready",
-   * and it is not going to be ready. */
-  function say(reason) {
-    note.textContent = reason;
+   * and it is not going to be ready.
+   *
+   * The key is remembered rather than the words: `CabinetText.onChange` fires
+   * on a switch and this draws the same message in the other language. A
+   * screen that is half English and half Vietnamese for the next half minute
+   * is worse than one that never switched. Task P3-12.
+   */
+  var lastKey = null;
+  var lastTail = "";
+
+  function say(key, tail) {
+    lastKey = key;
+    lastTail = tail || "";
+    note.textContent = window.CabinetText.t(key) + lastTail;
     count.hidden = true;
     canvas.hidden = true;
     expiresAt = 0;
   }
+
+  window.CabinetText.onChange(function () {
+    if (lastKey) say(lastKey, lastTail);
+  });
 
   function show(payload, livesSeconds) {
     /* Error correction M, not H. H spends a quarter of the code on recovery
@@ -76,7 +91,7 @@
           /* Never a blank white square. A blank square is indistinguishable
            * from a code that will not scan, and a person would stand there
            * trying. */
-          say("Cannot draw the code");
+          say("qr.cannotDraw");
           return;
         }
         note.textContent = "";
@@ -109,13 +124,12 @@
          * not one the server issued. Naming it plainly saves somebody an
          * afternoon at a screen that looks broken. */
         say(
-          answer.code === "CABINET_UNKNOWN"
-            ? "This cabinet's key is not recognised"
-            : "The server refused: " + answer.code
+          answer.code === "CABINET_UNKNOWN" ? "qr.badKey" : "qr.refused",
+          answer.code === "CABINET_UNKNOWN" ? "" : answer.code
         );
         return;
       }
-      say("Waiting for the server");
+      say("qr.waiting");
     });
   }
 
@@ -127,19 +141,19 @@
 
     /* Expired and no new one arrived - the server has been unreachable for a
      * whole cycle. Stop showing a code that cannot work. */
-    if (left === 0) say("Waiting for the server");
+    if (left === 0) say("qr.waiting");
   }
 
   if (!cabinetId) {
-    say("This cabinet has no id yet");
+    say("qr.noId");
     return;
   }
   if (!window.CabinetNet.ready()) {
-    say("This cabinet has no key or no server address yet");
+    say("qr.noKey");
     return;
   }
 
-  say("Asking the server for a code");
+  say("qr.asking");
   refresh();
   setInterval(refresh, REFRESH_SECONDS * 1000);
   setInterval(tick, 1000);

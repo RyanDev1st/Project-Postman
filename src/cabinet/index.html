@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -53,7 +53,7 @@
     <div class="mark" aria-hidden="true"></div>
     <div class="names">
       <h1>VGU Smart Locker</h1>
-      <p class="sub">Tủ gửi hàng thông minh</p>
+      <p class="sub" data-t="brand.sub">Tủ gửi hàng thông minh</p>
     </div>
   </div>
 
@@ -78,12 +78,12 @@
     <section class="drop" id="drop">
 
       <div class="step" data-step="idle">
-        <button class="go" id="start" type="button">Deliver a parcel</button>
-        <p class="go-sub">Gửi hàng</p>
+        <button class="go" id="start" type="button" data-t="drop.start">Gửi hàng</button>
+        <p class="go-sub" data-t="drop.start.sub">Deliver a parcel</p>
       </div>
 
       <div class="step" data-step="number" hidden>
-        <p class="ask">Receiver's phone number</p>
+        <p class="ask" data-t="number.ask">Số điện thoại người nhận</p>
         <!--
           What the shipper is typing, shown back to them. The rule against
           showing a phone number on this screen is about the RECEIVER's
@@ -97,24 +97,60 @@
       </div>
 
       <div class="step" data-step="confirm" hidden>
-        <p class="ask">Is this the right person?</p>
+        <p class="ask" data-t="confirm.ask">Đúng người này không?</p>
         <p class="who" id="who">—</p>
         <div class="row">
-          <button class="ghost" id="no" type="button">No</button>
-          <button class="go" id="yes" type="button">Yes, open a box</button>
+          <button class="ghost" id="no" type="button" data-t="confirm.no">Không</button>
+          <button class="go" id="yes" type="button" data-t="confirm.yes">Đúng, mở hộp</button>
+        </div>
+      </div>
+
+      <!--
+        Rung C - the number was a digit or two off exactly one live booking.
+        A QUESTION, not a statement: the server is guessing, and the shipper
+        holding the parcel is the only one who can say whether the guess is
+        right. The screen never offers a choice between two people; when two
+        are close it asks for the name instead. ADR 0026.
+      -->
+      <div class="step" data-step="near" hidden>
+        <p class="ask" data-t="near.ask">Có phải người này không?</p>
+        <p class="who" id="who-near">—</p>
+        <p class="note" data-t="near.note">Số bạn nhập lệch một vài chữ số so với số đã đặt hộp.</p>
+        <div class="row">
+          <button class="ghost" id="near-no" type="button" data-t="near.no">Không phải</button>
+          <button class="go" id="near-yes" type="button" data-t="near.yes">Đúng người này</button>
+        </div>
+      </div>
+
+      <!--
+        Rung D - the shipper types the name off the label. He is never shown
+        a list: `Nguyễn Văn Phong` and `Nguyễn Văn Phúc` both mask to
+        `Nguyễn V. P***`, and two masks collide in 56% of full cabinets, so a
+        list fails at its one job in most of them. Typing inverts it - the
+        server holds the full names and answers yes or no about one guess.
+      -->
+      <div class="step" data-step="name" hidden>
+        <p class="ask" data-t="name.ask">Nhập tên trên kiện hàng</p>
+        <p class="note" data-t="name.note">Không tìm thấy số đó. Nhập đúng tên ghi trên nhãn.</p>
+        <input class="name-in" id="name-in" type="text" autocomplete="off"
+               autocapitalize="words" spellcheck="false"
+               data-t-placeholder="name.placeholder" placeholder="Ví dụ: Nguyen Van An">
+        <div class="row">
+          <button class="ghost" id="name-back" type="button" data-t="name.back">Nhập lại số</button>
+          <button class="go" id="name-go" type="button" data-t="name.check">Kiểm tra tên</button>
         </div>
       </div>
 
       <div class="step" data-step="open" hidden>
-        <p class="ask">Put the parcel in</p>
+        <p class="ask" data-t="box.ask">Bỏ kiện hàng vào hộp</p>
         <p class="boxno" id="boxno">—</p>
-        <p class="go-sub">Close the door when you are done.</p>
-        <button class="go" id="shut" type="button">The door is shut</button>
+        <p class="go-sub" data-t="box.note">Đóng cửa hộp khi xong.</p>
+        <button class="go" id="shut" type="button" data-t="box.shut">Đã đóng cửa</button>
       </div>
 
       <div class="step" data-step="trouble" hidden>
         <p class="ask" id="trouble-say">—</p>
-        <button class="ghost" id="again" type="button">Start again</button>
+        <button class="ghost" id="again" type="button" data-t="trouble.again">Bắt đầu lại</button>
       </div>
 
     </section>
@@ -128,16 +164,24 @@
     -->
     <section class="qr-panel">
       <canvas id="qr" width="264" height="264" aria-label="Scan this code with the VGU Smart Locker app"></canvas>
-      <p class="qr-say">Scan to collect · Quét để nhận hàng</p>
-      <p class="qr-note"><span id="qr-note">New code in</span> <b id="qr-count">—</b></p>
+      <p class="qr-say" data-t="qr.say">Quét để nhận hàng</p>
+      <p class="qr-note"><span id="qr-note" data-t="qr.next">Mã mới sau</span> <b id="qr-count">—</b></p>
     </section>
 
   </div>
 
   <footer class="foot">
-    <span class="cabinet-id">Cabinet <b id="cabinet-id">—</b></span>
+    <span class="cabinet-id"><span data-t="foot.cabinet">Tủ</span> <b id="cabinet-id">—</b></span>
     <span class="version">v<b id="version">—</b></span>
     <span class="size" id="size">—</span>
+    <!--
+      One tap, and the whole screen changes. It is in the footer rather than
+      on the first step because a courier who needs it will look for it once
+      and a courier who does not should never have to step around it. It
+      names the language it switches TO, in that language, which is the only
+      label somebody who cannot read the current one can use.
+    -->
+    <button class="lang" id="lang" type="button" data-t="lang.other">English</button>
   </footer>
 </main>
 
@@ -152,6 +196,7 @@
   message worth seeing. A 404 in the console on a machine with no config is
   the truth.
 -->
+<script src="strings.js"></script>
 <script src="config.js"></script>
 <script src="version.js"></script>
 <script src="net.js"></script>

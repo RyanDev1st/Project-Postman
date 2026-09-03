@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English. The second version of every screen, not the first:
+     values/ holds Vietnamese and is the default. Task P2-16. -->
+<!--
+    Every word the receiver reads. English is the base; Vietnamese is
+    values-vi/strings.xml.
+
+    They live here, not in the code, so the wording can be argued over
+    without touching Kotlin - and so a Vietnamese translation is a second
+    file, not a rewrite.
+
+    Sample data is NOT in here. "Back gate", "08:14 today", "Minh Nguyen"
+    and the parcel times are stand-ins for what the server will send. A
+    translation file is for the app's own words, and a box number does not
+    have a Vietnamese version.
+
+    Refusal wording is fixed by api-contract.md. Never invent it per screen.
+-->
+<resources>
+    <!--
+        Names, not words. The product is called what it is called in either
+        language, so these are marked untranslatable rather than left out of
+        values-vi and looking like somebody forgot them.
+    -->
+    <string name="app_name" translatable="false">VGU Smart Locker</string>
+    <string name="tagline">Smart parcel locker</string>
+
+    <!-- Loading -->
+    <string name="loading_brand" translatable="false">VGU Locker</string>
+    <string name="loading_checking">CHECKING YOUR PARCELS</string>
+
+    <!-- 1. Phone number -->
+    <!--
+        The headline is two strings because its last line is a different
+        colour. Keep the line breaks: it is set at 40sp and is drawn as
+        three short lines on purpose.
+    -->
+    <string name="signin_headline_lead">Pick up\nwithout</string>
+    <string name="signin_headline_accent">a key</string>
+    <string name="signin_sub">Any VGU locker, from your phone.</string>
+    <string name="phone_number">PHONE NUMBER</string>
+    <string name="send_code">Send code</string>
+    <string name="privacy">PRIVACY</string>
+    <string name="terms">TERMS</string>
+
+    <!-- 2. One-time code -->
+    <string name="code_sent_to">Sent to %1$s</string>
+    <string name="name_label">Your name</string>
+    <string name="name_hint">First time only. The courier sees Nguyen V. M***</string>
+    <string name="name_placeholder">Nguyen Van Minh</string>
+    <string name="code_label">6-DIGIT CODE</string>
+    <string name="code_continue">Continue</string>
+    <string name="code_resend_in">Resend in %1$s</string>
+    <!-- Shown under the code box when this build has no server address. It
+         replaced "any 6 digits will let you in", which stopped being true the
+         day the server started checking codes - and a demo note that lies is
+         worse than no note. -->
+    <string name="no_server_address">This build has no server address, so signing in cannot work.</string>
+
+    <!-- Cabinet names. Sample data until the server names its own cabinets,
+         but a place name is read by a person and has to turn over with the
+         rest of the app: "Back gate" in a Vietnamese screen is the thing
+         Ryan saw. When the server owns these, it owns translating them. -->
+    <string name="cabinet_back_gate">Back gate</string>
+    <string name="cabinet_library">Library</string>
+
+    <!-- The two auth headings. Two halves each: the second is drawn in the
+         accent, so they cannot be one string, and the split is not the same
+         in both languages. -->
+    <string name="code_head_lead">Enter</string>
+    <string name="code_head_accent">the code</string>
+
+    <string name="home_nothing_waiting">Nothing waiting. Give a courier your number and a box here is yours within the hour.</string>
+    <string name="box_label">Box %1$s</string>
+
+    <!-- Words inside sample timestamps. The clock part is data; these are
+         ours, and were the English left standing in a Vietnamese screen. -->
+    <string name="time_at_today">%1$s today</string>
+    <string name="time_at_yesterday">%1$s yesterday</string>
+    <string name="time_at_tomorrow">%1$s tomorrow</string>
+    <!-- A parcel more than a day out: "14:20 on 18 Aug". -->
+    <string name="time_at_on">%1$s on %2$s</string>
+    <string name="time_hours_left">%1$sh left</string>
+    <string name="date_2_aug">2 Aug</string>
+    <string name="date_28_jul">28 Jul</string>
+    <string name="date_21_jul">21 Jul</string>
+
+    <!-- Tabs, and the app bar -->
+    <string name="tab_home">HOME</string>
+    <string name="tab_cabinet">CABINET</string>
+    <string name="tab_settings">SETTINGS</string>
+    <string name="greeting">Hi %1$s</string>
+    <string name="title_settings">Settings</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_scan_cabinet">Scan a cabinet</string>
+    <string name="cd_notifications">Notifications</string>
+    <string name="cd_back">Back</string>
+
+    <!-- 3. Home -->
+    <string name="home_nearest">Nearest to you</string>
+    <string name="home_open_door">Open door %1$s</string>
+    <string name="home_also_waiting">Also waiting</string>
+    <string name="home_where_to_walk">Where to walk</string>
+    <string name="home_no_answer">We could not check</string>
+    <string name="home_collected">Collected</string>
+
+    <!-- The claim ticket -->
+    <string name="ticket_door">Door</string>
+    <string name="ticket_dropped">Dropped</string>
+    <string name="ticket_collect_by">Collect by</string>
+    <string name="ticket_boxes_free">Boxes free</string>
+
+    <!-- The map card -->
+    <string name="map_walk_there">Walk there</string>
+    <string name="map_close">Close the map</string>
+    <string name="map_walk">%1$d min walk · %2$d m</string>
+    <!-- Shown instead of a walking time when the cabinet is kilometres away.
+         Saying "7 min walk" there would be the app lying about the only fact
+         on the card. -->
+    <string name="map_too_far">%1$d km away · too far to walk</string>
+    <!-- We know where you are, but the router did not answer. States the
+         straight-line distance and promises no path. -->
+    <string name="map_unrouted">%1$d m away · no route right now</string>
+    <string name="map_no_app">No maps app to open this in</string>
+
+    <!-- 8. Cabinet -->
+    <string name="cab_full_title">Cabinet full</string>
+    <string name="cab_full_sub">Nothing waiting, and no free box</string>
+    <string name="cab_two_title">Two boxes are yours</string>
+    <string name="cab_one_title">One box is yours</string>
+    <string name="cab_doors_free">%1$d of 20 doors free</string>
+    <string name="cab_show_library">Show the Library cabinet</string>
+    <string name="cab_scan_to_open">Scan to open %1$s</string>
+    <string name="cab_use_code">Use a code</string>
+    <string name="cab_unknown_title">We could not check the cabinet</string>
+    <string name="cab_tap_a_door">Tap a lit door to switch</string>
+    <string name="cab_room_title">Room for a drop</string>
+    <string name="cab_room_sub">Give a courier your number and one is yours</string>
+    <string name="cab_inuse_title">All 20 boxes in use</string>
+    <string name="cab_inuse_sub">A courier cannot leave one here</string>
+    <string name="cab_no_free_box">No free box</string>
+    <string name="cab_dropped">Dropped %1$s</string>
+    <string name="cd_cabinet_render">The VGU parcel locker cabinet, front elevation</string>
+
+    <!-- 4. Scan -->
+    <!-- The camera was refused. Says what is wrong and points at the way
+         in that does not need one, rather than leaving a dark box. -->
+    <string name="scan_no_camera">No camera. Use a code instead</string>
+    <string name="scan_title">Scan the cabinet</string>
+    <!-- The app bar's scan button. One word, because the bar is narrow. -->
+    <string name="scan_action">Scan</string>
+    <string name="scan_pick_image">Use a picture</string>
+    <string name="scan_no_code_in_picture">No cabinet code in that picture.</string>
+
+    <!-- 5. Opened -->
+    <string name="opened_is_open">IS OPEN</string>
+    <string name="opened_close_when_done">Close the door when done.</string>
+    <string name="opened_done">Done</string>
+
+    <!-- 6. Type the code -->
+    <string name="type_title">Enter code</string>
+    <string name="type_sub">From your parcel notice</string>
+    <string name="type_wrong">Wrong code. Try again.</string>
+    <string name="type_scan_instead">Scan instead</string>
+
+    <!-- 9. Settings -->
+    <string name="set_account">Account</string>
+    <string name="set_pin">PIN code</string>
+    <string name="set_pin_value">Set</string>
+    <string name="set_password">Change password</string>
+    <string name="set_notices">Notices</string>
+    <string name="set_parcel_arrived">Parcel arrived</string>
+    <string name="set_sms_backup">SMS backup</string>
+    <string name="set_app">App</string>
+    <string name="set_language">Language</string>
+    <string name="set_dark_mode">Dark mode</string>
+    <!-- Which build this is, so a report about it can name one. -->
+    <string name="set_version">Version</string>
+    <string name="set_log_out">Log out</string>
+    <!-- After the server refuses a token that has run out. It says what
+         happened and what to do, and never mentions a token: the person was
+         simply away for a while. -->
+    <string name="signed_out_expired">You were signed out. Enter your number to sign in again.</string>
+
+    <!--
+        The language names are deliberately NOT translated. A person looking
+        for their own language needs to find it written the way they write
+        it, not the way the language they cannot read spells it.
+    -->
+    <string name="lang_en" translatable="false">English</string>
+    <string name="lang_vi" translatable="false">Tiếng Việt</string>
+
+    <!--
+        Refusals — the exact words in api-contract.md.
+
+        Only the ones the app can be sent. The cabinet's refusals belong to
+        src/cabinet/; repeating them here would mean keeping one sentence
+        right in two places.
+
+        TOKEN_EXPIRED has no string. It is never shown - the app sends the
+        person back to register, quietly, once.
+    -->
+    <string name="refused_session_expired">Code expired. Scan again.</string>
+    <string name="refused_no_parcel_here">Nothing waiting here.</string>
+    <string name="refused_box_faulty">That box is out of order. Staff know.</string>
+    <string name="refused_wrong_code">Wrong code. Try again.</string>
+    <string name="refused_rate_limited">A code was just sent. Wait a minute, then ask again.</string>
+    <string name="refused_send_failed">The code could not be sent. Try again in a moment.</string>
+    <string name="refused_unknown">Something went wrong. Try again.</string>
+
+    <!--
+        When the app does not know what happened - the network dropped
+        mid-request. Never shown as success, and never as a plain failure
+        either. Rule 4 in architecture.md.
+    -->
+    <string name="unclear_result">We could not tell if that worked. Check the cabinet first.</string>
+    <string name="unclear_no_server">Could not reach the server. Check your wifi and try again.</string>
+
+    <!-- While the server is being asked. Not a success and not a failure. -->
+    <string name="working">Working…</string>
+    <string name="type_at_cabinet">Type this code on the cabinet\'s own screen. It works when your phone is flat, so it cannot be typed here.</string>
+    <!-- 9b. A password: set one, and sign in with one. Task P2-09, ADR 0012.
+         No email anywhere and no reset screen - forgetting a password is the
+         one-time code, then setting a new one. -->
+    <string name="pw_set_title_lead">Set a</string>
+    <string name="pw_set_title_accent">password</string>
+    <string name="pw_signin_title_lead">Sign in with a</string>
+    <string name="pw_signin_title_accent">password</string>
+    <string name="pw_set_sub">A second way in, for when a text message does not arrive.</string>
+    <string name="pw_label">PASSWORD</string>
+    <string name="pw_placeholder">At least 8 characters</string>
+    <string name="pw_again_label">TYPE IT AGAIN</string>
+    <string name="pw_save">Save password</string>
+    <string name="pw_saved">Password saved. You can sign in with it from now on.</string>
+    <string name="pw_mismatch">The two do not match.</string>
+    <string name="pw_show">Show</string>
+    <string name="pw_hide">Hide</string>
+    <string name="pw_signin_sub">Your number and the password you set.</string>
+    <string name="pw_signin_go">Sign in</string>
+    <string name="pw_use_password">Sign in with a password instead</string>
+    <string name="pw_use_code">Send me a code instead</string>
+    <string name="refused_wrong_password">That number and password do not go together. If you have tried several times, wait fifteen minutes and try again.</string>
+    <string name="refused_password_too_short">Too short. Use at least 8 characters.</string>
+    <string name="refused_password_too_long">Too long. Use 200 characters or fewer.</string>
+
+</resources>

@@ -1,28 +1,30 @@
-/* The shipper's journey: a phone number, a name to confirm, a box that opens.
+/* The shipper's journey: a phone number, a person to confirm, a box that opens.
  *
- * P3-01 to P3-03 and P3-06. The metal half - P3-04 and P3-05 - is the same
- * code seen from here: it asks the server for a box and the server tells the
- * cabinet to open one. What this file cannot prove is that a door moved.
+ * P3-01 to P3-03, P3-06 and P3-09 to P3-12.
  *
- * ## It decides nothing
+ * **It decides nothing.** It does not pick the box, does not check the
+ * number, does not measure how close one number is to another. Endpoint 10
+ * answers who, 28 answers the name, 11 answers which box. Rule 2 in
+ * architecture.md, and the reason the rules live in exactly one place.
  *
- * It does not pick the box, does not check the number, and does not know
- * whose parcel anything is. Endpoint 10 answers who, endpoint 11 answers
- * which box. Rule 2 in architecture.md, and the reason there is exactly one
- * place the rules live.
+ * The ladder it walks is `Ladder.kt` on the server; the four answers here:
  *
- * ## It is a public terminal
+ *   exact / booking  -> "Is this the right person?"   a statement
+ *   near             -> "Did you mean this person?"   a question
+ *   refused          -> type the name off the label
+ *   name refused     -> nobody. Call them, go to ABO
  *
- * Every sentence here is readable by whoever is standing behind the shipper.
- * The name comes back masked from the server and is never unmasked here; the
- * typed number is wiped the moment the step is left.
+ * **It is a public terminal.** Every sentence is readable by whoever stands
+ * behind the shipper. The name comes back masked and is never unmasked here;
+ * the typed number and name are wiped on the way out of a step.
  */
 (function () {
   "use strict";
 
   var net = window.CabinetNet;
+  var text = window.CabinetText;
   var root = document.getElementById("drop");
-  if (!root || !net) return;
+  if (!root || !net || !text) return;
 
   var steps = {};
   Array.prototype.forEach.call(root.querySelectorAll(".step"), function (el) {
@@ -38,17 +40,22 @@
     });
   }
 
+  function at(id) {
+    return document.getElementById(id);
+  }
+
   /* Wipe on the way out, not on the way in. A number left in a variable is a
    * number the next screen can leak; clearing it when the next step starts
    * would leave it sitting there for as long as the shipper is reading. */
   function forget() {
     typed = "";
     receiverRef = "";
-    document.getElementById("typed").textContent = "+84";
+    at("typed").textContent = "+84";
+    at("name-in").value = "";
   }
 
-  function trouble(say) {
-    document.getElementById("trouble-say").textContent = say;
+  function trouble(key) {
+    at("trouble-say").textContent = text.t(key);
     forget();
     show("trouble");
   }
@@ -66,15 +73,15 @@
     var out = typed.replace(/(\d{3})(\d{0,3})(\d{0,3})/, function (all, a, b, c) {
       return [a, b, c].filter(Boolean).join(" ");
     });
-    document.getElementById("typed").textContent = "+84 " + out;
+    at("typed").textContent = "+84 " + out;
 
-    var key = document.getElementById("find");
-    key.textContent = "Find";
+    var key = at("find");
+    key.textContent = text.t("number.find");
     key.disabled = typed.length !== DIGITS;
   }
 
   function pad() {
-    var host = document.getElementById("pad");
+    var host = at("pad");
     var keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "back", "0", "find"];
 
     keys.forEach(function (key) {
@@ -84,13 +91,14 @@
 
       if (key === "back") {
         b.textContent = "⌫";
-        b.setAttribute("aria-label", "Delete the last digit");
+        b.setAttribute("data-t-label", "number.back");
+        b.setAttribute("aria-label", text.t("number.back"));
         b.addEventListener("click", function () {
           typed = typed.slice(0, -1);
           draw();
         });
       } else if (key === "find") {
-        b.textContent = "Find";
+        b.textContent = text.t("number.find");
         b.id = "find";
         b.className = "key find";
         b.addEventListener("click", find);
@@ -107,7 +115,22 @@
     });
   }
 
-  /* --- the two calls --------------------------------------------------- */
+  /* --- the ladder ------------------------------------------------------ */
+
+  /* What the server said, drawn as the right question.
+   *
+   * `match` is the server's word for how sure it is, and it decides which
+   * step is shown - never anything this file works out for itself. */
+  function met(found) {
+    receiverRef = found.ref;
+    if (found.match === "near") {
+      at("who-near").textContent = found.masked_name;
+      show("near");
+      return;
+    }
+    at("who").textContent = found.masked_name;
+    show("confirm");
+  }
 
   function find() {
     var number = "+84" + typed;
@@ -115,41 +138,77 @@
     /* The key says what it is doing and stops taking taps. A shipper holding
      * a parcel gets no other signal that the cabinet heard them, and a
      * second tap here is a second request. */
-    var key = document.getElementById("find");
+    var key = at("find");
     key.disabled = true;
-    key.textContent = "Finding…";
+    key.textContent = text.t("number.finding");
 
     net
       .call("/cabinet/receiver?phone_number=" + encodeURIComponent(number))
       .then(function (answer) {
         if (answer.state === "ok") {
-          receiverRef = answer.value.ref;
-          document.getElementById("who").textContent = answer.value.masked_name;
-          show("confirm");
+          met(answer.value);
           return;
         }
         if (answer.state === "refused") {
-          /* Named, because "something went wrong" sends a shipper away with a
-           * parcel and no idea what to do. Both of these have an action. */
-          trouble(
-            answer.code === "PHONE_NOT_REGISTERED"
-              ? "That number has no account yet. Ask them to open the app first."
-              : "That number was refused. Check it and try again."
-          );
+          /* Rung D. `PHONE_NOT_REGISTERED` here does NOT mean give up: it
+           * covers a number close to nobody and a number close to two
+           * people, and both are answered the same way - ask for the name.
+           * ABO comes later, from endpoint 28, and not from here. */
+          if (answer.code === "PHONE_NOT_REGISTERED") {
+            draw();
+            at("name-in").value = "";
+            show("name");
+            return;
+          }
+          trouble("trouble.refused");
           return;
         }
-        trouble("The server could not be reached. Try again in a moment.");
+        trouble("trouble.offline");
       });
   }
 
-  /* The one call in this file that moves metal.
-   *
-   * It fires from this tap and from nowhere else - never a retry, never a
+  /* Rung D, the second half. One guess, one answer. */
+  function checkName() {
+    var name = at("name-in").value.trim();
+    if (!name) return;
+
+    var key = at("name-go");
+    key.disabled = true;
+    key.textContent = text.t("name.checking");
+
+    net
+      .call("/cabinet/confirm-name", {
+        method: "POST",
+        body: { phone_number: "+84" + typed, name: name },
+      })
+      .then(function (answer) {
+        key.disabled = false;
+        key.textContent = text.t("name.check");
+
+        if (answer.state === "ok") {
+          met(answer.value);
+          return;
+        }
+        /* Rung E, and the only sentence on this screen that sends somebody
+         * away - so it says exactly where to go. */
+        if (answer.state === "refused") {
+          trouble("abo.say");
+          return;
+        }
+        trouble("trouble.offline");
+      });
+  }
+
+  /* --- the one call that moves metal ----------------------------------- */
+
+  /* It fires from a tap and from nowhere else - never a retry, never a
    * timer. The button is disabled first, so a shipper leaning on a
    * touchscreen sends one drop and not four. */
   function open() {
-    var yes = document.getElementById("yes");
+    var yes = at("yes");
+    var nearYes = at("near-yes");
     yes.disabled = true;
+    nearYes.disabled = true;
 
     net
       .call("/cabinet/drop", {
@@ -158,56 +217,61 @@
       })
       .then(function (answer) {
         yes.disabled = false;
+        nearYes.disabled = false;
 
         if (answer.state === "ok") {
-          document.getElementById("boxno").textContent = answer.value.box_number;
+          at("boxno").textContent = answer.value.box_number;
           forget();
           show("open");
           return;
         }
         if (answer.state === "refused") {
-          trouble(
-            answer.code === "NO_FREE_BOX"
-              ? "Every box here is full. Try another cabinet."
-              : "The cabinet refused that. Start again."
-          );
+          trouble(answer.code === "NO_FREE_BOX" ? "trouble.full" : "trouble.cabinet");
           return;
         }
         /* Unclear is not failure and must never be drawn as either. A drop
          * that timed out may have opened a door. Telling the shipper it
          * failed would send them away from a box with their parcel in it. */
-        trouble("Not sure whether a box opened. Look at the cabinet before trying again.");
+        trouble("trouble.unclear");
       });
   }
 
   /* --- wiring ---------------------------------------------------------- */
 
+  function backToNumber() {
+    forget();
+    draw();
+    show("number");
+  }
+
   pad();
+  text.apply();
   draw();
 
-  document.getElementById("start").addEventListener("click", function () {
+  at("start").addEventListener("click", function () {
     if (!net.ready()) {
-      trouble("This cabinet has no key yet. It cannot take a parcel.");
+      trouble("trouble.noKey");
       return;
     }
-    forget();
-    draw();
-    show("number");
+    backToNumber();
   });
 
-  document.getElementById("no").addEventListener("click", function () {
-    forget();
-    draw();
-    show("number");
-  });
+  at("no").addEventListener("click", backToNumber);
+  at("near-no").addEventListener("click", backToNumber);
+  at("name-back").addEventListener("click", backToNumber);
 
-  document.getElementById("yes").addEventListener("click", open);
+  at("yes").addEventListener("click", open);
+  at("near-yes").addEventListener("click", open);
+  at("name-go").addEventListener("click", checkName);
+  at("name-in").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") checkName();
+  });
 
   /* Endpoint 12. Today a person taps it, because there is no sensor
    * (ADR 0006). When the item sensors in ADR 0021 exist, the cabinet sees
    * the box fill and this button stops being the evidence. */
-  document.getElementById("shut").addEventListener("click", function () {
-    var box = document.getElementById("boxno").textContent;
+  at("shut").addEventListener("click", function () {
+    var box = at("boxno").textContent;
     net.call("/cabinet/door-closed", {
       method: "POST",
       body: { box_number: box, purpose: "drop" },
@@ -215,9 +279,17 @@
     show("idle");
   });
 
-  document.getElementById("again").addEventListener("click", function () {
+  at("again").addEventListener("click", function () {
     forget();
     draw();
     show("idle");
+  });
+
+  /* One tap changes the whole screen. The keypad's Find key is redrawn from
+   * here because its label lives on a button this file made rather than in
+   * the HTML, so `data-t` never sees it. */
+  text.onChange(draw);
+  at("lang").addEventListener("click", function () {
+    text.use(text.other());
   });
 })();

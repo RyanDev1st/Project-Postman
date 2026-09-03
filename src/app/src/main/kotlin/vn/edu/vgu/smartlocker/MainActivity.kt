@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
 fun AppSkeleton(
     dark: Boolean,
     onToggleDark: () -> Unit,
-    language: AppLanguage = AppLanguage.ENGLISH,
+    language: AppLanguage = AppLanguage.ofSystem(),
     onLanguage: (AppLanguage) -> Unit = {},
     /** Debug-only starting screen — see [MainActivity.onCreate]. */
     start: Screen? = null,

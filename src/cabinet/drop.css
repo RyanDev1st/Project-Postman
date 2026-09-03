@@ -189,3 +189,61 @@
     gap: calc(var(--unit) * 1.2);
   }
 }
+
+/* --- the ladder's two extra steps. Task P3-09 and P3-10 ----------------- */
+
+/* The line under a question that explains why it is being asked. Quieter
+ * than `.ask` on purpose: the shipper answers the question, and reads this
+ * only if the question surprised him. */
+.note {
+  margin: 0;
+  max-width: 34ch;
+  font-size: calc(var(--unit) * 1.7);
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* The name off the label. Big, because it is typed standing up with one
+ * hand, and full width because a Vietnamese name is four words. */
+.name-in {
+  width: 100%;
+  box-sizing: border-box;
+  padding: calc(var(--unit) * 1.4) calc(var(--unit) * 1.6);
+
+  font: inherit;
+  font-size: calc(var(--unit) * 2.4);
+  text-align: center;
+  color: var(--ink);
+
+  background: transparent;
+  border: 2px solid var(--line);
+  border-radius: calc(var(--unit) * 1.2);
+}
+.name-in:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.name-in::placeholder {
+  color: var(--muted);
+}
+
+/* The language switch, in the footer beside the version. It is a footer
+ * control and is drawn like the footer, not like a button that does
+ * something to a parcel - nothing on this screen should compete with the
+ * one green key that opens a door. */
+.lang {
+  font: inherit;
+  font-size: calc(var(--unit) * 1.8);
+  color: var(--muted);
+
+  padding: calc(var(--unit) * 0.4) calc(var(--unit) * 1.2);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--unit) * 0.8);
+  cursor: pointer;
+}
+.lang:active {
+  color: var(--ink);
+  border-color: var(--ink);
+}
