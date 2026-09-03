@@ -139,6 +139,18 @@ enum class Refusal(val status: HttpStatusCode) {
     // --- Booking a box - endpoints 25 and 29 -------------------------------
 
     /**
+     * Endpoint 25 needs a phone number, and this account has never given one.
+     *
+     * **Not a failure**, and it changed meaning on 2026-09-02. It used to be
+     * the cue to ask for a number and a one-time code. There is no code, and
+     * the account already exists by the time this can be returned - so it is
+     * now the cue to show the number field on the booking screen. Once given,
+     * the number is kept and never asked for again; endpoint 29 is the only
+     * way it changes.
+     */
+    PHONE_REQUIRED(HttpStatusCode.BadRequest),
+
+    /**
      * That phone number is already on another account.
      *
      * **Names nobody.** Not whose account, not whether they have a parcel

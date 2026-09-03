@@ -32,6 +32,20 @@ class Boxes(
         cabinetId,
     ) { it.str("number") }
 
+    /**
+     * How many doors are free at each size. Endpoint 30, for the app.
+     *
+     * **Counts, never numbers.** A phone deciding where to book needs to know
+     * whether there is room; a list of which specific doors stand empty is a
+     * map of the cabinet's occupancy handed to anybody with an account. Same
+     * rule endpoint 18 follows, one step tighter, because 18 answers a
+     * cabinet and this answers a phone.
+     */
+    fun freeBySize(cabinetId: String): Map<String, Int> = db.rows(
+        "SELECT size, COUNT(*) AS n FROM boxes WHERE cabinet_id = ? AND state = 'free' GROUP BY size",
+        cabinetId,
+    ) { it.str("size") to it.num("n").toInt() }.toMap()
+
     fun total(cabinetId: String): Int =
         db.row("SELECT COUNT(*) AS n FROM boxes WHERE cabinet_id = ?", cabinetId) {
             it.num("n").toInt()
@@ -43,8 +57,14 @@ class Boxes(
      * Asked for `large` and none free? This answers null rather than quietly
      * handing over a small one. The shipper is told to try a smaller size and
      * decides for himself, because only he can see the parcel.
+     *
+     * [holding] is the state the door lands in. `taken` means a parcel is
+     * inside; `booked` means somebody has reserved it and nothing is inside
+     * yet (ADR 0026). Both are equally not-free to this function, which is
+     * the point - a booked door can never be handed to a walk-up drop,
+     * because the query below only ever selects `free`.
      */
-    fun claimFree(cabinetId: String, size: String): String? = db.transaction {
+    fun claimFree(cabinetId: String, size: String, holding: String = "taken"): String? = db.transaction {
         val number = db.row(
             """SELECT number FROM boxes
                 WHERE cabinet_id = ? AND state = 'free' AND size = ?
@@ -53,8 +73,8 @@ class Boxes(
         ) { it.str("number") } ?: return@transaction null
 
         db.exec(
-            "UPDATE boxes SET state = 'taken' WHERE cabinet_id = ? AND number = ?",
-            cabinetId, number,
+            "UPDATE boxes SET state = ? WHERE cabinet_id = ? AND number = ?",
+            holding, cabinetId, number,
         )
         number
     }

@@ -104,8 +104,13 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 | 26 | My booking | `GET /bookings` | token | the live booking — cabinet ref, box number, the number as stored, expiry — or nothing |
 | 27 | Cancel my booking | `DELETE /bookings` | token | ok |
 | 29 | **Change my number** | `PUT /me/phone` | token, phone number | the number as stored, or a refusal code |
+| 30 | Which cabinets exist, and what is free | `GET /cabinets` | token | each cabinet's ref, name, total doors, and **how many** are free at each size |
 
-**Endpoint 25 takes a cabinet ref, because there is more than one cabinet.** A booking holds a door at a named cabinet, and a parcel dropped at a different one has no booking to match — it falls to rung B of the ladder below and takes any free box there. The app reads the free doors at each cabinet from endpoint 18 before booking, which is what that endpoint was built for.
+**Endpoint 25 takes a cabinet ref, because there is more than one cabinet.** A booking holds a door at a named cabinet, and a parcel dropped at a different one has no booking to match — it falls to rung B of the ladder below and takes any free box there.
+
+**Endpoint 30 was added on 2026-09-03, with P2-13, because the booking screen had nothing to name a cabinet with.** This file used to say the app reads the free doors from endpoint 18. It cannot: 18 takes a **cabinet key**, which a phone does not have and must never be given — a key on a phone is a cabinet in ten thousand pockets. 30 is the same question asked with a receiver token.
+
+**It answers counts, never door numbers.** A phone choosing where to book needs to know *is there room*; the list of which specific doors stand empty is a map of that cabinet's occupancy, handed to anybody with an account and refreshed on demand. Endpoint 18 may return numbers because the caller is the cabinet itself and is about to draw them. Rule 6 in [architecture.md](architecture.md) is about what crosses the wire.
 
 **`NO_FREE_BOX` is returned here too**, and it means at booking time rather than at drop time. Asked for `large` when none is free, the answer is the refusal and not a quiet `small` — same rule endpoint 11 already follows, for the same reason: only the person holding the parcel knows whether a smaller door will do.
 
@@ -374,7 +379,7 @@ Three of the four questions on this list were addressed to the Server team. Two 
 **Still open, and now ours to decide:**
 
 1. **Endpoints 16, 17, 20 and 21 are written and not built.** Offline pickup, reconciliation and passwords. Nothing depends on them yet and none is on the path to a working pickup.
-2. **Endpoints 25 to 29 are written and not built**, and endpoint 19 is built to the old shape. Tasks **P2-10** to **P2-14** and **P3-08** to **P3-11**.
+2. **Endpoints 28, and rungs C to E of the ladder, are written and not built.** Tasks **P3-08** to **P3-11**. Endpoints 19, 25, 26, 27, 29 and 30 were built on 2026-09-03 (P2-11, P2-12, P2-13, P2-17).
 3. **What happens when every box is booked and none is full?** Twenty live bookings fill a twenty-box cabinet with nothing inside it. The 24-hour expiry and the one-per-account limit are what bound it, and a walk-up drop then falls to rung E and goes to ABO. If it bites, the answer written down in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) is to stop holding a specific door and hold only the claim. Nobody has seen it happen yet, because nobody has used this yet.
 
 **Answered on 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md):**

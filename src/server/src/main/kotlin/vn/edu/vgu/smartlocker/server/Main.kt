@@ -27,6 +27,8 @@ import vn.edu.vgu.smartlocker.server.auth.Otp
 import vn.edu.vgu.smartlocker.server.auth.SpeedSms
 import vn.edu.vgu.smartlocker.server.auth.Tokens
 import vn.edu.vgu.smartlocker.server.auth.authRoutes
+import vn.edu.vgu.smartlocker.server.bookings.Bookings
+import vn.edu.vgu.smartlocker.server.bookings.bookingRoutes
 import vn.edu.vgu.smartlocker.server.cabinet.Boxes
 import vn.edu.vgu.smartlocker.server.cabinet.CABINET_KEY_HEADER
 import vn.edu.vgu.smartlocker.server.cabinet.Cabinets
@@ -181,16 +183,25 @@ fun Application.locker(db: Db, config: Config) {
         log.info("google    on  - domains ${config.googleAllowedDomains.joinToString(", ")}")
     }
     val collect = Collect(db, sessions, commands, config.openTimeoutSeconds)
+    val bookings = Bookings(db, boxes, config.bookingHours)
 
     tokens.sweep()
     otp.sweep()
+    // A booking that ran out overnight holds a door until something sweeps
+    // it. `Bookings` sweeps on every read and every write, so this only
+    // matters for the first minutes after a restart - but a cabinet whose
+    // doors are all held by yesterday is exactly what a restart follows.
+    bookings.sweep()
 
     routing {
         // Grouped by what a flood of it would cost. `auth` is the paid path,
         // `cabinet` is a trusted device that polls constantly, `read` is
         // everything a signed-in phone does.
         rateLimit(AUTH_LIMIT) { authRoutes(db, otp, tokens, accounts, google) }
-        rateLimit(READ_LIMIT) { parcelRoutes(db, tokens, collect) }
+        rateLimit(READ_LIMIT) {
+            parcelRoutes(db, tokens, collect)
+            bookingRoutes(db, tokens, bookings, boxes)
+        }
         rateLimit(CABINET_LIMIT) {
             cabinetRoutes(db, sessions, boxes, commands, config.pickupCodeHours)
             doorRoutes(db, boxes, commands)

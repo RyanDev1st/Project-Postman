@@ -30,6 +30,8 @@ What it proves, in the order it proves it:
      its owner outside their own box forever.
  12. The schema migrates by number, and a second start on the same file does
      not try to add the column again.
+ 13. A receiver books a door before the parcel arrives, that door stops being
+     free to a walk-up drop, and cancelling gives it back. ADR 0026.
 
 TLS is verified against config/dev-cert/locker.crt - the checker does not
 disable certificate checking, because a check that passes on a broken
@@ -524,6 +526,63 @@ def main() -> int:
         status, back = call("POST", "/parcels/collect", {"session_code": s2["session_code"]}, token=alice)
         check(status == 200 and back.get("box_number") == box,
               f"after the timeout she gets her own parcel back, box {back.get('box_number')!r}")
+
+        print("\nThe receiver books a door before the parcel arrives (ADR 0026)")
+
+        # Endpoint 30 exists because the booking screen had no way to name a
+        # cabinet: endpoint 18 answers the same question but takes a cabinet
+        # KEY, which a phone does not have and must never be given.
+        status, seen = call("GET", "/cabinets", token=bob)
+        cabs = {c["ref"]: c for c in seen.get("cabinets", [])}
+        check(status == 200 and BACK_GATE in cabs,
+              f"a phone can list the cabinets with only its own token: {sorted(cabs)}")
+        check("free" not in json.dumps(seen).replace("free_", ""),
+              "and it answers counts, never which specific doors stand empty")
+        check(call("GET", "/cabinets")[0] == 401, "no token, no list")
+
+        free_before = cabs[BACK_GATE]["free_medium"]
+        status, held = call("POST", "/bookings",
+                            {"cabinet_ref": BACK_GATE, "size": "medium"}, token=bob)
+        booked = held.get("box_number", "")
+        check(status == 200 and len(booked) == 2, f"he booked one named door: {booked!r}")
+        check(held.get("phone_number") == "+84912345678",
+              f"the answer echoes his number in the stored form: {held.get('phone_number')}")
+        check(held.get("cabinet_name") == "VGU Back Gate",
+              f"and names the cabinet for a person to read: {held.get('cabinet_name')!r}")
+
+        # The rule the whole reservation rests on. A booked door handed to a
+        # walk-up drop puts a stranger's parcel in a box its owner then opens
+        # legitimately, with their own login.
+        _, doors = call("GET", "/cabinet/free", key=back_gate)
+        check(booked not in doors.get("free", []),
+              f"box {booked} is no longer free to a walk-up drop")
+        _, after = call("GET", "/cabinets", token=bob)
+        left = {c["ref"]: c for c in after["cabinets"]}[BACK_GATE]["free_medium"]
+        check(left == free_before - 1,
+              f"and the cabinet has one fewer free medium door: {free_before} to {left}")
+
+        check(refusal(call("POST", "/bookings", {"cabinet_ref": BACK_GATE}, token=bob))
+              == "BOOKING_EXISTS", "a second booking on one account is refused")
+        _, mine = call("GET", "/bookings", token=bob)
+        check(mine.get("booked") is True and mine.get("box_number") == booked,
+              f"reading it back gives the same door: {mine.get('box_number')!r}")
+
+        # Endpoint 29 - the tap that fixes a number the courier could not find.
+        status, moved = call("PUT", "/me/phone", {"phone_number": "0987654321"}, token=bob)
+        check(status == 200 and moved.get("phone_number") == "+84987654321",
+              f"a number typed the local way is stored the one way: {moved}")
+        check(refusal(call("PUT", "/me/phone", {"phone_number": "1900561234"}, token=bob))
+              == "PHONE_INVALID", "and a service number is refused")
+        _, unmoved = call("GET", "/bookings", token=bob)
+        check(unmoved.get("box_number") == booked,
+              "the live booking keeps its door - the parcel already on its way was "
+              "addressed to the old number")
+
+        check(call("DELETE", "/bookings", token=bob)[0] == 200, "he cancelled it")
+        check(refusal(call("DELETE", "/bookings", token=bob)) == "NO_BOOKING",
+              "cancelling nothing says so rather than pretending")
+        _, back_free = call("GET", "/cabinet/free", key=back_gate)
+        check(booked in back_free.get("free", []), f"and box {booked} is free again")
 
         print("\nThe schema knows which version it is on")
         check(user_version(server.db) == len(MIGRATIONS_EXPECTED),

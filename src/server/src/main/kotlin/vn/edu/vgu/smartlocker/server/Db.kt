@@ -105,7 +105,25 @@ class Db(file: File) : AutoCloseable {
      * never mentions.
      */
     fun <T> transaction(body: () -> T): T = synchronized(lock) {
+        // **Nesting joins the transaction already open; it does not start a
+        // second one.** Without this, an outer transaction that calls
+        // anything which opens its own - `Bookings.create` calls
+        // `Boxes.claimFree` - has its connection handed back in auto-commit
+        // mode by the inner block's `finally`, and the outer `commit()` then
+        // throws `database in auto-commit mode`. The half-written work is
+        // already on disk by then, because the inner block committed it.
+        //
+        // Found by the first test that nested one, not in production. SQLite
+        // has savepoints and this deliberately does not use them: the whole
+        // outermost block is one unit, so a failure anywhere in it undoes
+        // everything, which is the guarantee every caller here already
+        // assumes. `synchronized` is re-entrant on one thread and this
+        // connection is only ever reached through that lock, so the depth
+        // needs no thread-local.
+        if (depth > 0) return@synchronized body()
+
         conn.autoCommit = false
+        depth = 1
         try {
             val out = body()
             conn.commit()
@@ -114,9 +132,13 @@ class Db(file: File) : AutoCloseable {
             conn.rollback()
             throw e
         } finally {
+            depth = 0
             conn.autoCommit = true
         }
     }
+
+    /** 1 while a transaction is open. Guarded by [lock], never by a thread. */
+    private var depth = 0
 
     override fun close() = synchronized(lock) { conn.close() }
 }

@@ -79,9 +79,22 @@ object Receivers {
      * actually stops that is the `UNIQUE` on the column, and this only turns
      * the constraint into a refusal a person can read.
      */
-    fun claimPhone(db: Db, receiverId: String, phone: String): Boolean = db.transaction {
+    fun claimPhone(
+        db: Db,
+        receiverId: String,
+        phone: String,
+        /**
+         * Whether this may overwrite a number the account already has.
+         *
+         * False at the booking, where the number is typed once and then never
+         * asked for again. True at endpoint 29, which exists precisely to
+         * correct a number that was typed wrong.
+         */
+        replace: Boolean = false,
+    ): Boolean = db.transaction {
         val holder = find(db, phone)
         if (holder != null) return@transaction holder == receiverId
+        if (!replace && phone(db, receiverId).isNotEmpty()) return@transaction false
         db.exec("UPDATE receivers SET phone = ? WHERE id = ?", phone, receiverId)
         true
     }
