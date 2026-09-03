@@ -1,7 +1,5 @@
 package vn.edu.vgu.smartlocker.auth
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,19 +7,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,10 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.ui.GoButton
 import vn.edu.vgu.smartlocker.ui.Recess
@@ -57,6 +49,16 @@ fun SignInScreen(
     number: String,
     onNumberChange: (String) -> Unit,
     onSendCode: () -> Unit,
+    /**
+     * Endpoint 19, and **the way in** - ADR 0026. A VGU Google account is
+     * what makes an account here; the number below is what is left of the
+     * old way and P2-14 removes it once this is proven on a real phone.
+     */
+    onGoogle: () -> Unit = {},
+    /** True while the account picker is open or the token is being posted. */
+    googleBusy: Boolean = false,
+    /** What went wrong with the last tap on the Google button, if anything. */
+    googleNote: Int? = null,
     /** The other way in - endpoint 21, task P2-09. It is offered rather than
      *  made the default because a password can only be set from an account
      *  that already exists, so a new receiver has to come this way first. */
@@ -115,6 +117,23 @@ fun SignInScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
+            // First, because it is the way in. ADR 0026 made the Google
+            // account what creates an account here, and the number below is
+            // a delivery address rather than proof of anybody's identity -
+            // it is asked for once, later, when a box is booked.
+            GoogleRow(onClick = onGoogle, busy = googleBusy, note = googleNote)
+
+            // A word, not a rule across the screen. The two ways in are not
+            // equals and drawing a divider between them would say they were.
+            Text(
+                text = stringResource(R.string.signin_or),
+                style = MaterialTheme.typography.labelSmall,
+                color = t.ink3,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally),
+            )
+
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -167,25 +186,15 @@ fun SignInScreen(
                     .padding(start = 2.dp, top = 2.dp, bottom = 2.dp),
             )
 
-            // The Google and VGU buttons were here. Both are removed until
-            // there is something behind them.
+            // The Google button that used to sit here went to a screen that
+            // took a phone number, threw it away and went to Home - no code,
+            // no token, no server call at all - so the app opened with
+            // whichever account was already in the secure store. BUG-011, on
+            // Ryan's phone, 2026-08-17. It was removed rather than patched.
             //
-            // Google went to a screen that took a phone number, threw it away,
-            // and went to Home - no code, no token, no server call at all. So
-            // whatever number was typed, the app opened with whichever account
-            // was already in the secure store. Found on Ryan's phone,
-            // 2026-08-17: "It always logs me into one account despite that I
-            // typed a different number." BUG-011.
-            //
-            // VGU was worse in a quieter way: `onVgu` defaulted to `{}` and
-            // nothing ever passed one, so the button did nothing and looked
-            // broken.
-            //
-            // Endpoint 19 in api-contract.md is the real Google path and it is
-            // designed correctly - it never makes an account, because a Google
-            // account has no phone number and a shipper finds people by
-            // number. It is task P2-08, blocked on an OAuth client id. When
-            // that exists, this row comes back wired to it.
+            // It is back, at the top of the form, and it now posts a token
+            // Google signed to endpoint 19. Nothing about who is signing in
+            // is decided on this phone - see GoogleSignIn.
         }
 
         // Terms are not a control, and they are not in the box with the
@@ -209,66 +218,6 @@ fun SignInScreen(
             )
             Spacer(Modifier.weight(1f))
         }
-    }
-}
-
-/**
- * The cabinet is the mark: cropped and bleeding off three edges, masked out
- * at the bottom. The crop is chosen, not centred — the top-right quadrant
- * carries doors 03, 04, 07, 08, 11 and 12 and the right-hand side panel,
- * which is the part that shows the three-quarter depth.
- *
- * The window shows image fractions x 0.46–1.03, y 0.07–0.43: the image is
- * 175% of the box's width, shifted left 80% of the box and up 19% of its
- * height. Past the right edge the render is transparent, so the cabinet ends
- * and the ground shows through — which is what stops it reading as wallpaper.
- */
-@Composable
-private fun AuthHero() {
-    val t = LocalLockerTokens.current
-    val cabinet = ImageBitmap.imageResource(R.drawable.cabinet)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(214.dp)
-            // The render is deliberately wider than its box, so the box has
-            // to clip or it paints over the form below it.
-            .clipToBounds(),
-    ) {
-        // The crop is drawn, not laid out. BUG-004.
-        //
-        // It used to be an oversized child: `requiredSize(boxW * 1.75f)` and
-        // then an offset back. The numbers were right - reproduced against
-        // the bitmap they give the picture the comment above describes - and
-        // on a real GPU the screen did not. What arrived was the far right
-        // edge of the cabinet at roughly twice the intended zoom, ending in a
-        // hard vertical cut a third of the way across, on hardware GL as well
-        // as on the software rasteriser, which is what ruled out the
-        // rasteriser. Three modifiers deciding one rectangle between them is
-        // one too many to reason about, so the rectangle is now stated.
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val side = size.width * 1.75f
-            drawImage(
-                image = cabinet,
-                srcOffset = IntOffset.Zero,
-                srcSize = IntSize(cabinet.width, cabinet.height),
-                dstOffset = IntOffset(
-                    (size.width * -0.80f).roundToInt(),
-                    (size.height * -0.19f).roundToInt(),
-                ),
-                dstSize = IntSize(side.roundToInt(), side.roundToInt()),
-            )
-        }
-        // Masked out at the bottom: the ground comes up through the cabinet.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, Color.Transparent, t.ground),
-                    )
-                ),
-        )
     }
 }
 

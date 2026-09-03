@@ -40,6 +40,18 @@
     <string name="signin_sub">Any VGU locker, from your phone.</string>
     <string name="phone_number">PHONE NUMBER</string>
     <string name="send_code">Send code</string>
+
+    <!-- Google sign-in. ADR 0026: the Google account is what makes an
+         account here, and no code is ever sent by SMS. -->
+    <string name="signin_google">Continue with Google</string>
+    <string name="signin_google_hint">Use your VGU account</string>
+    <string name="signin_or">or</string>
+    <string name="signin_google_off">This build has no Google sign-in configured.</string>
+    <string name="signin_google_none">There is no Google account on this phone. Add your VGU account and try again.</string>
+    <string name="signin_google_failed">Google sign-in did not go through. Try again, or use your phone number.</string>
+    <string name="refused_google_domain">Use your VGU account, not a personal Gmail.</string>
+    <string name="refused_google_invalid">That Google account could not be checked. Try again.</string>
+    <string name="refused_google_off">Google sign-in is not switched on at the server. Use your phone number.</string>
     <string name="privacy">PRIVACY</string>
     <string name="terms">TERMS</string>
 

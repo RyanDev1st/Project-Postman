@@ -10,6 +10,31 @@ plugins {
     alias(libs.plugins.firebase.appdistribution)
 }
 
+/**
+ * The Google client id, out of `/.env` at the repository root.
+ *
+ * It is read from a file rather than written here because `.env` is the one
+ * place this project keeps its settings and is not committed. The value it
+ * holds is **not a secret**: an OAuth client id ships inside every APK by
+ * design and identifies the app to Google, which is why it can sit in
+ * BuildConfig at all. What guards the project is the app's signing
+ * certificate, registered against this id in the Google console.
+ *
+ * Missing or empty is a legal build. The sign-in screen then says the button
+ * is not configured instead of opening a picker that cannot work, and
+ * `scripts/checksecrets.py` still passes because nothing was pasted in.
+ */
+fun googleClientId(): String {
+    val env = rootProject.file(".env")
+    if (!env.isFile) return ""
+    return env.readLines()
+        .firstOrNull { it.trimStart().startsWith("GOOGLE_CLIENT_ID=") }
+        ?.substringAfter("=")
+        ?.trim()
+        ?.trim('"', '\'')
+        .orEmpty()
+}
+
 android {
     namespace = "vn.edu.vgu.smartlocker"
     compileSdk = 36
@@ -40,6 +65,13 @@ android {
         // is native code and no JVM test can reach it - see ScanPipelineTest.
         // The emulator wants x86_64, so that run needs -Pemulator too.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Passed to Credential Manager as the server client id, and posted to
+        // endpoint 19 inside the token Google signs. The server checks that
+        // the token's audience is this exact id, so the two have to be the
+        // same value - which is why both read it from `/.env` rather than
+        // each holding its own copy.
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${googleClientId()}\"")
 
         // One ABI, not four.
         //
@@ -195,6 +227,12 @@ dependencies {
     // vendor. `Fixes.kt` still falls back to LocationManager where Play
     // Services is missing, which is any de-Googled phone and most emulators.
     implementation(libs.play.services.location)
+
+    // Google sign-in. ADR 0026 - the Google account makes the account, and
+    // no code is ever sent by SMS.
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
 
     // Preview support. debugImplementation so the tooling never ships in a
     // release build.

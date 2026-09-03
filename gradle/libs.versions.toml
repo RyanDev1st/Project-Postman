@@ -58,6 +58,15 @@ mlkit = "17.3.0"
 # with the battery cost expressed as a priority the platform honours.
 playServicesLocation = "21.3.0"
 
+# Google sign-in. Credential Manager is the platform API that replaced the
+# old GoogleSignInClient, which Google deprecated: it asks the system for a
+# credential and the system draws the account picker, so the app never sees a
+# password and never handles an account list. `googleid` is the small library
+# that turns what comes back into an ID token this app can post to endpoint
+# 19. Neither reads `google-services.json` - the client id is passed in.
+androidxCredentials = "1.5.0"
+googleid = "1.1.1"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -139,6 +148,9 @@ androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycl
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "androidxCredentials" }
+androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "androidxCredentials" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 

@@ -51,6 +51,16 @@ class Backend(context: Context) {
         io { api.verifyCode(number, code, fullName) }
 
     /** The deliberate act. Clears locally whatever the server answers. */
+    /**
+     * Endpoint 19. The way in, once the picker has handed back a token.
+     *
+     * ADR 0026. The token is checked by the server, never here - see
+     * [vn.edu.vgu.smartlocker.auth.GoogleSignIn] for why the app is not
+     * allowed to decide who anybody is.
+     */
+    suspend fun signInWithGoogle(idToken: String, fullName: String = ""): Answer<Unit> =
+        io { api.signInWithGoogle(idToken, fullName) }
+
     suspend fun logOut(): Answer<Unit> = io { api.logout() }
 
     /** The server already ended it. Just drop what we are holding. */

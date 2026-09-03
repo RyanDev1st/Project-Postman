@@ -88,6 +88,37 @@ enum class Refusal(@param:StringRes val message: Int?) {
     PASSWORD_TOO_LONG(R.string.refused_password_too_long),
 
     /**
+     * The Google account is not a university one.
+     *
+     * **The one refusal in this app that says why.** Every other way a
+     * sign-in can fail gives one flat answer, so that nobody can poke at it
+     * to learn which part they got past. This one is different because the
+     * person reading it has done nothing wrong and cannot possibly guess the
+     * fix: they tapped the button with the personal Gmail their phone was
+     * already signed in to, and they have to be told to pick the other
+     * account. Refusing in silence here would read as an app that is broken.
+     */
+    GOOGLE_DOMAIN(R.string.refused_google_domain),
+
+    /**
+     * Google's signature, audience or expiry did not check out.
+     *
+     * One flat answer for every one of those, on purpose. Which check failed
+     * is exactly what somebody forging a token wants to know.
+     */
+    GOOGLE_INVALID(R.string.refused_google_invalid),
+
+    /**
+     * The server was started without a Google client id, so endpoint 19 is
+     * off.
+     *
+     * Nobody's fault and nothing a student can do, so it says to use the
+     * other way in rather than describing a setting on a machine they will
+     * never see.
+     */
+    GOOGLE_OFF(R.string.refused_google_off),
+
+    /**
      * The token has run out.
      *
      * **No message.** This one is not shown - the app sends the user back to

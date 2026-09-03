@@ -189,6 +189,43 @@ class Api(private val settings: Settings, private val tokens: TokenStore) {
         }
     }
 
+    /**
+     * 19. Sign in with a Google account, and make one if there is none.
+     *
+     * **This is the way in.** ADR 0026 took the one-time code out of the
+     * product: a VGU Google account is what proves who somebody is, and the
+     * phone number is a delivery address they type later, once, when they
+     * book a box. Nothing here sends an SMS and nothing here waits for one.
+     *
+     * The token is checked by the server against Google's published keys and
+     * against the university domain, so this call carries no claim of its own
+     * - the app cannot assert who it is, only pass on what Google signed.
+     *
+     * [fullName] is the name off the Google profile. The server takes it only
+     * when the account has no name yet, so it can never rename anybody.
+     * Without it a new account masks to `***` at the cabinet and the shipper
+     * is asked to confirm somebody the screen cannot name.
+     *
+     * With a live session already in the store this **links** Google to that
+     * account instead of making a second one, which is what lets somebody who
+     * registered by number before ADR 0026 keep their parcels.
+     */
+    fun signInWithGoogle(idToken: String, fullName: String = ""): Answer<Unit> {
+        val body = JSONObject()
+            .put("id_token", idToken)
+            .put("full_name", fullName)
+        // A token in the store means "link this to me"; none means "make me".
+        // The server reads the header to tell the two apart.
+        return when (val answer = post("/auth/google", body, withToken = tokens.read() != null)) {
+            is Answer.Ok -> {
+                tokens.write(Session.from(answer.value).token)
+                Answer.Ok(Unit)
+            }
+            is Answer.Refused -> answer
+            is Answer.Unclear -> answer
+        }
+    }
+
     // --- Both callers - endpoint 15 ----------------------------------------
 
     /**

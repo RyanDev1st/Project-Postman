@@ -30,7 +30,9 @@ import vn.edu.vgu.smartlocker.net.Refusal
 import vn.edu.vgu.smartlocker.auth.CodeScreen
 import vn.edu.vgu.smartlocker.auth.PasswordSignInScreen
 import vn.edu.vgu.smartlocker.auth.SetPasswordScreen
+import vn.edu.vgu.smartlocker.auth.GoogleOutcome
 import vn.edu.vgu.smartlocker.auth.SignInScreen
+import vn.edu.vgu.smartlocker.auth.signInThroughGoogle
 import vn.edu.vgu.smartlocker.auth.VnMobile
 import vn.edu.vgu.smartlocker.cabinet.CabinetScreen
 import vn.edu.vgu.smartlocker.cabinet.YourDoor
@@ -142,6 +144,12 @@ fun AppSkeleton(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    // Credential Manager draws a system window over this one and needs the
+    // Activity to hang it on. `LocalContext` is not it: ADR 0015 puts a
+    // ContextWrapper in the way to override the language, so this walks back
+    // out to the Activity underneath rather than casting and crashing.
+    val activity = remember(context) { context.findActivity() }
+
     // One of these, for the life of the process. It holds the token store and
     // the settings, and both read files - remaking it on every recomposition
     // would re-read them thirty times a second.
@@ -215,6 +223,13 @@ fun AppSkeleton(
     // The same, for the two sign-in screens, plus whether a call is in flight.
     var authNote by remember { mutableStateOf<Int?>(null) }
     var busy by remember { mutableStateOf(false) }
+
+    // The Google button has its own pair. It has to: the account picker is a
+    // system window that can stay open for as long as somebody takes to read
+    // a list, and sharing `busy` with the number field would grey out a form
+    // they may have gone back to instead.
+    var googleBusy by remember { mutableStateOf(false) }
+    var googleNote by remember { mutableStateOf<Int?>(null) }
 
     // A build with nowhere to send a request says so on the first screen,
     // rather than letting somebody type a number and wait for a timeout.
@@ -351,6 +366,27 @@ fun AppSkeleton(
                 Screen.SIGN_IN -> SignInScreen(
                     number = number,
                     onNumberChange = { number = it },
+                    // Endpoint 19, and the way in - ADR 0026. The picker is
+                    // the system's, the token is Google's, and who that token
+                    // belongs to is the server's to decide. See GoogleSignIn.
+                    onGoogle = {
+                        googleBusy = true
+                        googleNote = null
+                        scope.launch {
+                            val outcome = signInThroughGoogle(activity, backend)
+                            googleBusy = false
+                            when (outcome) {
+                                is GoogleOutcome.SignedIn -> gotoMain(Screen.HOME)
+                                // Closing the picker is an answer, not a
+                                // fault. Saying anything would be telling
+                                // somebody what they just did.
+                                is GoogleOutcome.Dismissed -> Unit
+                                is GoogleOutcome.Say -> googleNote = outcome.note
+                            }
+                        }
+                    },
+                    googleBusy = googleBusy,
+                    googleNote = googleNote ?: noAddress,
                     // Endpoint 1. The code screen is only reached if the
                     // server says it sent something - going there on a failed
                     // send would leave somebody waiting for a text that is
@@ -591,4 +627,22 @@ fun AppSkeleton(
             }
         }
     }
+}
+
+/**
+ * The Activity under whatever wrappers are in the way.
+ *
+ * ADR 0015 overrides the language with a `ContextWrapper`, so `LocalContext`
+ * is one of those and not the Activity. Casting it works right up until
+ * somebody changes the language, which is exactly the sort of crash that
+ * reaches a phone rather than a test. Falls back to the context it was given,
+ * which is what Credential Manager will refuse loudly rather than silently.
+ */
+private fun android.content.Context.findActivity(): android.content.Context {
+    var here: android.content.Context = this
+    while (here is android.content.ContextWrapper) {
+        if (here is android.app.Activity) return here
+        here = here.baseContext
+    }
+    return here
 }
