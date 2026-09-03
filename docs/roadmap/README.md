@@ -110,7 +110,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       Make the app look like the mock-up, and build the loop that can prove it does. Ryan put this ahead of Phase 2. Ten blocks, in order, each done only when its two pictures match.
 - [ ] **Phase 2 — Register** · [phase-2-register.md](phase-2-register.md) · `5/17`
       A receiver registers with a phone number and stays logged in.
-- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `0/13`
+- [ ] **Phase 3 — Shipper drop** · [phase-3-shipper-drop.md](phase-3-shipper-drop.md) · `7/13`
       The cabinet screen. A shipper finds the receiver and a box opens.
 - [ ] **Phase 4 — Tell the receiver** · [phase-4-notify.md](phase-4-notify.md) · `0/6`
       The notification arrives and the parcel shows in the app.
@@ -123,7 +123,7 @@ All in the same change. A tick with a stale count is a broken board. A tick with
 - [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/13`
       Device tests, bug fixing, release build, rollback page, and the Play listing.
 
-**Total: 26 / 106.**  ·  4 marked `⛔ SUPERSEDED` by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) — P2-01, P2-02, P2-03, P2-06, all one-time-code work that no longer exists  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 33 / 106.**  ·  4 marked `⛔ SUPERSEDED` by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) — P2-01, P2-02, P2-03, P2-06, all one-time-code work that no longer exists  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

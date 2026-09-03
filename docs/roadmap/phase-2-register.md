@@ -97,6 +97,7 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Verify: on a real Android phone, sign in with a `@student.vgu.edu.vn` account, book a box, and see the number echoed as `+84 908 619 328` on a second panel before it is accepted. `0908619328`, `908619328` and `+84908619328` all reach that same confirmed number. **Book a second time and the number is not asked for again.** A second booking while one is still live is refused
       - Notes: the panel shows the **stored** form, not the typed one. A panel that repeats the same shape somebody just typed is one the eye slides over, and a typo here is silent
       - Notes: **the number is typed once and kept on the account.** Later bookings send a cabinet and a size and nothing else. Every re-typing is another chance to introduce the very typo the cabinet's ladder exists to survive
+      - Notes: 2026-09-03 — **the server half is built and checked**: booking, cancelling, reading a booking back, and the rule that the number is asked for once and then kept. Seventeen tests cover it and `scripts/checkserver.py` walks it end to end. The **phone screen** is not built, and it cannot be finished without the Android sign-in id that only Ryan can create — see [two-google-credentials](../reference/bug-log.md). The Verify also asks for a real phone, which no emulator answers
 
 - [ ] **P2-14** — Take the one-time code out
       - Owner: _unassigned_ · Needs: P2-13 · Blocks: —
@@ -114,10 +115,12 @@ The receiver must be registered and logged in before a parcel is ever dropped. E
       - Owner: _unassigned_ · Needs: — · Blocks: —
       - Verify: on a real Android phone set to English, the app opens in **Vietnamese**, and the Language row switches it to English on the next frame with no restart
       - Notes: `values/` holds English today and `values-vi/` Vietnamese, so every non-Vietnamese phone gets English. Vietnamese moves to `values/`, English to `values-en/`. The switch itself already exists - [ADR 0015](../adr/0015-language-in-the-composition.md) built it
+      - Notes: 2026-09-03 — **done and seen, but on an emulator, so not ticked.** All 133 sentences moved: Vietnamese is now what the app falls back to and English is the option beside it. On an emulator set to English the app opened in Vietnamese and the Language row turned it English on the next frame with the sheet still open and no restart. `StringsMatchTest` fails the build if either language is missing a sentence the other has, which matters more here than anywhere else — a sentence missing from the fallback is a crash and not a fallback. The Verify says a real phone, and this phase does not tick on an emulator
 - [ ] **P2-17** — Fix a number that was typed wrong
       - Owner: _unassigned_ · Needs: P2-13 · Blocks: —
       - Verify: the notice saying the courier's label and the booked number disagree opens a screen that changes the number in one tap. A number another account already holds is refused, naming nobody. A booking that is already live keeps the old number
       - Notes: endpoint 29. This is the other half of the notice - somebody told their number is wrong needs a way to correct it, and a live booking must not move, because the parcel already on its way was addressed to the old number
+      - Notes: 2026-09-03 — endpoint 29 is built and checked on the server, including the refusal when another account already holds that number, which names nobody. The **screen** that calls it is not built, and it belongs beside the notice at P4-06 that sends somebody to it
 ## Exit check
 
 - [ ] All seventeen tasks ticked, less the four marked `⛔ SUPERSEDED`
