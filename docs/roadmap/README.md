@@ -120,10 +120,10 @@ All in the same change. A tick with a stale count is a broken board. A tick with
       Faulty box, two parcels, nobody collects, shipper walks away, network drops.
 - [ ] **Phase 7 — History** · [phase-7-history.md](phase-7-history.md) · `0/3`
       What happened, for the receiver and for staff.
-- [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `0/13`
+- [ ] **Phase 8 — Ship** · [phase-8-ship.md](phase-8-ship.md) · `1/13`
       Device tests, bug fixing, release build, rollback page, and the Play listing.
 
-**Total: 33 / 106.**  ·  4 marked `⛔ SUPERSEDED` by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) — P2-01, P2-02, P2-03, P2-06, all one-time-code work that no longer exists  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
+**Total: 34 / 106.**  ·  4 marked `⛔ SUPERSEDED` by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) — P2-01, P2-02, P2-03, P2-06, all one-time-code work that no longer exists  ·  5 marked `⏸️ LATER` — 2 for iOS ([ADR 0007](../adr/0007-android-first.md)), 3 deferred from Phase 0 ([ADR 0009](../adr/0009-start-phase-1-early.md))
 
 Tick a phase box only when every task inside it is ticked **and** its Exit check passes.
 

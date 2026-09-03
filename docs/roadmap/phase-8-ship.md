@@ -2,7 +2,7 @@
 
 **Goal:** the system survives real phones, real networks and real people, and installs from a signed release build.
 
-**Progress: 0 / 13.**
+**Progress: 1 / 13.**
 
 Device testing starts at the end of **every** phase, not only here. This phase is the final sweep.
 
@@ -37,10 +37,13 @@ Device testing starts at the end of **every** phase, not only here. This phase i
       - Verify: a 5-second-delay network never leaves the user with no feedback
       - Notes: slow is worse than off. Nothing may hang forever
 
-- [ ] **P8-07** — Check that no key, token or address sits in either build
-      - Owner: _unassigned_ · Needs: P1-07 · Blocks: P8-09
+- [x] **P8-07** — Check that no key, token or address sits in either build
+      - Owner: Claude · Needs: P1-07 · Blocks: P8-09
       - Verify: a search of both source trees for keys and addresses returns nothing
       - Notes: anything found → replace it first, then remove it. Removing it alone is not enough
+      - Done: 2026-09-03 — `python scripts/checksecrets.py` searches both front-ends and the server and finds nothing: no key, no token, no machine address, and the address the app is pointed at is blank in what is committed. It also opens the built app file and reads inside it, because the app is a zip and looking at the outside of it proves nothing. Every one of the four real secrets on this machine is searched for **by its actual value**, so this is not a guess about what a key looks like.
+      - Notes: two holes were found and closed on the day it was ticked. The Google and reCAPTCHA settings moved into `/.env` when the one-time code was removed, and nothing was looking there. And searching for values you already hold finds nothing at all on a machine that holds none of them — a fresh clone, or a build server — so there is now a second pass for the **shape** of a key, which catches one nobody here has a copy of
+      - Notes: proven able to fail. A file carrying a Google-shaped key and a private machine address was put in the cabinet screen and staged: two checks went red and named the file and the line. Removed, green again. The first attempt at that proof used a `scratch_` name, which git ignores, so the check could never have seen it — the probe was wrong, not the check
 
 - [ ] **P8-08** — Small-screen and large-text test on the app
       - Owner: _unassigned_ · Needs: P8-01 · Blocks: —
