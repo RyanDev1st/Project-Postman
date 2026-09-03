@@ -7,7 +7,7 @@ it can be a build step later.
 
 ## What it looks for, and why each one
 
-A locker that opens real doors has four secrets, and each has a way of ending
+A locker that opens real doors has five secrets, and each has a way of ending
 up somewhere it should not be:
 
   - **the cabinet key** — it lives in `src/cabinet/config.js`, which is a file
@@ -16,14 +16,27 @@ up somewhere it should not be:
   - **the SMS provider token** — spends money.
   - **the hashing key** — with the database file, it turns every six-digit
     code back into a guessable one (ADR 0022).
+  - **the Google and reCAPTCHA credentials** — they live in `/.env` since
+    ADR 0026 made a Google account the way in. Only the ones that are really
+    credentials are searched for. A project id, an app id, an OAuth client id
+    and a reCAPTCHA **site** key sit in the same file but are public by
+    design: they ship inside the APK and appear in URLs, and treating them as
+    secrets would make this check shout about committed documentation.
   - **a machine address** — not secret, but it is different on every laptop,
     and an address committed today is a build that cannot reach anything
     tomorrow. `server_base_url` is blank in the repo on purpose.
 
-The first three are checked by their *real values*, read from the ignored
+The first four are checked by their *real values*, read from the ignored
 files on this machine, searched for in what git actually tracks. That is
 stronger than a pattern: a pattern finds things that look like keys, this
 finds the key.
+
+It is also narrower, and the narrowness shows on a machine that has none of
+those files - a fresh clone, or CI - where the value search has nothing to
+search for and passes everything. So there is a second pass over the same
+files for the *shapes* a key comes in. The two cover each other: the values
+find a secret that looks like a word, the shapes find one nobody here has a
+copy of.
 
 ## What it deliberately does not do
 
@@ -55,6 +68,25 @@ CODE = (".kt", ".kts", ".js", ".html", ".css", ".json", ".xml", ".py", ".gradle"
 # reported, but not a failure. Saying that out loud is the difference between
 # a check people act on and a check people silence.
 SHIPPED = ("src/app/", "src/cabinet/", "src/server/", "config/")
+
+# Shapes that are a key whatever file they are in. Deliberately short: every
+# entry here is a form that has exactly one meaning, so a hit is never a
+# discussion. `google-services.json` is not tracked and is not searched.
+SHAPES = [
+    ("a Google API key", re.compile(r"AIza[0-9A-Za-z_\-]{35}")),
+    ("a Google OAuth client id", re.compile(r"\d{6,}-[0-9a-z]{20,}\.apps\.googleusercontent\.com")),
+    ("a reCAPTCHA key", re.compile(r"6L[0-9A-Za-z_\-]{38}")),
+    ("a private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    ("a service-account file", re.compile(r'"type"\s*:\s*"service_account"')),
+    ("a signed token", re.compile(r"eyJ[0-9A-Za-z_\-]{8,}\.eyJ[0-9A-Za-z_\-]{8,}")),
+    ("an AWS access key", re.compile(r"AKIA[0-9A-Z]{16}")),
+]
+
+# Which `/.env` names are credentials rather than public identifiers. A list
+# and not a guess from the word "key": `RECAPTCHA_SITE_KEY` is published in
+# the page it protects and `RECAPTCHA_API_KEY` is not, and they differ by one
+# word.
+CREDENTIAL = re.compile(r"(?i)(_API_KEY|_SECRET|_TOKEN|_PASSWORD|_PRIVATE_KEY|CREDENTIALS)$")
 
 MUST_IGNORE = [
     "src/cabinet/config.js",
@@ -93,6 +125,12 @@ def live_secrets() -> dict[str, str]:
             # address anybody could leak. Compare the host, not the whole URL.
             if m and host_of(m.group(1)) not in FINE:
                 found[name] = m.group(1)
+    env = ROOT / ".env"
+    if env.exists():
+        for line in env.read_text(encoding="utf-8").splitlines():
+            name, sep, value = line.strip().partition("=")
+            if sep and CREDENTIAL.search(name.strip()):
+                found[name.strip()] = value.strip().strip('"').strip("'")
     return {k: v for k, v in found.items() if len(v) >= 12}
 
 
@@ -177,6 +215,24 @@ def main() -> None:
         if hits:
             faults.append(f"{name} is committed, in {hits[0].relative_to(ROOT)}")
 
+    # 1b. The shapes, for a key this machine has no copy of.
+    shaped = []
+    for f in files:
+        rel = f.relative_to(ROOT).as_posix()
+        for line_no, line in enumerate(f.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+            for what, shape in SHAPES:
+                hit = shape.search(line)
+                if hit:
+                    # Four characters is enough to recognise and not enough to
+                    # use. This script's output goes into commit messages.
+                    shaped.append(f"{rel}:{line_no}  {what} - {hit.group(0)[:4]}…")
+    print(f"  {'FAIL' if shaped else 'ok  '} nothing shaped like a key in tracked source"
+          + (f" - {len(shaped)} found" if shaped else ""))
+    for b in shaped[:10]:
+        print(f"         {b}")
+    if shaped:
+        faults.append(f"{len(shaped)} thing(s) shaped like a key are committed")
+
     # 2. A machine address in tracked source.
     ip = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
     # A pattern that matches nothing passes every file, which is the one
@@ -223,6 +279,16 @@ def main() -> None:
         print(f"  {'ok  ' if got else 'FAIL'} .gitignore covers {path}")
         if not got:
             faults.append(f".gitignore does not cover {path}")
+
+    # 4b. Ignored today is not the same as never committed. Git keeps what it
+    # was once given, so a key added and then ignored is still a leaked key.
+    for path in (".env", "config/pepper.key", "src/cabinet/config.js"):
+        ever = subprocess.run(["git", "log", "--all", "--oneline", "--", path],
+                              cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        print(f"  {'FAIL' if ever else 'ok  '} no commit ever touched {path}"
+              + (f" - {len(ever.splitlines())} did" if ever else ""))
+        if ever:
+            faults.append(f"{path} is in the history of {len(ever.splitlines())} commit(s)")
 
     # 5. The built app, if one has been built. This is the real "in the build".
     apk = ROOT / "src/app/build/outputs/apk/debug/app-debug.apk"
