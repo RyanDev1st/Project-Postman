@@ -26,6 +26,7 @@ The Server team owns the API and the database in a separate repo. Our front-ends
 | See the plan and what is left | [`docs/roadmap/README.md`](docs/roadmap/README.md) |
 | See what we must agree with the Server team | [`docs/reference/api-contract.md`](docs/reference/api-contract.md) |
 | Understand the parts of the system | [`docs/reference/architecture.md`](docs/reference/architecture.md) |
+| See the interactive runtime flow and architecture | [`docs/reference/runtime-architecture/README.md`](docs/reference/runtime-architecture/README.md) |
 | Look up a word I do not know | [`docs/reference/glossary.md`](docs/reference/glossary.md) |
 | Report or track a bug | [`docs/reference/bug-log.md`](docs/reference/bug-log.md) |
 | Know why we chose something | [`docs/adr/`](docs/adr/) |

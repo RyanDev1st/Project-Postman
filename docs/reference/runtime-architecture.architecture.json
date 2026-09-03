@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "VGU Smart Locker: Reserve, Drop, Pick Up",
+    "output": "runtime-architecture.html",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "reserve", "label": "1. Receiver reserves", "focus": ["receiver", "phone-app", "google", "api", "locker-domain", "sqlite"], "note": "A receiver signs in with Google, chooses a cabinet and size, then reserves one specific box." },
+      { "id": "drop", "label": "2. Shipper drops", "focus": ["shipper", "cabinet", "api", "locker-domain", "sqlite", "door-queue"], "note": "The shipper uses the public cabinet; the server matches the booking and opens the reserved box after confirmation." },
+      { "id": "pickup", "label": "3. Receiver picks up", "focus": ["receiver", "phone-app", "cabinet", "api", "locker-domain", "door-queue"], "note": "The receiver scans the cabinet QR; the token proves identity, and the server authorizes collection." }
+    ]
+  },
+  "components": [
+    { "id": "receiver", "type": "external", "label": "Receiver", "sublabel": "student / phone user", "tag": "reserves + collects", "pos": [40, 250], "size": [155, 70] },
+    { "id": "shipper", "type": "external", "label": "Shipper", "sublabel": "courier / public user", "tag": "drops parcel", "pos": [40, 510], "size": [155, 70] },
+    { "id": "phone-app", "type": "frontend", "label": "Android Phone App", "sublabel": "Kotlin + Compose", "tag": "receiver token", "pos": [260, 250], "size": [175, 70] },
+    { "id": "cabinet", "type": "frontend", "label": "Cabinet Pi + Web UI", "sublabel": "public terminal / Wi-Fi", "tag": "cabinet key", "pos": [260, 510], "size": [185, 70] },
+    { "id": "google", "type": "external", "label": "Google Identity", "sublabel": "VGU-domain sign-in", "tag": "current login", "pos": [490, 110], "size": [175, 66] },
+    { "id": "api", "type": "backend", "label": "Ktor API", "sublabel": "HTTPS :8443", "tag": "one door / server truth", "pos": [500, 367], "size": [180, 78] },
+    { "id": "auth-policy", "type": "security", "label": "Identity + Rules", "sublabel": "tokens / cabinet key / refusals", "tag": "fail closed", "pos": [740, 180], "size": [190, 72] },
+    { "id": "locker-domain", "type": "backend", "label": "Locker Domain", "sublabel": "bookings / parcels / doors", "tag": "reserve + match + collect", "pos": [740, 370], "size": [190, 72] },
+    { "id": "sqlite", "type": "database", "label": "SQLite", "sublabel": "WAL durable state", "tag": "users / boxes / history", "pos": [990, 370], "size": [175, 72] },
+    { "id": "door-queue", "type": "messagebus", "label": "Door Command Queue", "sublabel": "SQLite-backed / exactly once", "tag": "Pi polls", "pos": [990, 530], "size": [175, 72] },
+    { "id": "notify", "type": "external", "label": "Push + Email", "sublabel": "parcel notice", "tag": "receiver notification", "pos": [990, 150], "size": [175, 66] }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "People + public devices", "wraps": ["receiver", "shipper", "phone-app", "cabinet"] },
+    { "kind": "security-group", "label": "Trusted server process", "wraps": ["api", "auth-policy", "locker-domain", "sqlite", "door-queue"] },
+    { "kind": "region", "label": "External identity and notification services", "wraps": ["google", "notify"] }
+  ],
+  "connections": [
+    { "id": "receiver-signin", "from": "receiver", "to": "phone-app", "label": "sign in", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "google-login", "from": "phone-app", "to": "google", "label": "Google ID token", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "reserve-request", "from": "phone-app", "to": "api", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "shipper-drop", "from": "shipper", "to": "cabinet", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "cabinet-api", "from": "cabinet", "to": "api", "variant": "security", "fromSide": "right", "toSide": "left" },
+    { "id": "api-auth", "from": "api", "to": "auth-policy", "label": "authenticate caller", "variant": "security", "fromSide": "top", "toSide": "left" },
+    { "id": "api-domain", "from": "api", "to": "locker-domain", "fromSide": "right", "toSide": "left" },
+    { "id": "domain-state", "from": "locker-domain", "to": "sqlite", "label": "reserve / record", "fromSide": "right", "toSide": "left", "labelDy": 58 },
+    { "id": "drop-command", "from": "locker-domain", "to": "door-queue", "label": "open reserved box", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "queue-cabinet", "from": "door-queue", "to": "cabinet", "label": "Pi polls command", "variant": "emphasis", "fromSide": "bottom", "toSide": "right" },
+    { "id": "pickup-request", "from": "phone-app", "to": "api", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "notice", "from": "locker-domain", "to": "notify", "label": "parcel arrived", "variant": "dashed", "fromSide": "top", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Human flow + contract", "items": ["1 Receiver: Google sign-in, choose cabinet + size, reserve one box via POST /bookings", "2 Shipper: type number, confirm masked name + box, place parcel, tap closed", "3 Receiver: scan cabinet QR; POST /parcels/collect sends token + session"] },
+    { "dot": "emerald", "title": "Architecture + trust", "items": ["Ktor owns rules; SQLite WAL stores bookings, parcels, sessions, lockouts, history", "Pi-held cabinet key and app token authenticate devices and people; QR only names cabinet + moment", "Pi runs screen, Wi-Fi, relays, exactly-once polling; ESP32 reports occupancy only", "Current: Google sign-in, push + email. Not built: SMS OTP, offline 16/17"] }
+  ]
+}
