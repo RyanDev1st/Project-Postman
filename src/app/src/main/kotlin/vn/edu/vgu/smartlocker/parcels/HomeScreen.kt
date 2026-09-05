@@ -108,14 +108,21 @@ fun HomeScreen(
     onOpenSecond: (String) -> Unit = {},
     onMap: () -> Unit = {},
     /**
-     * How many boxes are free, or **null when nobody has said**.
+     * How much room there is, or **null until the server has said**.
      *
      * It used to default to 6, and the empty ticket drew that 6 as large as a
-     * real box number. Nothing on the receiver's side of the contract reports
-     * free boxes, so that number was invented, and it looked exactly as solid
-     * as a number that is not.
+     * real box number - a number nothing reported, looking exactly as solid
+     * as one that is. The 6 went, and what replaced it was worse: no caller
+     * ever passed a count, so every build drew the placeholder instead, and
+     * the placeholder was `-` at display size in the free-box green. A dash
+     * that size is a wide green bar. Ryan reported it as a rendering fault on
+     * 2026-09-04 and it had been on the screen since the count was added.
+     *
+     * It is a real number now - endpoint 30, `Backend.cabinets` - and when it
+     * is not known yet the ticket draws no number at all. The line keeps its
+     * height, so nothing moves when the count lands.
      */
-    freeCount: Int? = null,
+    free: FreeBoxes? = null,
     /**
      * A sentence to show instead of "nothing waiting" - the same `note: Int?`
      * the sign-in and scan screens take.
@@ -147,8 +154,13 @@ fun HomeScreen(
             // different facts, and only the second is useful.
             ClaimTicket(
                 claim = Claim(
-                    cabinet = stringResource(R.string.cabinet_back_gate),
-                    box = freeCount?.let { "%02d".format(it) } ?: "-",
+                    // Both blank until the answer arrives, and blank draws as
+                    // an empty line of the same height rather than as a
+                    // stand-in. There is no glyph that means "we have not
+                    // asked yet"; at this size anything put there is read as
+                    // a value.
+                    cabinet = free?.cabinet.orEmpty(),
+                    box = free?.let { "%02d".format(it.count) }.orEmpty(),
                     dropped = "",
                     collectBy = "",
                     left = stringResource(R.string.home_nearest),

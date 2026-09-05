@@ -47,6 +47,7 @@ data class Claim(
     val left: String,
     val pct: Float,
     val soon: Boolean,
+    val id: String = "",
 )
 
 /** The small ticket — the same object, one row high. */
@@ -61,6 +62,7 @@ data class SmallClaim(
     val left: String,
     val pct: Float,
     val soon: Boolean,
+    val id: String = "",
 )
 
 /**

@@ -1,8 +1,18 @@
 package vn.edu.vgu.smartlocker
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import vn.edu.vgu.smartlocker.notices.Devices
+import vn.edu.vgu.smartlocker.notices.Notices
+import vn.edu.vgu.smartlocker.notices.NotificationTarget
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -64,6 +74,13 @@ enum class Screen {
 }
 
 class MainActivity : ComponentActivity() {
+    private var notificationTarget by mutableStateOf<NotificationTarget?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        notificationTarget = NotificationTarget.from(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -89,6 +106,16 @@ class MainActivity : ComponentActivity() {
                 ?.let { name -> Screen.entries.firstOrNull { it.name == name } }
         } else null
 
+        // Before anything can arrive. Android draws a background message on
+        // its own, and only onto a channel that already exists - a channel
+        // made at first draw is made too late, and every notice lands on
+        // FCM's fallback channel instead. Seen on the emulator, 2026-09-04:
+        // both notices arrived on `fcm_fallback_notification_channel`, which
+        // cannot be silenced separately, so the two kinds were not separable
+        // at all. Task P4-03.
+        Notices.prepare(this)
+
+        notificationTarget = NotificationTarget.from(intent)
         setContent {
             // Light, whatever the phone is set to.
             //
@@ -123,6 +150,7 @@ class MainActivity : ComponentActivity() {
                             language = language,
                             onLanguage = { language = it },
                             start = start,
+                            notificationTarget = notificationTarget,
                         )
                     }
                 }
@@ -140,6 +168,7 @@ fun AppSkeleton(
     onLanguage: (AppLanguage) -> Unit = {},
     /** Debug-only starting screen — see [MainActivity.onCreate]. */
     start: Screen? = null,
+    notificationTarget: NotificationTarget? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -149,6 +178,13 @@ fun AppSkeleton(
     // ContextWrapper in the way to override the language, so this walks back
     // out to the Activity underneath rather than casting and crashing.
     val activity = remember(context) { context.findActivity() }
+
+    // The system's own dialog. Its answer is deliberately ignored: there is
+    // nothing to do differently either way, and a screen that reacts to "no"
+    // is a screen that nags.
+    val askNotify = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { }
 
     // One of these, for the life of the process. It holds the token store and
     // the settings, and both read files - remaking it on every recomposition
@@ -187,6 +223,9 @@ fun AppSkeleton(
     // expired the first call says so, which is the honest failure.
     var screen by remember {
         mutableStateOf(start ?: if (backend.signedIn) Screen.HOME else Screen.SIGN_IN)
+    }
+    LaunchedEffect(notificationTarget, backend.signedIn) {
+        if (notificationTarget != null && backend.signedIn) screen = Screen.HOME
     }
     var lastMain by remember { mutableStateOf(Screen.HOME) }
 
@@ -244,9 +283,35 @@ fun AppSkeleton(
     // nothing to keep.
     var number by remember { mutableStateOf("") }
 
+    // Android 13 and later. Asked **after** the first sign-in and not at
+    // launch: "allow notifications?" from an app somebody has not yet used is
+    // the prompt everybody refuses, and there is no second chance to ask.
+    //
+    // Refusing is normal and costs nothing that matters. The parcel list is
+    // still there when the app opens.
+    fun askToNotify() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val already = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!already) runCatching { askNotify.launch(Manifest.permission.POST_NOTIFICATIONS) }
+    }
+
     fun gotoMain(tab: Screen) {
         lastMain = tab
         screen = tab
+
+        // Task P4-01, the app's half. Every sign-in, not only the first: the
+        // address is stored against an account, and one handset can be signed
+        // in to a different account than it was yesterday. Registering once
+        // would send somebody else's parcel notice to this phone.
+        //
+        // It cannot fail visibly. A phone with no Play Services still has a
+        // working app - the parcel list is fetched whenever it opens - so a
+        // missing notice is a slower path to the same place, not a fault to
+        // put on a screen somebody just signed in on.
+        scope.launch { Devices.sync(backend) }
+        askToNotify()
     }
 
     // Arriving at the scanner always arrives at a clean one. A sentence left
@@ -482,11 +547,19 @@ fun AppSkeleton(
                         // Reloaded when Home is arrived at, which includes
                         // coming back from a collect - so a parcel that has
                         // just been taken out stops being listed.
-                        val home = rememberHome(backend, reloadKey = openedBox to settingsStamp)
+                        val home = rememberHome(
+                            backend,
+                            reloadKey = openedBox to settingsStamp,
+                            targetId = notificationTarget?.parcelId,
+                        )
                         HomeScreen(
                             parcels = home.parcels,
                             second = home.second,
                             ledger = home.ledger,
+                            // Endpoint 30. Null until it answers, and the
+                            // empty ticket then draws no number rather than
+                            // a placeholder - see `HomeScreen.free`.
+                            free = home.free,
                             // BUG-025. A list that would not load is a
                             // list that would not load; nothing here opened
                             // anything, so nothing here sends anybody to a

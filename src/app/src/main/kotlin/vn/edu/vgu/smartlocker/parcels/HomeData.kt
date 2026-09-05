@@ -9,8 +9,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import java.time.Instant
 import java.time.ZoneId
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import vn.edu.vgu.smartlocker.R
 import vn.edu.vgu.smartlocker.net.Backend
+import vn.edu.vgu.smartlocker.net.Cabinet
 import vn.edu.vgu.smartlocker.net.Http.Answer
 
 /**
@@ -27,9 +30,21 @@ data class HomeData(
     val ledger: List<LedgerEntry>,
     /** Every waiting parcel as a door row, for the Cabinet tab. */
     val doors: List<SmallClaim> = emptyList(),
+    /** How much room is free, or **null until the server has said**. */
+    val free: FreeBoxes? = null,
     /** The last failure, for the caller to turn into a sentence. Null if none. */
     val trouble: Answer<*>? = null,
 )
+
+/**
+ * How many doors stand empty, and at which cabinet.
+ *
+ * [cabinet] is filled in **only when there is exactly one cabinet**. With two,
+ * this app cannot say which one somebody is standing near - it asks for no
+ * location and holds none - so it names neither and the ticket draws no name.
+ * The count stays true either way: it is every free door at VGU.
+ */
+data class FreeBoxes(val cabinet: String, val count: Int)
 
 /**
  * Load the parcel list and the history, and turn them into ticket shapes.
@@ -44,7 +59,7 @@ data class HomeData(
  * out would tell them their parcel had gone.
  */
 @Composable
-fun rememberHome(backend: Backend, reloadKey: Any?): HomeData {
+fun rememberHome(backend: Backend, reloadKey: Any?, targetId: String? = null): HomeData {
     val say = phrases()
     val zone = remember { ZoneId.systemDefault() }
     var data by remember { mutableStateOf(HomeData(emptyList(), emptyList(), emptyList())) }
@@ -56,30 +71,67 @@ fun rememberHome(backend: Backend, reloadKey: Any?): HomeData {
         )
         val now = Instant.now()
 
-        when (val answer = backend.parcels()) {
+        // **All three at once.** None of them needs an answer from another,
+        // and asking in turn cost Home the sum of three round trips - which
+        // on a phone is the ticket appearing, then the count, then the
+        // history, each arriving as its own visible step.
+        //
+        // Safe to run together: `Http.call` holds no state between calls and
+        // opens a fresh connection for each one on purpose, and the token is
+        // only ever read. Nothing here retries, and none of these opens a
+        // door.
+        val (waitingFor, past, room) = coroutineScope {
+            val parcels = async { backend.parcels() }
+            val history = async { backend.history() }
+            val cabinets = async { backend.cabinets() }
+            Triple(parcels.await(), history.await(), cabinets.await())
+        }
+
+        var next = when (waitingFor) {
             is Answer.Ok -> {
-                val (big, rest) = waiting(answer.value, window, now, zone, say)
-                data = data.copy(
+                val (big, rest) = waiting(waitingFor.value, window, now, zone, say, targetId)
+                data.copy(
                     parcels = listOfNotNull(big),
                     second = rest,
-                    doors = doors(answer.value, window, now, zone, say),
+                    doors = doors(waitingFor.value, window, now, zone, say),
                     trouble = null,
                 )
             }
-            else -> data = data.copy(trouble = answer)
+            else -> data.copy(trouble = waitingFor)
         }
 
         // The ledger is the quietest thing on the screen. Failing to fetch it
         // is not worth a sentence over a parcel list that did arrive, so it
         // only ever replaces itself.
-        when (val answer = backend.history()) {
-            is Answer.Ok -> data = data.copy(ledger = ledger(answer.value, zone))
-            else -> Unit
-        }
+        if (past is Answer.Ok) next = next.copy(ledger = ledger(past.value, zone))
+
+        // Same rule for the count, and the same reason: a screen that says
+        // *nothing is waiting for you* has already answered the question
+        // somebody opened the app to ask, and a missing count is not worth
+        // taking that back for.
+        if (room is Answer.Ok) next = next.copy(free = freeBoxes(room.value))
+
+        // Written once, not three times. Three assignments drew the screen
+        // three times and let the reader watch it assemble.
+        data = next
     }
 
     return data
 }
+
+/**
+ * Turn the cabinet list into the one line Home draws.
+ *
+ * An empty list is `null` and not zero. *No cabinet answered* and *every box
+ * is taken* are opposite facts, and the second one is the one that makes
+ * somebody stop giving couriers their number.
+ */
+private fun freeBoxes(cabinets: List<Cabinet>): FreeBoxes? =
+    if (cabinets.isEmpty()) null
+    else FreeBoxes(
+        cabinet = cabinets.singleOrNull()?.name.orEmpty(),
+        count = cabinets.sumOf { it.free },
+    )
 
 /**
  * The sentences, read from resources here so [waiting] can stay a plain

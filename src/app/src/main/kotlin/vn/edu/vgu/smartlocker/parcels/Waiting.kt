@@ -41,11 +41,14 @@ fun waiting(
     now: Instant,
     zone: ZoneId,
     say: Phrases,
+    targetId: String? = null,
 ): Pair<Claim?, List<SmallClaim>> {
     val oldestFirst = parcels.sortedBy { arrival(it) ?: Instant.MAX }
-    val first = oldestFirst.firstOrNull() ?: return null to emptyList()
+    val first = oldestFirst.firstOrNull { it.id == targetId } ?: oldestFirst.firstOrNull()
+    if (first == null) return null to emptyList()
+    val rest = oldestFirst.filterNot { it.id == first.id }
     return claim(first, window, now, zone, say) to
-        oldestFirst.drop(1).map { small(it, window, now, zone, say) }
+        rest.map { small(it, window, now, zone, say) }
 }
 
 /**
@@ -106,6 +109,7 @@ fun claim(
     val deadline = arrived?.plus(window.hours.toLong(), ChronoUnit.HOURS)
     val hoursLeft = deadline?.let { hoursBetween(now, it) }
     return Claim(
+        id = parcel.id,
         cabinet = parcel.cabinetName,
         box = parcel.boxNumber,
         dropped = arrived?.let { clock(it, zone) }.orEmpty(),
@@ -128,6 +132,7 @@ fun small(
     val full = claim(parcel, window, now, zone, say)
     val arrived = arrival(parcel)
     return SmallClaim(
+        id = full.id,
         cabinet = full.cabinet,
         box = full.box,
         detail = arrived
