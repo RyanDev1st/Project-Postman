@@ -37,16 +37,14 @@ window.CABINET_CONFIG = {
    *
    * It must be an id the server knows - `cabinet list` says which. A screen
    * whose key the server does not recognise draws no code and says so. */
-  CABINET_ID: "vgu-test-01",
+  CABINET_ID: "LOCKER-001",
 
   /* HTTPS only. api-contract.md makes that fixed, not a setting, and
    * net.js refuses anything else.
    *
-   * The server prints every address it can be reached on when it starts. Use
-   * the LAN one, not localhost, unless the screen is on the same machine. The
-   * certificate has to be trusted by this browser first - see
-   * src/server/README.md. */
-  SERVER_BASE_URL: "https://example.invalid",
+   * Include /api/v1: net.js appends paths such as /cabinet/session to this
+   * API base. The certificate must be trusted by this browser. */
+  SERVER_BASE_URL: "https://example.invalid/api/v1",
 
   /* How long a QR session code is good for, and how often the screen draws
    * a new one. Both are guesses from P0-07 and both live in

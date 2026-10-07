@@ -40,3 +40,18 @@
 2026-10-07T15:42:10.533967+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
 2026-10-07T15:42:11.354214+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
 2026-10-07T15:42:11.558355+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'
+2026-10-07T15:52:41.459720+00:00 probe: read-only; no credentials, POST, or door command
+2026-10-07T15:52:41.584186+00:00 DNS: ['103.84.155.153', '103.84.155.217', '2403:2500:400:20::25a', '2403:2500:400:20::e8e']
+2026-10-07T15:52:42.633309+00:00 GET /api/v1/health: HTTP 502; bytes=0; body=
+2026-10-07T15:52:42.851463+00:00 GET /docs: HTTP 502; bytes=0
+2026-10-07T15:52:43.070537+00:00 GET /redoc: HTTP 502; bytes=0
+2026-10-07T15:52:43.294719+00:00 GET /openapi.json: HTTP 502; bytes=0
+2026-10-07T15:52:43.514103+00:00 GET /ws/notifications/probe: HTTP 502; bytes=0; server=None; body=''
+2026-10-07T15:52:43.732872+00:00 GET /ws/doesnotexist: HTTP 502; bytes=0; server=None; body=''
+2026-10-07T15:52:44.922926+00:00 WSS notifications :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 502; headers={'date': 'Wed, 07 Oct 2026 15:52:47 GMT', 'content-length': '0'}
+2026-10-07T15:52:46.070654+00:00 WSS locker :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 502; headers={'date': 'Wed, 07 Oct 2026 15:52:48 GMT', 'content-length': '0'}
+2026-10-07T15:52:47.266185+00:00 WSS invalid control :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 502; headers={'date': 'Wed, 07 Oct 2026 15:52:50 GMT', 'content-length': '0'}
+2026-10-07T15:52:47.884765+00:00 MQTT TLS :8443: handshake=TLSv1.3; peer=((('commonName', 'giakhanh.tail2fb87d.ts.net'),),)
+2026-10-07T15:52:48.205168+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
+2026-10-07T15:52:49.121772+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
+2026-10-07T15:52:49.340189+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'

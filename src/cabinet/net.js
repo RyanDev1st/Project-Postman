@@ -73,7 +73,7 @@ window.CabinetNet = (function () {
 
     var full;
     try {
-      full = new URL(path, url);
+      full = new URL(url.replace(/\/+$/, "") + path);
     } catch (e) {
       return Promise.resolve(unclear("bad address"));
     }

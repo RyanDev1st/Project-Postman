@@ -213,7 +213,7 @@
     net
       .call("/cabinet/drop", {
         method: "POST",
-        body: { receiver_ref: receiverRef, size: "medium" },
+        body: { receiver_ref: receiverRef, size: "medium", typed_number: "+84" + typed },
       })
       .then(function (answer) {
         yes.disabled = false;

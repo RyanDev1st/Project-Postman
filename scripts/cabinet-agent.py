@@ -48,6 +48,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 CERT = ROOT / "config/dev-cert/locker.crt"
@@ -65,7 +66,8 @@ def call(base: str, key: str, path: str, body: dict | None = None) -> dict:
     verification off here would make this stand-in prove less than the phone
     does, and the phone is the thing we are trying to test.
     """
-    context = ssl.create_default_context(cafile=str(CERT))
+    local = urlsplit(base).hostname in ("127.0.0.1", "localhost")
+    context = ssl.create_default_context(cafile=str(CERT)) if local else ssl.create_default_context()
     data = json.dumps(body).encode() if body is not None else None
     request = urllib.request.Request(base + path, data=data)
     request.add_header("X-Cabinet-Key", key)
@@ -79,7 +81,7 @@ def call(base: str, key: str, path: str, body: dict | None = None) -> dict:
 
 def serve(base: str, key: str) -> None:
     print(f"cabinet agent -> {base}")
-    print(f"certificate    {CERT}")
+    print(f"certificate    {CERT if urlsplit(base).hostname in ('127.0.0.1', 'localhost') else 'system trust store'}")
     print("waiting for the server to ask for a door. ctrl-c to stop.\n")
 
     while True:
@@ -103,7 +105,7 @@ def serve(base: str, key: str) -> None:
 
 def handle(base: str, key: str, command: dict) -> None:
     """One command: work the relay, say it worked, then wait for the door."""
-    box = command.get("box", "??")
+    box = command.get("box_number") or command.get("box", "??")
     print(f"\n  [ {command.get('action')} box {box}")
     print(f"  |  RELAY {box} ON  -  latch released  -  door {box} is open")
 
@@ -113,7 +115,11 @@ def handle(base: str, key: str, command: dict) -> None:
     call(base, key, "/cabinet/command-done", {"id": command.get("id"), "result": "ok"})
     print("  |  told the server: ok")
 
-    purpose = ask(box)
+    purpose = command.get("purpose")
+    if purpose in ("drop", "collect"):
+        input(f"  |  shut door {box} after {purpose}, then press Enter: ")
+    else:
+        purpose = ask(box)
     call(base, key, "/cabinet/door-closed", {"box_number": box, "purpose": purpose})
     print(f"  `- told the server: door {box} shut after a {purpose}\n")
 
@@ -158,7 +164,7 @@ def main() -> None:
     parser.add_argument("--key", help="the cabinet key. Default: the one in src/cabinet/config.js")
     args = parser.parse_args()
 
-    if not CERT.exists():
+    if urlsplit(args.server).hostname in ("127.0.0.1", "localhost") and not CERT.exists():
         sys.exit(f"no certificate at {CERT} - start the server once to make one")
 
     key = args.key or key_from_screen()

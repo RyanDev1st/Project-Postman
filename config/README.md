@@ -18,7 +18,7 @@ What each setting means and when to change it is the **settings table** in [arch
 
 ## `server_base_url` is empty on purpose
 
-The real address is set where the app is deployed, never in this repo. It must start with `https://` — fixed, not a setting. See the transport row in [api-contract.md](../docs/reference/api-contract.md).
+The real address is set where the app is deployed, never in this repo. It must start with `https://` and include the API prefix, for example `https://locker.example/api/v1`; the app appends paths such as `/parcels`. See the transport row in [api-contract.md](../docs/reference/api-contract.md).
 
 ## Reaching a phone — not built yet
 
