@@ -1,4 +1,4 @@
-# Server team handoff: Funnel, broker, and app contract
+# API team findings: Funnel, broker, and app contract
 
 The API implementation is on the server repository's separate branch [`integration/app-contract-2026-10-07`](https://github.com/TonyStark1616/VGU-Smart-Locker/tree/integration/app-contract-2026-10-07), with [draft PR #1](https://github.com/TonyStark1616/VGU-Smart-Locker/pull/1). It is not merged or deployed. Its deployment note lists migration, Google/FCM credentials, cabinet-key setup, and the still-missing ESP32 command bridge and two offline routes. The live results below therefore describe the existing server, not that branch.
 
