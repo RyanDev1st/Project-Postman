@@ -32,6 +32,8 @@ The live OpenAPI has these **11 missing non-retired method/path pairs**. Add the
 
 Two more paths, `POST /auth/request-code` and `POST /auth/verify-code`, are **retired by ADR 0026** but still called by older app UI controls. They are not blockers for the Google-led test flow. Before releasing that UI, either remove/hide those controls or explicitly support and test the legacy code flow; do not count an OTP verification response as a Google session. The offline routes 16 and 17 below have no current caller and are outside the initial online door test.
 
+The booking and phone-correction routes are target product behavior, but the current Android `Api.kt` does not yet call `POST/GET/DELETE /bookings` or `PUT /me/phone`. The API team can verify those routes with a dedicated test client while the app wiring is finished; do not count their appearance in OpenAPI as a working booking button. The typed-code phone screen is also a local placeholder, while cabinet pickup-by-code is a device-key route.
+
 The **15 present method/path pairs still need compatibility checks**. The public observations identify these concrete changes:
 
 | Route | Public server at retest | Required by the app/cabinet contract |
