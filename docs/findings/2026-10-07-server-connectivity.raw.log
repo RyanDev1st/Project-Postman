@@ -120,3 +120,47 @@ Api.kt calls /auth/google, /auth/password-login, /parcels, /parcels/collect, /ca
 The external guide's health example shows mqtt=true, while the live health response above reports mqtt=false. This does not prove why the broker is unavailable.
 
 Result: HTTPS API/docs/schema respond; authenticated app behavior was not tested without credentials. WebSocket upgrades failed, MQTT TLS on 8443 failed, MQTT WSS upgraded to neither WebSocket nor MQTT. The app contract and configured address are not ready for end-to-end use with this server.
+
+--- Follow-up probe, 2026-10-07 14:34:00–14:34:02 UTC ---
+GET /api/v1/health: {"status":"healthy","services":{"api":true,"redis":true,"mqtt":false,"websocket_connections":0},"version":"2.0.0"}
+TCP 8443, plaintext MQTT 3.1.1 CONNECT with synthetic client ID and no credentials: reply b'' (connection closed, no CONNACK).
+WebSocket upgrade wss://giakhanh.tail2fb87d.ts.net/ws/notifications/1: HTTP 403, Content-Length: 0, Server: nginx/1.31.6.
+WebSocket upgrade wss://giakhanh.tail2fb87d.ts.net/ws/locker/LOCKER-001: HTTP 403, Content-Length: 0, Server: nginx/1.31.6.
+WebSocket upgrade wss://giakhanh.tail2fb87d.ts.net/ws/doesnotexist: HTTP 403, Content-Length: 0, Server: nginx/1.31.6.
+WebSocket upgrade wss://giakhanh.tail2fb87d.ts.net/api/v1/health: HTTP 200 JSON health response, not a WebSocket upgrade.
+This probe narrows the issue to /ws/ routing/upstream behavior, but cannot identify which layer returned the 403 without host-side logs or direct-local comparison.
+
+--- Read-only route-presence sweep, ending 2026-10-07 14:42:39 UTC ---
+Method: sequential unauthenticated GET under /api/v1, 0.3 s spacing. GET on a POST-only live route should return 405, while an absent route returns 404. No POST or door action was sent.
+GET /auth/google ERROR URLError <urlopen error _ssl.c:1015: The handshake operation timed out>
+GET /auth/logout 404 '{"detail":"Not Found"}'
+GET /auth/password-login 404 '{"detail":"Not Found"}'
+GET /auth/refresh 404 '{"detail":"Not Found"}'
+GET /auth/request-code 404 '{"detail":"Not Found"}'
+GET /auth/set-password 404 '{"detail":"Not Found"}'
+GET /auth/verify-code 404 '{"detail":"Not Found"}'
+GET /cabinet/confirm-name 404 '{"detail":"Not Found"}'
+GET /cabinet/door-closed 404 '{"detail":"Not Found"}'
+GET /cabinet/drop 404 '{"detail":"Not Found"}'
+GET /cabinet/receiver 404 '{"detail":"Not Found"}'
+GET /cabinet/session 404 '{"detail":"Not Found"}'
+GET /cabinets 404 '{"detail":"Not Found"}'
+GET /devices 404 '{"detail":"Not Found"}'
+GET /me 404 '{"detail":"Not Found"}'
+GET /parcels 404 '{"detail":"Not Found"}'
+GET /parcels/collect 404 '{"detail":"Not Found"}'
+GET /parcels/history 404 '{"detail":"Not Found"}'
+GET /settings 404 '{"detail":"Not Found"}'
+GET /auth/login 405 '{"detail":"Method Not Allowed"}'
+GET /auth/me 401 '{"detail":"Authentication required"}'
+GET /health 200 '{"status":"healthy","services":{"api":true,"redis":true,"mqtt":false,"websocket_connections":0},"ver'
+The health body above was deliberately read only to its first 100 bytes in the sweep; the full body is in the earlier health probes.
+
+--- Separate retry of GET /api/v1/auth/google after transient TLS handshake timeout ---
+HTTP/1.1 404 Not Found
+Date: Wed, 07 Oct 2026 14:42:39 GMT
+Content-Type: application/json
+Server: nginx/1.31.6
+
+{"detail":"Not Found"}
+CURL_EXIT=0 HTTP_CODE=404 TOTAL_SECONDS=0.912916
