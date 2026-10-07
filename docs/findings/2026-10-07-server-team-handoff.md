@@ -2,6 +2,17 @@
 
 Observed 2026-10-07 from the IT team's Windows machine. Raw requests and responses are in [the connection log](2026-10-07-server-connectivity.raw.log). The Tailscale console screenshot shows the Windows 11 machine `giakhanh` connected with Funnel enabled; it does not show individual Funnel ports or Docker service health. The live OpenAPI document identifies API version 2.0.0 and has 21 paths.
 
+**Retest at 15:09–15:10 UTC:** [raw retest output](2026-10-07-connectivity-retest.raw.log) supersedes the earlier 8443 and 10000 failure rows below. Public MQTT transport is now reachable on both ports. The API's broker connection and public app WebSockets remain broken. No login, authenticated MQTT publish, or door action was attempted.
+
+| Retest probe | Exact observation | Interpretation / server-side next check |
+| --- | --- | --- |
+| `GET /api/v1/health` | HTTP 200; `services.mqtt:false`, `redis:true`, `api:true` | The answering API worker is still disconnected from MQTT. Check its broker credentials, connection logs, and whether four workers share one MQTT client ID. |
+| `GET /openapi.json` | HTTP 200, 31,059 bytes, SHA-256 `c346cf6aabeb6e697902d847a9b5830d15a97f76a0002e91feda611a699a765f`, 21 paths; zero app-contract routes | The public API contract is unchanged from the first probe. The port fixes did not deploy the app routes. |
+| TLS + unauthenticated MQTT CONNECT on `:8443` | TLS 1.3 handshake succeeds; CONNACK bytes `20 02 00 05` | Broker reachable through Funnel; return code `05` means **not authorized**, expected with no credentials. This does not prove authenticated publish/subscribe works. |
+| MQTT WSS on `:10000` | HTTP 101, `mqtt` subprotocol; unauthenticated MQTT CONNACK bytes `20 02 00 05` | Broker WebSocket listener and Funnel upgrade now work. Authenticated MQTT flow still needs a credentialed server-side test. |
+| WSS `:443/ws/notifications/probe`, `/ws/locker/LOCKER-001`, and invalid `/ws/doesnotexist` | All HTTP 403 with empty body and Nginx response headers | App WebSocket upgrades remain rejected; matching 403 on an invalid path suggests a common upgrade/proxy/routing failure, but cannot identify the hop remotely. Compare direct backend, Nginx, and Funnel upgrades as below. |
+| Ordinary GET of `/ws/notifications/probe` and `/ws/doesnotexist` | Both HTTP 404 JSON `{"detail":"Not Found"}` | This is expected for WebSocket-only routes; it does not prove the WebSocket upgrade path works. |
+
 ## What to check on `giakhanh`
 
 | Observation | What it establishes | Next check on the Windows host |
@@ -9,8 +20,8 @@ Observed 2026-10-07 from the IT team's Windows machine. Raw requests and respons
 | HTTPS `/api/v1/health`, `/docs`, `/redoc`, and `/openapi.json` work | DNS, public Funnel port 443, and the API HTTP path work from outside | Keep this as the working control while testing the other ports. |
 | Health repeatedly returns `"mqtt": false` | The API process answering us is not connected to MQTT | Inspect `docker compose ps` and backend/Mosquitto logs; test broker reachability and authentication inside Docker. |
 | `wss://.../ws/notifications/1` and `/ws/locker/LOCKER-001` return 403 with empty bodies | The public WebSocket upgrade is rejected; neither path reaches an accepted connection | Compare upgrades to `ws://127.0.0.1:8000/...`, `ws://127.0.0.1:80/...`, and public `wss://.../...` in that order; inspect Nginx access/error logs and the deployed app revision. |
-| TLS handshake on public port 8443 ends with EOF | The advertised MQTT-over-TLS endpoint cannot complete TLS from outside | Check the actual Funnel mapping for 8443 and the local broker's port 1883; the guide specifies `--tls-terminated-tcp=8443`, which must not be confused with raw `--tcp=8443`. |
-| TLS on public port 10000 works, but the MQTT WebSocket upgrade returns 502 | A public TLS listener exists, but its HTTP/WebSocket upstream is failing | Check the actual Funnel mapping for 10000 and a local WebSocket upgrade to Mosquitto port 9001. |
+| Earlier 8443 TLS EOF (now fixed) | The first probe could not complete a handshake; the retest completed TLS and reached Mosquitto | Preserve the working Funnel mapping. Test authenticated MQTT from the backend container. |
+| Earlier 10000 WSS 502 (now fixed) | The first probe could not upgrade; the retest got HTTP 101 and an MQTT CONNACK | Preserve the working Funnel mapping. Test authenticated MQTT over WSS only if a client needs it. |
 
 Run these read-only checks on `giakhanh` in PowerShell, from the server repository. Redact credentials from any logs sent back:
 

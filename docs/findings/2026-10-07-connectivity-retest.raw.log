@@ -1,0 +1,27 @@
+2026-10-07T15:09:40.569541+00:00 probe: read-only; no credentials, POST, or door command
+2026-10-07T15:09:40.575855+00:00 DNS: ['103.84.155.153', '103.84.155.217', '2403:2500:400:20::25a', '2403:2500:400:20::e8e']
+2026-10-07T15:09:41.589839+00:00 GET /api/v1/health: HTTP 200; bytes=114; body={"status":"healthy","services":{"api":true,"redis":true,"mqtt":false,"websocket_connections":0},"version":"2.0.0"}
+2026-10-07T15:09:41.789868+00:00 GET /docs: HTTP 200; bytes=955
+2026-10-07T15:09:41.989539+00:00 GET /redoc: HTTP 200; bytes=907
+2026-10-07T15:09:42.192560+00:00 GET /openapi.json: HTTP 200; bytes=31059; sha256=c346cf6aabeb6e697902d847a9b5830d15a97f76a0002e91feda611a699a765f; version=2.0.0; paths=21; contract_routes=[]
+2026-10-07T15:09:43.275934+00:00 WSS notifications :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403
+2026-10-07T15:09:44.248379+00:00 WSS locker :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403
+2026-10-07T15:09:45.241363+00:00 WSS invalid control :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403
+2026-10-07T15:09:45.779573+00:00 MQTT TLS :8443: handshake=TLSv1.3; peer=((('commonName', 'giakhanh.tail2fb87d.ts.net'),),)
+2026-10-07T15:09:46.072863+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
+2026-10-07T15:09:46.898553+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
+2026-10-07T15:10:26.780515+00:00 probe: read-only; no credentials, POST, or door command
+2026-10-07T15:10:26.789086+00:00 DNS: ['103.84.155.153', '103.84.155.217', '2403:2500:400:20::25a', '2403:2500:400:20::e8e']
+2026-10-07T15:10:27.841240+00:00 GET /api/v1/health: HTTP 200; bytes=114; body={"status":"healthy","services":{"api":true,"redis":true,"mqtt":false,"websocket_connections":0},"version":"2.0.0"}
+2026-10-07T15:10:28.037072+00:00 GET /docs: HTTP 200; bytes=955
+2026-10-07T15:10:28.233368+00:00 GET /redoc: HTTP 200; bytes=907
+2026-10-07T15:10:28.450791+00:00 GET /openapi.json: HTTP 200; bytes=31059; sha256=c346cf6aabeb6e697902d847a9b5830d15a97f76a0002e91feda611a699a765f; version=2.0.0; paths=21; contract_routes=[]
+2026-10-07T15:10:28.652429+00:00 GET /ws/notifications/probe: HTTP 404; bytes=22; server=nginx/1.31.6; body='{"detail":"Not Found"}'
+2026-10-07T15:10:28.848246+00:00 GET /ws/doesnotexist: HTTP 404; bytes=22; server=nginx/1.31.6; body='{"detail":"Not Found"}'
+2026-10-07T15:10:29.983024+00:00 WSS notifications :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403; headers={'content-length': '0', 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';", 'content-type': 'text/plain', 'date': 'Wed, 07 Oct 2026 15:10:32 GMT', 'referrer-policy': 'strict-origin-when-cross-origin', 'server': 'nginx/1.31.6', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'x-xss-protection': '1; mode=block'}
+2026-10-07T15:10:31.192515+00:00 WSS locker :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403; headers={'content-length': '0', 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';", 'content-type': 'text/plain', 'date': 'Wed, 07 Oct 2026 15:10:34 GMT', 'referrer-policy': 'strict-origin-when-cross-origin', 'server': 'nginx/1.31.6', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'x-xss-protection': '1; mode=block'}
+2026-10-07T15:10:32.241586+00:00 WSS invalid control :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403; headers={'content-length': '0', 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';", 'content-type': 'text/plain', 'date': 'Wed, 07 Oct 2026 15:10:35 GMT', 'referrer-policy': 'strict-origin-when-cross-origin', 'server': 'nginx/1.31.6', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'x-xss-protection': '1; mode=block'}
+2026-10-07T15:10:32.837674+00:00 MQTT TLS :8443: handshake=TLSv1.3; peer=((('commonName', 'giakhanh.tail2fb87d.ts.net'),),)
+2026-10-07T15:10:33.129806+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
+2026-10-07T15:10:33.982832+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
+2026-10-07T15:10:34.171706+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'
