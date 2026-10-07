@@ -1,0 +1,122 @@
+Smart Locker external server connection probe
+Run window: 2026-10-07 14:23:20–14:24:56 UTC
+Client: Windows PowerShell; curl 8.21.0 (Windows/Schannel); Python 3 with websockets
+Branch: integration/server-connectivity-2026-10-07
+Local HEAD: bd3869e0faa6303a8184b144e12d71cee3e80c74
+External GitHub main: 1f61fb601327026d458a2a592a728593af345d2b
+Inputs: API_CONNECTION_GUIDE.md provided by the Server team; endpoint screenshot; https://github.com/TonyStark1616/VGU-Smart-Locker
+Target: giakhanh.tail2fb87d.ts.net
+Scope: read-only HTTP requests, TLS handshakes, and WebSocket handshake/ping checks with synthetic path IDs. No registration, login, MQTT publish, or door action.
+
+--- DNS: Resolve-DnsName giakhanh.tail2fb87d.ts.net ---
+Name                       Type IPAddress
+giakhanh.tail2fb87d.ts.net AAAA 2403:2500:400:20::25a
+giakhanh.tail2fb87d.ts.net AAAA 2403:2500:400:20::e8e
+giakhanh.tail2fb87d.ts.net A    103.84.155.153
+giakhanh.tail2fb87d.ts.net A    103.84.155.217
+
+--- HTTPS health: curl.exe -sS -i --max-time 20 https://giakhanh.tail2fb87d.ts.net/api/v1/health ---
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
+Content-Type: application/json
+Date: Wed, 07 Oct 2026 14:23:20 GMT
+Referrer-Policy: strict-origin-when-cross-origin
+Server: nginx/1.31.6
+Vary: Accept-Encoding
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-Xss-Protection: 1; mode=block
+Transfer-Encoding: chunked
+
+{"status":"healthy","services":{"api":true,"redis":true,"mqtt":false,"websocket_connections":0},"version":"2.0.0"}
+CURL_EXIT=0 HTTP_CODE=200 REMOTE_IP=103.84.155.153 TLS_VERIFY=0 TOTAL_SECONDS=1.153701
+
+--- Swagger: curl.exe -sS -I --max-time 20 https://giakhanh.tail2fb87d.ts.net/docs ---
+HTTP/1.1 200 OK
+Content-Length: 955
+Content-Type: text/html; charset=utf-8
+Date: Wed, 07 Oct 2026 14:23:20 GMT
+Server: nginx/1.31.6
+CURL_EXIT=0 HTTP_CODE=200 REMOTE_IP=103.84.155.153 TLS_VERIFY=0 TOTAL_SECONDS=1.078164
+
+--- ReDoc: curl.exe -sS -I --max-time 20 https://giakhanh.tail2fb87d.ts.net/redoc ---
+HTTP/1.1 200 OK
+Content-Length: 907
+Content-Type: text/html; charset=utf-8
+Date: Wed, 07 Oct 2026 14:24:54 GMT
+Server: nginx/1.31.6
+CURL_EXIT=0 HTTP_CODE=200 REMOTE_IP=103.84.155.153 TLS_VERIFY=0 TOTAL_SECONDS=0.745062
+
+--- OpenAPI: Python urllib GET https://giakhanh.tail2fb87d.ts.net/openapi.json, json.loads, SHA-256 ---
+HTTP 200
+CONTENT_TYPE application/json
+BYTES 31059
+SHA256 c346cf6aabeb6e697902d847a9b5830d15a97f76a0002e91feda611a699a765f
+TITLE Smart Locker System API
+VERSION 2.0.0
+PATHS 21
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/otp/request
+POST /api/v1/auth/otp/verify
+GET /api/v1/auth/me
+GET /api/v1/lockers/{unit_code}
+GET /api/v1/lockers/{unit_code}/compartments
+POST /api/v1/lockers/sensor-update
+POST /api/v1/transactions/deliver
+POST /api/v1/transactions/verify-qr-pickup
+POST /api/v1/transactions/add-items
+GET /api/v1/transactions/active-lockers/{phone_number}
+GET /api/v1/transactions/my-transactions
+POST /api/v1/guest/store
+POST /api/v1/guest/retrieve
+GET /api/v1/guest/pin-status/{pin}
+GET /api/v1/admin/users
+GET,POST /api/v1/admin/lockers
+GET /api/v1/admin/security-events
+GET /api/v1/admin/stats
+GET /api/v1/health
+
+--- Protected route without token: curl.exe -sS -i --max-time 20 https://giakhanh.tail2fb87d.ts.net/api/v1/auth/me ---
+HTTP/1.1 401 Unauthorized
+Content-Length: 36
+Content-Type: application/json
+Date: Wed, 07 Oct 2026 14:23:47 GMT
+Server: nginx/1.31.6
+Www-Authenticate: Bearer
+
+{"detail":"Authentication required"}
+CURL_EXIT=0 HTTP_CODE=401 REMOTE_IP=103.84.155.153 TLS_VERIFY=0 TOTAL_SECONDS=0.772157
+
+--- Existing app route against external base: curl.exe -sS -i --max-time 20 https://giakhanh.tail2fb87d.ts.net/api/v1/parcels ---
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+Date: Wed, 07 Oct 2026 14:23:47 GMT
+Server: nginx/1.31.6
+
+{"detail":"Not Found"}
+CURL_EXIT=0 HTTP_CODE=404 REMOTE_IP=103.84.155.153 TLS_VERIFY=0 TOTAL_SECONDS=0.796446
+
+--- TLS: Python socket.create_connection + ssl.create_default_context().wrap_socket(server_hostname=host) ---
+TLS giakhanh.tail2fb87d.ts.net:8443 FAILED SSLEOFError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032) elapsed=0.478s
+TLS giakhanh.tail2fb87d.ts.net:10000 CONNECTED peer=('103.84.155.153', 10000) version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 elapsed=0.757s
+
+--- WSS: Python websockets.connect; synthetic IDs, no authentication; send text ping only if connected ---
+WS notifications FAILED InvalidStatus: server rejected WebSocket connection: HTTP 403 elapsed=1.008s
+  wss://giakhanh.tail2fb87d.ts.net/ws/notifications/connectivity-probe-20261007
+  status: 403; Content-Length: 0; Content-Type: text/plain; Server: nginx/1.31.6; body: bytearray(b'')
+WS locker FAILED InvalidStatus: server rejected WebSocket connection: HTTP 403 elapsed=0.864s
+  wss://giakhanh.tail2fb87d.ts.net/ws/locker/CONNECTIVITY-PROBE-20261007
+  status: 403; Content-Length: 0; Content-Type: text/plain; Server: nginx/1.31.6; body: bytearray(b'')
+WS mqtt-wss FAILED InvalidStatus: server rejected WebSocket connection: HTTP 502 elapsed=0.864s
+  wss://giakhanh.tail2fb87d.ts.net:10000 (Sec-WebSocket-Protocol: mqtt)
+  status: 502; Content-Length: 0; body: bytearray(b'')
+No text ping was sent because neither app WebSocket connection upgraded.
+
+--- Local app compatibility facts (source inspection, not live device validation) ---
+README.md identifies this checkout as the IT team's Android app and cabinet screen; the Server team owns its separate API.
+config/settings.json currently has "server_base_url": ""; Settings.kt reads that shipped value, so this checkout is not configured to use the new host.
+Api.kt calls /auth/google, /auth/password-login, /parcels, /parcels/collect, /cabinets, and /settings, among others. These are absent from the external OpenAPI route list above. The server's pickup route is POST /transactions/verify-qr-pickup with qr_token, while this app sends POST /parcels/collect with session_code.
+The external guide's health example shows mqtt=true, while the live health response above reports mqtt=false. This does not prove why the broker is unavailable.
+
+Result: HTTPS API/docs/schema respond; authenticated app behavior was not tested without credentials. WebSocket upgrades failed, MQTT TLS on 8443 failed, MQTT WSS upgraded to neither WebSocket nor MQTT. The app contract and configured address are not ready for end-to-end use with this server.
