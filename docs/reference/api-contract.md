@@ -1,28 +1,52 @@
-# API contract — front-ends ↔ server
+# API contract — app and cabinet ↔ server
 
-**Status: BUILT.** As of 2026-08-15 this is not a proposal to anybody — it is what `src/server/` serves. [ADR 0019](../adr/0019-we-own-the-server.md): we own the server, because the team that was going to build it builds hardware.
+**Target contract, not a live-server completion claim (2026-10-07).** This file defines the app and cabinet workflow the public `/api/v1` API must serve. The earlier “built” status referred to this repository's Kotlin `src/server/` implementation, not the separately deployed FastAPI server. [ADR 0019](../adr/0019-we-own-the-server.md) records that earlier ownership decision; the API team now also maintains the separate [FastAPI integration branch](https://github.com/TonyStark1616/VGU-Smart-Locker/tree/integration/app-contract-2026-10-07) in [draft PR #1](https://github.com/TonyStark1616/VGU-Smart-Locker/pull/1). That branch is not merged or deployed. Do not infer production behavior from either repository's source alone.
 
-That changes what this file is for. It was a draft to be argued with; it is now the description of a running thing, and **the code and this page must agree**. If they ever disagree, the code is what students meet, so fix whichever is wrong in the same change — never one alone.
+The live public server exposed 30 OpenAPI paths at the 2026-10-07 16:20 UTC retest. Of the 26 non-retired HTTP method/path pairs below, 15 appeared in OpenAPI and 11 were absent. Presence is not functional proof: unauthenticated `GET /api/v1/cabinets` returned HTTP 500. The latest [raw retest log](../findings/2026-10-07-connectivity-retest.raw.log) and [handoff](../findings/2026-10-07-server-team-handoff.md) distinguish transport health from contract readiness.
 
-What has *not* changed is that every number here is a guess with a default, living in `config/settings.json`. See the settings table in [architecture.md](architecture.md).
-
-Endpoints 3 to 15 and 18 are built and checked by `python scripts/checkserver.py`. Endpoints 16, 17, 20 and 21 are written down here and **not built**. Endpoint 19 is built but does not yet make an account or check `hd`.
-
-**Changed 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md), and not yet built.** Endpoints 1 and 2 are retired, 19 becomes the way in, and 25 to 29 are new. `checkserver.py` still walks the old shape and will fail against the new one — that is expected until **P2-14**, and the rewrite of that script goes with it.
-
-Every number in here is a **guess with a default**, and every one of them lives in the settings file (task **P0-15**) so correcting it costs five minutes, not a release. See the settings table in [architecture.md](architecture.md).
-
-Still the most expensive document in the project. If the **shape** changes after the screens are built, the screens are rebuilt. A number changing costs nothing. Task **P0-04**.
+All paths in the tables are relative to an HTTPS base ending in `/api/v1`; for example, `POST /auth/google` means `POST https://giakhanh.tail2fb87d.ts.net/api/v1/auth/google`. The numeric defaults live in `config/settings.json`; the settings table in [architecture.md](architecture.md) explains them. Endpoint numbers identify product functions, not implementation order.
 
 Product: a parcel drop-off locker. See [ADR 0003](../adr/0003-parcel-locker-product.md) and [architecture.md](architecture.md).
 
 ## How to use this file
 
-- **We wrote all of it, and we serve all of it.** Paths, fields, error codes, numbers.
+- **This is the target for the public API.** A route appearing in OpenAPI is only the first check; its request fields, response fields, refusal codes, authorization, and side effects must match too.
 - **A shape change is a three-sided change.** The server writes it, the app reads it, and the cabinet screen carries it. Changing one and not the others is how a scan starts failing with nothing in either build saying why.
 - **The hardware team gets the part that touches them**, and only that: [cabinet-firmware.md](cabinet-firmware.md). Two calls, one key, one rule.
 
-Paths are a suggestion and cost almost nothing to change: every call in the app goes through one file (task P1-04), so renaming them all is a ten-minute job.
+These paths and fields are the integration target. Coordinate any change with the Android and cabinet callers before deployment.
+
+## Public-server completion list (2026-10-07)
+
+The public transport retest passed: HTTP health returned 200 with `api`, `redis`, and `mqtt` true; the two app WebSocket paths upgraded with HTTP 101 and then closed an unauthenticated probe with code 1008. MQTT TLS and WSS accepted connections and rejected an unauthenticated MQTT CONNECT, as expected. These checks used no account, cabinet key, or door command. They do **not** establish that sign-in, booking, notifications, or a physical door works.
+
+The live OpenAPI has these **11 missing non-retired method/path pairs**. Add them under `/api/v1` with the behavior in the tables below; existing legacy shipper/guest routes may remain separate:
+
+| Function | Missing public routes |
+| --- | --- |
+| Cabinet session and receiver lookup | `GET /cabinet/session`, `GET /cabinet/receiver` |
+| Cabinet drop, close, and name confirmation | `POST /cabinet/drop`, `POST /cabinet/door-closed`, `POST /cabinet/confirm-name` |
+| Physical command and fault reporting | `GET /cabinet/commands`, `POST /cabinet/command-done`, `POST /cabinet/fault` |
+| Pickup backup and cabinet map | `POST /cabinet/collect-by-code`, `GET /cabinet/free` |
+| Push registration | `POST /devices` |
+
+Two more paths, `POST /auth/request-code` and `POST /auth/verify-code`, are **retired by ADR 0026** but still called by older app UI controls. They are not blockers for the Google-led test flow. Before releasing that UI, either remove/hide those controls or explicitly support and test the legacy code flow; do not count an OTP verification response as a Google session. The offline routes 16 and 17 below have no current caller and are outside the initial online door test.
+
+The **15 present method/path pairs still need compatibility checks**. The public observations identify these concrete changes:
+
+| Route | Public server at retest | Required by the app/cabinet contract |
+| --- | --- | --- |
+| `POST /auth/google` | Request schema requires `id_token`; response schema has `token`, `expires` | Accept `id_token` and the app's `full_name`; return `token` and UTC `expires_at`. Verify Google's signature, audience, issuer, expiry, and VGU `hd` server-side. |
+| `POST /auth/password-login` | Response schema has `token`, `expires` | Return `token` and UTC `expires_at`; preserve the one-code `WRONG_PASSWORD` refusal rule. |
+| `POST /bookings` | Requires `cabinet_ref`, `parcel_size`; response has numeric `box_number`, `number_stored`, `expiry` | Accept `cabinet_ref`, `size`, and first-booking `phone_number`; return `booked`, `cabinet_ref`, `cabinet_name`, string `box_number` (for example `"04"`), `phone_number`, and UTC `expires_at`. `GET /bookings` should return the same shape or `{"booked":false}`. |
+| `POST /parcels/collect` | Requires `qr_session_code` | Accept `session_code` from the cabinet's `GET /cabinet/session`; return string `box_number` and `cabinet_name` after authorizing this receiver and this cabinet. |
+| `GET /cabinets` | Exists in OpenAPI, but an unauthenticated GET returned HTTP 500 | Return an intentional authorization refusal for an unauthenticated caller, and for an authorized receiver return a `cabinets` array whose entries have `ref`, `name`, `total`, `free_small`, `free_medium`, and `free_large` with real counts. |
+| `GET /settings` | HTTP 200 with help contact fields and `max_parcel_days`; no `settings_version` | Return the versioned numeric settings in `config/settings.json` (except `server_base_url`) so installed apps can accept corrections. |
+| Auth-required reads | Unauthenticated `/me`, `/parcels`, and `/bookings` returned 401 `{"detail":"Authentication required"}` | Return a top-level stable `code` on planned refusals, for example `{"code":"TOKEN_EXPIRED","message":"..."}`. Both clients dispatch on `code`; `detail` alone becomes an unclear error. Authenticated success payloads remain unverified. |
+
+The app currently parses `token` and `expires_at`, `parcels`, `events`, `cabinets`, and top-level refusal `code`. A 2xx response with missing keys can look like an empty list or blank field, so OpenAPI presence alone is insufficient. The exact callers are [Android `Api.kt`](../../src/app/src/main/kotlin/vn/edu/vgu/smartlocker/net/Api.kt), [Android `Models.kt`](../../src/app/src/main/kotlin/vn/edu/vgu/smartlocker/net/Models.kt), and [cabinet `net.js`](../../src/cabinet/net.js). The FastAPI branch in draft PR #1 implements the target routes against separate `app_*` tables; its [deployment note](https://github.com/TonyStark1616/VGU-Smart-Locker/blob/integration/app-contract-2026-10-07/docs/APP_CONTRACT_DEPLOYMENT.md) covers migration and credentials. That branch has local tests, but no public deployment or live auth/door proof.
+
+**Gate before a live door-opening test:** deploy the compatible routes and database migration; configure the Android Google client ID and a test VGU account; provision one test cabinet key; connect the cabinet command consumer to its relay/ESP32; and have the cabinet report a real `door-closed` event. First prove sign-in and a 401 refusal shape, then booking/lookup, then cabinet session and QR collection against a designated test parcel. A route returning `box_number` only proves a command was queued, not that a door opened. Observe the physical door and the resulting parcel/box state before calling the flow ready.
 
 ## Two callers, not one
 
@@ -43,10 +67,10 @@ A call from the cabinet may never return a full name, a phone number, or a list 
 | --- | --- |
 | Transport | HTTPS only. No plain HTTP, not even in test. **Fixed, not a setting** |
 | Format | JSON |
-| Auth — app | Receiver token in the request header, issued by Google sign-in at endpoint 19 |
-| Auth — cabinet | Cabinet key in the request header, on every call |
+| Auth — app | `Authorization: Bearer <receiver token>`, issued by Google sign-in at endpoint 19 |
+| Auth — cabinet | `X-Cabinet-Key: <device key>` on every cabinet call; never sent to the phone |
 | Time | UTC, ISO 8601, everywhere. **Our proposal** |
-| Errors | Every failure has a stable code the front-end can switch on, plus a message the server does **not** expect it to show raw |
+| Errors | Planned non-2xx refusals return JSON with top-level `code` and `message`, for example `{"code":"TOKEN_EXPIRED","message":"..."}`. The clients switch on `code` and do **not** show `message` raw |
 
 ## Endpoints — the phone app
 
@@ -108,7 +132,7 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 
 **Endpoint 25 takes a cabinet ref, because there is more than one cabinet.** A booking holds a door at a named cabinet, and a parcel dropped at a different one has no booking to match — it falls to rung B of the ladder below and takes any free box there.
 
-**Endpoint 30 was added on 2026-09-03, with P2-13, because the booking screen had nothing to name a cabinet with.** This file used to say the app reads the free doors from endpoint 18. It cannot: 18 takes a **cabinet key**, which a phone does not have and must never be given — a key on a phone is a cabinet in ten thousand pockets. 30 is the same question asked with a receiver token.
+**Endpoint 30 was added on 2026-09-03, with P2-13, because the booking screen needs cabinet names and free counts.** Endpoint 18 serves the detailed free-door map used by the Cabinet tab; a phone may call it with its receiver token and `cabinet_ref`. A phone must never receive a cabinet key. Endpoint 30 remains the count-only route for choosing where and what size to book.
 
 **It answers counts, never door numbers.** A phone choosing where to book needs to know *is there room*; the list of which specific doors stand empty is a map of that cabinet's occupancy, handed to anybody with an account and refreshed on demand. Endpoint 18 may return numbers because the caller is the cabinet itself and is about to draw them. Rule 6 in [architecture.md](architecture.md) is about what crosses the wire.
 
@@ -148,7 +172,7 @@ The receiver books before the parcel arrives. This is what makes the phone numbe
 | 11 | Start a drop | `POST /cabinet/drop` | cabinet key, receiver ref, parcel size | which box opened, or a refusal code |
 | 28 | **Is this the name on the parcel?** | `POST /cabinet/confirm-name` | cabinet key, the number already typed, the name off the label | the same four fields as 10. **Never a list, never a number** |
 | 12 | **A door closed** | `POST /cabinet/door-closed` | cabinet key, box number, drop or collect | recorded, and what the server did next. **The server works the purpose out itself** and logs a disagreement — see below |
-| 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, the typed code | which box opened, or a refusal code |
+| 13 | **Pick up by typed code — the backup path** | `POST /cabinet/collect-by-code` | cabinet key, box number, the typed code | which box opened, or a refusal code |
 | 14 | Report a faulty box | `POST /cabinet/fault` | cabinet key, box number, what happened | ok |
 | 22 | **Anything for me to do?** | `GET /cabinet/commands` | cabinet key | a list of doors to open, each with an id and **why it is opening** — `drop` or `collect` |
 | 23 | That is done | `POST /cabinet/command-done` | cabinet key, command id, result | ok |
@@ -279,9 +303,9 @@ Nothing here is an API call. Both sides already hold what they need.
 | # | What the caller wants | Path we propose | Sends | Gets back |
 | --- | --- | --- | --- | --- |
 | 15 | Get the current settings | `GET /settings` | token, or cabinet key | `settings_version`, and the numbers below it |
-| 18 | **Which boxes at a cabinet are free** | `GET /cabinet/free` | token, cabinet ref | how many boxes exist, and **which numbers are free** |
+| 18 | **Which boxes at a cabinet are free** | `GET /cabinet/free` | receiver token and cabinet ref, or cabinet key | how many boxes exist, and **which numbers are free** |
 
-**Endpoint 18 is new, and the app cannot draw its cabinet screen without it.** The receiver's Cabinet tab shows the real cabinet with the free doors marked, so a student can tell a shipper *"use the back gate one, it has room"* before the shipper walks over. Endpoint 5 lists only that receiver's own parcels, which cannot answer it. Task **P4-06**.
+**Endpoint 18 supplies the Cabinet tab's free-door map.** The receiver uses a token plus `cabinet_ref`; a cabinet may use its own key. The response contains no occupant identity. Endpoint 5 lists only that receiver's own parcels, which cannot answer whether other doors are free. Task **P4-06**.
 
 Two rules on what it may return, both from [architecture.md](architecture.md) rule 6:
 
@@ -373,23 +397,8 @@ Every failure the server can send, with the code we propose and the exact words 
 
 ## What is still open
 
-Three of the four questions on this list were addressed to the Server team. Two of them are now ours to answer and are answered; the rest are below.
+The public-server completion list above is the current online-flow work. The FastAPI integration branch implements these routes locally, but deployment, real Google authentication, cabinet command delivery, and a physical close event have not been proved on the public host. Do not schedule an unattended door test until those checks pass with a designated test cabinet.
 
-**Answered, because we build the server now:**
+Endpoints 16 and 17 describe offline pickup and reconciliation. They are not called by the current app or cabinet UI and are not in the FastAPI integration branch; the live server advertises an `/auth/offline-secret` route, but its semantics and reconciliation partner were not verified. Offline operation needs a separate end-to-end test before anyone relies on it.
 
-- *How does a cabinet get its key, and how is it replaced if one is stolen?* The server issues it once, at `cabinet add`, and keeps only a hash. `cabinet rotate` replaces it and kills the old one. What remains of **P0-05** is the hardware half — what a person physically does at a cabinet — and that is in [cabinet-firmware.md](cabinet-firmware.md).
-- *Confirm the masked-name format.* Ours to decide, and decided: `maskName` in `Phone.kt` writes `Nguyễn V. A***`. **P0-08** is answered.
-
-**Still open, and now ours to decide:**
-
-1. **Endpoints 16, 17, 20 and 21 are written and not built.** Offline pickup, reconciliation and passwords. Nothing depends on them yet and none is on the path to a working pickup.
-2. **Endpoints 28, and rungs C to E of the ladder, are written and not built.** Tasks **P3-08** to **P3-11**. Endpoints 19, 25, 26, 27, 29 and 30 were built on 2026-09-03 (P2-11, P2-12, P2-13, P2-17).
-3. **What happens when every box is booked and none is full?** Twenty live bookings fill a twenty-box cabinet with nothing inside it. The 24-hour expiry and the one-per-account limit are what bound it, and a walk-up drop then falls to rung E and goes to ABO. If it bites, the answer written down in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) is to stop holding a specific door and hold only the claim. Nobody has seen it happen yet, because nobody has used this yet.
-
-**Answered on 2026-09-02 by [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md):**
-
-- *What does endpoint 10 return when two people share one phone number?* They cannot. The number is claimed at endpoint 25 and the second claim is refused with `PHONE_IN_USE`, naming nobody. The schema kept `UNIQUE` and that is now a chosen answer rather than an accident of it. **P3-03** is unblocked.
-
-**Still open for the hardware team:** the three questions at the end of [cabinet-firmware.md](cabinet-firmware.md) — how a key reaches a board, how long a latch needs, and what happens on a power cut mid-open.
-
-Everything else in this file is a number, and every number lives in the settings file. Want a different value? Change the setting. Endpoint 15 is built, so that reaches an installed phone; **P1-08** is the proof of it on a real one.
+The older SMS/code controls remain in the app although endpoints 1 and 2 were retired by ADR 0026. Resolve that UI-versus-contract mismatch before release. The hardware questions about provisioning a key, latch timing, and a power cut mid-open remain in [cabinet-firmware.md](cabinet-firmware.md). The policy for a cabinet full of unfilled bookings remains a product decision in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).

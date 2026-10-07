@@ -56,3 +56,82 @@
 2026-10-07T15:52:49.121772+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
 2026-10-07T15:52:49.340189+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'
 2026-10-07T15:59:35.362954+00:00 LOCAL_TAILSCALE: backend=Running; host=Legion-5-AHP9; dns=legion-5-ahp9.tail25fa89.ts.net.; peer_count=0; target_tailnet=tail2fb87d.ts.net; no same-tailnet peer available for direct host probes
+2026-10-07T16:20:30.636554+00:00 probe: read-only; no credentials, POST, or door command
+2026-10-07T16:20:30.766216+00:00 DNS: ['103.84.155.153', '103.84.155.217', '2403:2500:400:20::25a', '2403:2500:400:20::e8e']
+2026-10-07T16:20:31.720664+00:00 GET /api/v1/health: HTTP 200; bytes=113; body={"status":"healthy","services":{"api":true,"redis":true,"mqtt":true,"websocket_connections":0},"version":"2.0.0"}
+2026-10-07T16:20:31.921582+00:00 GET /docs: HTTP 200; bytes=955
+2026-10-07T16:20:32.126184+00:00 GET /redoc: HTTP 200; bytes=907
+2026-10-07T16:20:32.372452+00:00 GET /openapi.json: HTTP 200; bytes=35099; sha256=20710ab4e377cbb33e1c848adf778f4110403cc293f8b19416510b8725153aff; version=2.0.0; paths=30; contract_routes=['/auth/google', '/auth/password-login', '/auth/refresh', '/auth/logout', '/auth/set-password', '/me', '/parcels', '/parcels/collect', '/parcels/history', '/cabinets', '/settings', '/bookings', '/me/phone']
+2026-10-07T16:20:32.578117+00:00 GET /ws/notifications/probe: HTTP 404; bytes=22; server=nginx/1.31.6; body='{"detail":"Not Found"}'
+2026-10-07T16:20:32.778553+00:00 GET /ws/doesnotexist: HTTP 404; bytes=22; server=nginx/1.31.6; body='{"detail":"Not Found"}'
+2026-10-07T16:20:33.633798+00:00 WSS notifications :443: OPEN (HTTP 101); negotiated_subprotocol=None
+2026-10-07T16:20:33.930294+00:00 WSS notifications :443: ConnectionClosedError: received 1008 (policy violation) Unauthorized; then sent 1008 (policy violation) Unauthorized; headers=None
+2026-10-07T16:20:35.113204+00:00 WSS locker :443: OPEN (HTTP 101); negotiated_subprotocol=None
+2026-10-07T16:20:35.409663+00:00 WSS locker :443: ConnectionClosedError: received 1008 (policy violation) Unauthorized; then sent 1008 (policy violation) Unauthorized; headers=None
+2026-10-07T16:20:36.483022+00:00 WSS invalid control :443: InvalidStatusCode: server rejected WebSocket connection: HTTP 403; headers={'content-length': '0', 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';", 'content-type': 'text/plain', 'date': 'Wed, 07 Oct 2026 16:20:39 GMT', 'referrer-policy': 'strict-origin-when-cross-origin', 'server': 'nginx/1.31.6', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'x-xss-protection': '1; mode=block'}
+2026-10-07T16:20:37.146064+00:00 MQTT TLS :8443: handshake=TLSv1.3; peer=((('commonName', 'giakhanh.tail2fb87d.ts.net'),),)
+2026-10-07T16:20:37.465431+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
+2026-10-07T16:20:38.517234+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
+2026-10-07T16:20:38.791309+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'
+2026-10-07T16:21:10.986582+00:00 CONTRACT_METHOD_AUDIT: openapi_http=200; expected=28; present=15; missing=13
+  PRESENT DELETE /bookings
+  PRESENT GET /bookings
+  PRESENT GET /cabinets
+  PRESENT GET /me
+  PRESENT GET /parcels
+  PRESENT GET /parcels/history
+  PRESENT GET /settings
+  PRESENT POST /auth/google
+  PRESENT POST /auth/logout
+  PRESENT POST /auth/password-login
+  PRESENT POST /auth/refresh
+  PRESENT POST /auth/set-password
+  PRESENT POST /bookings
+  PRESENT POST /parcels/collect
+  PRESENT PUT /me/phone
+  MISSING GET /cabinet/commands
+  MISSING GET /cabinet/free
+  MISSING GET /cabinet/receiver
+  MISSING GET /cabinet/session
+  MISSING POST /auth/request-code
+  MISSING POST /auth/verify-code
+  MISSING POST /cabinet/collect-by-code
+  MISSING POST /cabinet/command-done
+  MISSING POST /cabinet/confirm-name
+  MISSING POST /cabinet/door-closed
+  MISSING POST /cabinet/drop
+  MISSING POST /cabinet/fault
+  MISSING POST /devices
+  LIVE_EXTRA GET /admin/lockers
+  LIVE_EXTRA GET /admin/security-events
+  LIVE_EXTRA GET /admin/stats
+  LIVE_EXTRA GET /admin/users
+  LIVE_EXTRA GET /guest/pin-status/{pin}
+  LIVE_EXTRA GET /health
+  LIVE_EXTRA GET /lockers/{unit_code}
+  LIVE_EXTRA GET /lockers/{unit_code}/compartments
+  LIVE_EXTRA GET /transactions/active-lockers/{phone_number}
+  LIVE_EXTRA GET /transactions/my-transactions
+  LIVE_EXTRA POST /admin/lockers
+  LIVE_EXTRA POST /auth/offline-secret
+  LIVE_EXTRA POST /guest/retrieve
+  LIVE_EXTRA POST /guest/store
+  LIVE_EXTRA POST /lockers/sensor-update
+  LIVE_EXTRA POST /transactions/add-items
+  LIVE_EXTRA POST /transactions/deliver
+  LIVE_EXTRA POST /transactions/verify-qr-pickup
+  GET /api/v1/cabinets: HTTP 500; body='Internal Server Error'
+  GET /api/v1/me: HTTP 401; body='{"detail":"Authentication required"}'
+  GET /api/v1/parcels: HTTP 401; body='{"detail":"Authentication required"}'
+  GET /api/v1/bookings: HTTP 401; body='{"detail":"Authentication required"}'
+  GET /api/v1/settings: HTTP 200; body='{"help_phone":"19001560","help_email":"support@smartlocker.vgu.edu.vn","org_name":"Viet-German University","max_parcel_days":3}'
+  GET /api/v1/auth/me: HTTP 404; body='{"detail":"Not Found"}'
+
+2026-10-07T16:26:35.045671+00:00 SCHEMA_AUDIT: HTTP 200; paths=30
+2026-10-07T16:26:35.045699+00:00   GoogleLoginRequest: required=['id_token']; properties=['id_token']
+2026-10-07T16:26:35.045706+00:00   TokenResponse: required=['token', 'expires']; properties=['token', 'token_type', 'expires']
+2026-10-07T16:26:35.045713+00:00   BookingCreate: required=['cabinet_ref', 'parcel_size']; properties=['cabinet_ref', 'parcel_size', 'phone_number']
+2026-10-07T16:26:35.045720+00:00   BookingResponse: required=['cabinet_ref', 'box_number', 'number_stored', 'expiry']; properties=['cabinet_ref', 'box_number', 'number_stored', 'expiry']
+2026-10-07T16:26:35.045726+00:00   CollectRequest: required=['qr_session_code']; properties=['qr_session_code']
+2026-10-07T16:26:35.766572+00:00 GET /api/v1/health: HTTP 200; body='{"status":"healthy","services":{"api":true,"redis":true,"mqtt":true,"websocket_connections":0},"version":"2.0.0"}'
+2026-10-07T16:26:36.537886+00:00 GET /api/v1/cabinets: HTTP 500; body='Internal Server Error'
