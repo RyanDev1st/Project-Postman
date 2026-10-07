@@ -1,8 +1,12 @@
 # Server team handoff: Funnel, broker, and app contract
 
+The API implementation is on the server repository's separate branch [`integration/app-contract-2026-10-07`](https://github.com/TonyStark1616/VGU-Smart-Locker/tree/integration/app-contract-2026-10-07), with [draft PR #1](https://github.com/TonyStark1616/VGU-Smart-Locker/pull/1). It is not merged or deployed. Its deployment note lists migration, Google/FCM credentials, cabinet-key setup, and the still-missing ESP32 command bridge and two offline routes. The live results below therefore describe the existing server, not that branch.
+
 Observed 2026-10-07 from the IT team's Windows machine. Raw requests and responses are in [the connection log](2026-10-07-server-connectivity.raw.log). The Tailscale console screenshot shows the Windows 11 machine `giakhanh` connected with Funnel enabled; it does not show individual Funnel ports or Docker service health. The live OpenAPI document identifies API version 2.0.0 and has 21 paths.
 
-**Retest at 15:09–15:10 UTC:** [raw retest output](2026-10-07-connectivity-retest.raw.log) supersedes the earlier 8443 and 10000 failure rows below. Public MQTT transport is now reachable on both ports. The API's broker connection and public app WebSockets remain broken. No login, authenticated MQTT publish, or door action was attempted.
+**Latest retest at 15:41–15:42 UTC:** [raw retest output](2026-10-07-connectivity-retest.raw.log) now shows HTTP 502 for `/api/v1/health`, `/docs`, `/redoc`, `/openapi.json`, and all tested port-443 WebSocket upgrades. A second health request also returned 502. Public MQTT TLS on 8443 and MQTT WSS on 10000 still accepted handshakes and returned unauthenticated CONNACK `20 02 00 05`. The whole port-443 upstream path is unavailable from outside at this time; the public response cannot identify whether the backend, Nginx, or Funnel forwarding failed. On `giakhanh`, check `docker compose ps`, backend and Nginx logs, then compare `curl.exe http://127.0.0.1:8000/api/v1/health`, `curl.exe http://127.0.0.1:80/api/v1/health`, and the public URL in that order. Do not infer that the WebSocket-specific 403 issue is fixed while port 443 is returning 502.
+
+**Earlier retest at 15:09–15:10 UTC:** public MQTT transport became reachable on both ports, but the API reported `mqtt:false` and public app WebSockets returned 403. The table below records that earlier, last-readable API state; it is not the current port-443 result. No login, authenticated MQTT publish, or door action was attempted.
 
 | Retest probe | Exact observation | Interpretation / server-side next check |
 | --- | --- | --- |
