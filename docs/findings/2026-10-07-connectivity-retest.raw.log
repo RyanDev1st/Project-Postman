@@ -55,3 +55,4 @@
 2026-10-07T15:52:48.205168+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
 2026-10-07T15:52:49.121772+00:00 MQTT WSS :10000: OPEN (HTTP 101); negotiated_subprotocol=mqtt
 2026-10-07T15:52:49.340189+00:00 MQTT WSS :10000 CONNACK: b' \x02\x00\x05'
+2026-10-07T15:59:35.362954+00:00 LOCAL_TAILSCALE: backend=Running; host=Legion-5-AHP9; dns=legion-5-ahp9.tail25fa89.ts.net.; peer_count=0; target_tailnet=tail2fb87d.ts.net; no same-tailnet peer available for direct host probes
