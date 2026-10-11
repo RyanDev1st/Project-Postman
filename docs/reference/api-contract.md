@@ -22,7 +22,7 @@ The public HTTP health endpoint returned 200 with `api`, `redis`, and `mqtt` tru
 
 Unauthenticated `GET /cabinets`, `/settings`, `/me`, `/parcels`, and `/bookings` returned 401 with top-level `{"code":"TOKEN_EXPIRED"}`. Cabinet session and command reads without a key returned 401 `{"code":"CABINET_UNKNOWN"}`. An invalid Google ID token returned 400 `{"code":"GOOGLE_INVALID"}`, showing that the public Google route is active rather than disabled. Its successful account creation, `token`/`expires_at` response, VGU-domain check, and all authenticated data responses remain untested with a real account. OpenAPI specifies the request fields but leaves most success responses untyped, so route presence cannot settle those checks.
 
-The Android source now includes booking create/read/cancel, phone correction, and a free-door request for a single identified cabinet. The phone's typed-code page still points to the cabinet keypad: `POST /cabinet/collect-by-code` requires a device key, which the phone must never hold. The old SMS/code UI remains visible although endpoints 1 and 2 were retired by ADR 0026; use the Google-led path for the first live test and resolve that older UI before release.
+The Android integration includes booking create/read/cancel, phone correction, and a free-door request for a single identified cabinet. The phone's typed-code page points to the cabinet keypad: `POST /cabinet/collect-by-code` requires a device key, which the phone must never hold. The target sign-in path is Google only; [the dedicated auth contract](google-auth-contract.md) separates that path from older server compatibility routes.
 
 **Gate before a physical door test:** use a designated VGU test account to prove Google sign-in, `/me`, `/settings`, cabinet listing, and booking on a real phone; provision a test cabinet key; connect and observe the command consumer and relay/ESP32; then test a designated parcel's drop, session QR pickup, and real `door-closed` event. A route returning `box_number` proves only that a command was queued. Check the physical door and the resulting parcel/box state before calling the flow ready. Firebase notification delivery also needs a real device and server credentials.
 
@@ -48,53 +48,23 @@ A call from the cabinet may never return a full name, a phone number, or a list 
 | Auth — app | `Authorization: Bearer <receiver token>`, issued by Google sign-in at endpoint 19 |
 | Auth — cabinet | `X-Cabinet-Key: <device key>` on every cabinet call; never sent to the phone |
 | Time | UTC, ISO 8601, everywhere. **Our proposal** |
-| Errors | Planned non-2xx refusals return JSON with top-level `code` and `message`, for example `{"code":"TOKEN_EXPIRED","message":"..."}`. The clients switch on `code` and do **not** show `message` raw |
+| Errors | Planned non-2xx refusals return JSON with top-level `code`, for example `{"code":"TOKEN_EXPIRED"}`. `message` is optional; clients switch on `code` and do **not** show `message` raw |
 
 ## Endpoints — the phone app
 
-### Register and identity
+### Receiver identity: Google sign-in
 
-| # | What the app wants | Path we propose | Sends | Gets back |
-| --- | --- | --- | --- | --- |
-| ~~1~~ | ~~Ask for a one-time code~~ | ~~`POST /auth/request-code`~~ | — | **Removed 2026-09-02.** [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) |
-| ~~2~~ | ~~Send the one-time code back~~ | ~~`POST /auth/verify-code`~~ | — | **Removed 2026-09-02.** [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md) |
-| 3 | Refresh or check the token | `POST /auth/refresh` | token | new token, or not valid |
-| 4 | Log out | `POST /auth/logout` | token | ok |
-| 19 | **Sign in with Google. This is the way in** | `POST /auth/google` | Google ID token | token, expiry, or a refusal code |
+The [Google sign-in and receiver account contract](google-auth-contract.md) is the single source for OAuth setup, the ID-token exchange, first-account creation, VGU domain checks, sessions, and test cases. This table is only a route index. The target Android entry flow is Google-only; Firebase Authentication, SMS registration, and password sign-in are not part of it.
 
-**Numbers 1 and 2 are retired, not reused.** They are struck through above rather than deleted so that a build reading an older copy of this file, or a log line naming an endpoint, still resolves to something. Nothing new ever takes those numbers.
+| # | Purpose | Path | Caller |
+| --- | --- | --- | --- |
+| 19 | Sign in or create a receiver account from a verified Google ID token | `POST /auth/google` | Android app |
+| 3 | Exchange a valid app session for a new one | `POST /auth/refresh` | Android app session lifecycle |
+| 4 | End an app session | `POST /auth/logout` | Android app session lifecycle |
+| ~~1, 2~~ | ~~SMS request/verify~~ | `/auth/request-code`, `/auth/verify-code` | Retired from the receiver flow; old server compatibility routes may remain |
+| 20, 21 | Set password / sign in with phone and password | `/auth/set-password`, `/auth/password-login` | Legacy server compatibility only; not called by the current target Android sign-in UI |
 
-**Endpoint 19 makes the account.** This reverses [ADR 0011](../adr/0011-google-sign-in-no-passwords.md), which forbade it, and the reason 0011 gave — a Google account has no phone number, so nobody could ever send it a parcel — is answered by the booking at endpoint 25. See [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).
-
-The account is keyed on Google's `sub`, never on the email address, because a person can change their address and `sub` outlives it.
-
-**The domain is the gate.** The ID token must carry an `hd` claim on a VGU domain:
-
-| `hd` | Answer |
-| --- | --- |
-| `vgu.edu.vn` | Staff and teachers. Allowed |
-| `student.vgu.edu.vn`, or anything else under `.vgu.edu.vn` | Students. Allowed |
-| Absent | Refused with `GOOGLE_DOMAIN`. A personal Gmail carries no `hd`, so requiring it is what keeps personal accounts out |
-| Anything else | Refused with `GOOGLE_DOMAIN` |
-
-The test is `hd == "vgu.edu.vn" || hd.endsWith(".vgu.edu.vn")`. **The leading dot is the check**: without it, `endsWith("vgu.edu.vn")` also accepts `notvgu.edu.vn`, which anybody can register for a few dollars. The allowed domains live in `google_allowed_domains` in `config/settings.json`, so a new subdomain is a text edit rather than a release. The claim read is `hd` and never the email address, which can be an alias.
-
-A signed-in account with no phone number yet is a normal state, not an error. It can read its own parcels and its own settings; it cannot be sent a parcel until it books at endpoint 25.
-
-| # | What the app wants | Path we propose | Sends | Gets back |
-| --- | --- | --- | --- | --- |
-| 20 | Set or change the password | `POST /auth/set-password` | token, new password | ok, or a refusal code |
-| 21 | Sign in with a password | `POST /auth/password-login` | phone number, password | token, expiry, or a refusal code |
-
-**Endpoints 20 and 21 carry no email address, and there is no register-with-a-password route.** A password is set on an account that already exists, and you sign in with the phone number that account booked with. Decided in [ADR 0012](../adr/0012-passwords-on-a-phone-account.md). Task **P2-09**.
-
-**There is no password reset endpoint and no reset email.** Forgetting a password is endpoint 19, then endpoint 20 — sign in with Google, set a new one. Until 2026-09-02 that path was endpoints 1 and 2; the shape is unchanged, only the door. Setting a password clears any lockout, because the person just proved themselves another way.
-
-**Endpoint 21 needs an account that has booked at least once.** Signing in by password takes a phone number, and an account that has never booked has none. Such an account signs in with Google, which it must have to exist at all.
-
-**Hashing is Argon2id** at OWASP's minimum, with the parameters stored inside each hash so they can be raised later without stranding what came before. **Five wrong tries lock the account for fifteen minutes, and that counter is on disk** — a counter in memory resets when the process dies, so anyone who can crash the server gets their guesses back.
-
-**The server checks the ID token itself, offline** — signature against Google's published keys, `iss`, `aud` equal to our own client id, `exp`, and now `hd`. It never asks Google's tokeninfo endpoint, which would put the network and a rate limit on the login path. Task **P2-08**; the domain check is **P2-11**.
+A Google account can exist here without a phone number. The receiver supplies one at the first booking, endpoint 25. The verified Google `sub` owns the account; email is not an account key. A VGU-looking email address alone does not pass the domain gate: the server checks the signed Workspace `hd` claim. See the linked contract for the exact accepted values and the current server implementation gaps.
 
 ### Booking a box
 
@@ -361,11 +331,11 @@ Every failure the server can send, with the code we propose and the exact words 
 
 **`PHONE_INVALID` survives the removal of the code, and matters more than it did.** It means the number is not a Vietnamese mobile — `Phone.normalise` accepts `+84908619328`, `0908619328` and `908619328`, stores one form, and refuses a landline or a service range. With no code being sent, that check is the **only** automatic guard standing between a typo and a parcel handed to the wrong student, which is why it gets its first tests in the shipped server at task **P2-15**.
 
-**`RATE_LIMITED` and `SEND_FAILED` are retired with the code path.** Both described an SMS provider that no longer exists in this system.
+**`RATE_LIMITED` and `SEND_FAILED` are retired from the target Android flow.** They may still appear on older server SMS compatibility routes.
 
-**Endpoints 20 and 21 add three more.** `PASSWORD_TOO_SHORT` and `PASSWORD_TOO_LONG` are the only rules on a password, and they come back from endpoint 20 only. `WRONG_PASSWORD` is the single answer endpoint 21 ever gives: it covers a wrong password, a locked-out account, and a phone number nobody has registered, on purpose. Telling them apart would answer two questions a sign-in screen must not answer — whether that number is a user here, and whether the lockout has started. It is the same rule `CODE_REJECTED` follows at the keypad, and the rule the retired `WRONG_CODE` followed before it.
+**Endpoints 20 and 21 are legacy server compatibility.** Their password refusal codes remain server-side but are not part of the current target Android entry flow.
 
-**Endpoint 19 adds three more.** `GOOGLE_INVALID` covers every way an ID token can be wrong, in one code and on purpose: telling a caller *which* check failed helps only somebody probing it. `GOOGLE_OFF` means no client id is configured on that server, so the app must hide the Google button rather than show one that cannot work. `GOOGLE_DOMAIN` is the one exception to the single-answer rule, and deliberately: a student signing in with a personal Gmail has made an ordinary mistake and needs to be told which account to use, and the fact that this system only serves VGU is not a secret — it is written on the cabinet.
+**Endpoint 19's refusals are defined in the [Google auth contract](google-auth-contract.md).** `GOOGLE_INVALID` does not expose which token check failed; `GOOGLE_OFF` means the server lacks its Web client ID; `GOOGLE_DOMAIN` tells a person to choose a VGU-managed account. The app cannot infer server configuration from its own build-time client ID.
 
 **`PHONE_REQUIRED` changed meaning on 2026-09-02.** It used to be the cue to ask for a phone number and a one-time code. There is no code, and the account already exists by the time it can be returned — so it is now the cue to send the person to the booking screen, endpoint 25. It is still not a failure.
 
@@ -379,4 +349,4 @@ The online routes now appear on the public host. Real Google authentication, aut
 
 Endpoints 16 and 17 describe offline pickup and reconciliation. They are not called by the current app or cabinet UI and are not in the FastAPI integration branch; the live server advertises an `/auth/offline-secret` route, but its semantics and reconciliation partner were not verified. Offline operation needs a separate end-to-end test before anyone relies on it.
 
-The older SMS/code controls remain in the app although endpoints 1 and 2 were retired by ADR 0026. Resolve that UI-versus-contract mismatch before release. The hardware questions about provisioning a key, latch timing, and a power cut mid-open remain in [cabinet-firmware.md](cabinet-firmware.md). The policy for a cabinet full of unfilled bookings remains a product decision in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).
+The target Android sign-in is Google-only; older SMS/password routes in the server remain separate compatibility work. The hardware questions about provisioning a key, latch timing, and a power cut mid-open remain in [cabinet-firmware.md](cabinet-firmware.md). The policy for a cabinet full of unfilled bookings remains a product decision in [ADR 0026](../adr/0026-the-booking-makes-the-number-true.md).
