@@ -1,8 +1,8 @@
 # API contract — app and cabinet ↔ server
 
-**Target contract, not a live-server completion claim (2026-10-07).** This file defines the app and cabinet workflow the public `/api/v1` API must serve. The earlier “built” status referred to this repository's Kotlin `src/server/` implementation, not the separately deployed FastAPI server. [ADR 0019](../adr/0019-we-own-the-server.md) records that earlier ownership decision; the API team now also maintains the separate [FastAPI integration branch](https://github.com/TonyStark1616/VGU-Smart-Locker/tree/integration/app-contract-2026-10-07) in [draft PR #1](https://github.com/TonyStark1616/VGU-Smart-Locker/pull/1). That branch is not merged or deployed. Do not infer production behavior from either repository's source alone.
+**Target contract and live route audit (2026-10-11).** This file defines the receiver and cabinet workflow for the public `/api/v1` API. The FastAPI implementation was merged into the server repository's `main` in [PR #1](https://github.com/TonyStark1616/VGU-Smart-Locker/pull/1) on October 8. The older “built” status in this file referred to this repository's Kotlin `src/server/`, not the public host. Route presence is now verified below; authenticated success and physical doors still require their own tests.
 
-The live public server exposed 30 OpenAPI paths at the 2026-10-07 16:20 UTC retest. Of the 26 non-retired HTTP method/path pairs below, 15 appeared in OpenAPI and 11 were absent. Presence is not functional proof: unauthenticated `GET /api/v1/cabinets` returned HTTP 500. The latest [raw retest log](../findings/2026-10-07-connectivity-retest.raw.log) and [handoff](../findings/2026-10-07-server-team-handoff.md) distinguish transport health from contract readiness.
+The live public server exposed 50 OpenAPI paths at the 2026-10-11 09:43 UTC retest. All 26 non-retired method/path pairs below appeared. The [raw retest log](../findings/2026-10-11-connectivity-retest.raw.log) records the HTTP, WebSocket, MQTT, and refusal responses; the [integration status](../findings/2026-10-11-live-integration.md) separates transport proof from the remaining account and door tests. The [October 7 handoff](../findings/2026-10-07-server-team-handoff.md) is historical; its earlier missing-route and 502 findings no longer describe the live host.
 
 All paths in the tables are relative to an HTTPS base ending in `/api/v1`; for example, `POST /auth/google` means `POST https://giakhanh.tail2fb87d.ts.net/api/v1/auth/google`. The numeric defaults live in `config/settings.json`; the settings table in [architecture.md](architecture.md) explains them. Endpoint numbers identify product functions, not implementation order.
 
@@ -16,39 +16,15 @@ Product: a parcel drop-off locker. See [ADR 0003](../adr/0003-parcel-locker-prod
 
 These paths and fields are the integration target. Coordinate any change with the Android and cabinet callers before deployment.
 
-## Public-server completion list (2026-10-07)
+## Live verification and remaining gates (2026-10-11)
 
-The public transport retest passed: HTTP health returned 200 with `api`, `redis`, and `mqtt` true; the two app WebSocket paths upgraded with HTTP 101 and then closed an unauthenticated probe with code 1008. MQTT TLS and WSS accepted connections and rejected an unauthenticated MQTT CONNECT, as expected. These checks used no account, cabinet key, or door command. They do **not** establish that sign-in, booking, notifications, or a physical door works.
+The public HTTP health endpoint returned 200 with `api`, `redis`, and `mqtt` true. `/docs`, `/redoc`, and `/openapi.json` returned 200; OpenAPI listed **all 26 active method/path pairs** below. The two app WebSocket paths upgraded with HTTP 101 and then closed the unauthenticated probe with code 1008. MQTT TLS on 8443 and MQTT WSS on 10000 accepted connections and rejected an unauthenticated MQTT CONNECT with CONNACK `20 02 00 05`. These are transport and route checks, not authenticated messaging or door proof.
 
-The live OpenAPI has these **11 missing non-retired method/path pairs**. Add them under `/api/v1` with the behavior in the tables below; existing legacy shipper/guest routes may remain separate:
+Unauthenticated `GET /cabinets`, `/settings`, `/me`, `/parcels`, and `/bookings` returned 401 with top-level `{"code":"TOKEN_EXPIRED"}`. Cabinet session and command reads without a key returned 401 `{"code":"CABINET_UNKNOWN"}`. An invalid Google ID token returned 400 `{"code":"GOOGLE_INVALID"}`, showing that the public Google route is active rather than disabled. Its successful account creation, `token`/`expires_at` response, VGU-domain check, and all authenticated data responses remain untested with a real account. OpenAPI specifies the request fields but leaves most success responses untyped, so route presence cannot settle those checks.
 
-| Function | Missing public routes |
-| --- | --- |
-| Cabinet session and receiver lookup | `GET /cabinet/session`, `GET /cabinet/receiver` |
-| Cabinet drop, close, and name confirmation | `POST /cabinet/drop`, `POST /cabinet/door-closed`, `POST /cabinet/confirm-name` |
-| Physical command and fault reporting | `GET /cabinet/commands`, `POST /cabinet/command-done`, `POST /cabinet/fault` |
-| Pickup backup and cabinet map | `POST /cabinet/collect-by-code`, `GET /cabinet/free` |
-| Push registration | `POST /devices` |
+The Android source now includes booking create/read/cancel, phone correction, and a free-door request for a single identified cabinet. The phone's typed-code page still points to the cabinet keypad: `POST /cabinet/collect-by-code` requires a device key, which the phone must never hold. The old SMS/code UI remains visible although endpoints 1 and 2 were retired by ADR 0026; use the Google-led path for the first live test and resolve that older UI before release.
 
-Two more paths, `POST /auth/request-code` and `POST /auth/verify-code`, are **retired by ADR 0026** but still called by older app UI controls. They are not blockers for the Google-led test flow. Before releasing that UI, either remove/hide those controls or explicitly support and test the legacy code flow; do not count an OTP verification response as a Google session. The offline routes 16 and 17 below have no current caller and are outside the initial online door test.
-
-The booking and phone-correction routes are target product behavior, but the current Android `Api.kt` does not yet call `POST/GET/DELETE /bookings` or `PUT /me/phone`. The API team can verify those routes with a dedicated test client while the app wiring is finished; do not count their appearance in OpenAPI as a working booking button. The typed-code phone screen is also a local placeholder, while cabinet pickup-by-code is a device-key route.
-
-The **15 present method/path pairs still need compatibility checks**. The public observations identify these concrete changes:
-
-| Route | Public server at retest | Required by the app/cabinet contract |
-| --- | --- | --- |
-| `POST /auth/google` | Request schema requires `id_token`; response schema has `token`, `expires` | Accept `id_token` and the app's `full_name`; return `token` and UTC `expires_at`. Verify Google's signature, audience, issuer, expiry, and VGU `hd` server-side. |
-| `POST /auth/password-login` | Response schema has `token`, `expires` | Return `token` and UTC `expires_at`; preserve the one-code `WRONG_PASSWORD` refusal rule. |
-| `POST /bookings` | Requires `cabinet_ref`, `parcel_size`; response has numeric `box_number`, `number_stored`, `expiry` | Accept `cabinet_ref`, `size`, and first-booking `phone_number`; return `booked`, `cabinet_ref`, `cabinet_name`, string `box_number` (for example `"04"`), `phone_number`, and UTC `expires_at`. `GET /bookings` should return the same shape or `{"booked":false}`. |
-| `POST /parcels/collect` | Requires `qr_session_code` | Accept `session_code` from the cabinet's `GET /cabinet/session`; return string `box_number` and `cabinet_name` after authorizing this receiver and this cabinet. |
-| `GET /cabinets` | Exists in OpenAPI, but an unauthenticated GET returned HTTP 500 | Return an intentional authorization refusal for an unauthenticated caller, and for an authorized receiver return a `cabinets` array whose entries have `ref`, `name`, `total`, `free_small`, `free_medium`, and `free_large` with real counts. |
-| `GET /settings` | HTTP 200 with help contact fields and `max_parcel_days`; no `settings_version` | Return the versioned numeric settings in `config/settings.json` (except `server_base_url`) so installed apps can accept corrections. |
-| Auth-required reads | Unauthenticated `/me`, `/parcels`, and `/bookings` returned 401 `{"detail":"Authentication required"}` | Return a top-level stable `code` on planned refusals, for example `{"code":"TOKEN_EXPIRED","message":"..."}`. Both clients dispatch on `code`; `detail` alone becomes an unclear error. Authenticated success payloads remain unverified. |
-
-The app currently parses `token` and `expires_at`, `parcels`, `events`, `cabinets`, and top-level refusal `code`. A 2xx response with missing keys can look like an empty list or blank field, so OpenAPI presence alone is insufficient. The exact callers are [Android `Api.kt`](../../src/app/src/main/kotlin/vn/edu/vgu/smartlocker/net/Api.kt), [Android `Models.kt`](../../src/app/src/main/kotlin/vn/edu/vgu/smartlocker/net/Models.kt), and [cabinet `net.js`](../../src/cabinet/net.js). The FastAPI branch in draft PR #1 implements the target routes against separate `app_*` tables; its [deployment note](https://github.com/TonyStark1616/VGU-Smart-Locker/blob/integration/app-contract-2026-10-07/docs/APP_CONTRACT_DEPLOYMENT.md) covers migration and credentials. That branch has local tests, but no public deployment or live auth/door proof.
-
-**Gate before a live door-opening test:** deploy the compatible routes and database migration; configure the Android Google client ID and a test VGU account; provision one test cabinet key; connect the cabinet command consumer to its relay/ESP32; and have the cabinet report a real `door-closed` event. First prove sign-in and a 401 refusal shape, then booking/lookup, then cabinet session and QR collection against a designated test parcel. A route returning `box_number` only proves a command was queued, not that a door opened. Observe the physical door and the resulting parcel/box state before calling the flow ready.
+**Gate before a physical door test:** use a designated VGU test account to prove Google sign-in, `/me`, `/settings`, cabinet listing, and booking on a real phone; provision a test cabinet key; connect and observe the command consumer and relay/ESP32; then test a designated parcel's drop, session QR pickup, and real `door-closed` event. A route returning `box_number` proves only that a command was queued. Check the physical door and the resulting parcel/box state before calling the flow ready. Firebase notification delivery also needs a real device and server credentials.
 
 ## Two callers, not one
 
@@ -399,7 +375,7 @@ Every failure the server can send, with the code we propose and the exact words 
 
 ## What is still open
 
-The public-server completion list above is the current online-flow work. The FastAPI integration branch implements these routes locally, but deployment, real Google authentication, cabinet command delivery, and a physical close event have not been proved on the public host. Do not schedule an unattended door test until those checks pass with a designated test cabinet.
+The online routes now appear on the public host. Real Google authentication, authenticated parcel and booking responses, cabinet command delivery, and a physical close event have not been proved there. Do not schedule an unattended door test until those checks pass with a designated test cabinet.
 
 Endpoints 16 and 17 describe offline pickup and reconciliation. They are not called by the current app or cabinet UI and are not in the FastAPI integration branch; the live server advertises an `/auth/offline-secret` route, but its semantics and reconciliation partner were not verified. Offline operation needs a separate end-to-end test before anyone relies on it.
 

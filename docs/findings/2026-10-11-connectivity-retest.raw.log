@@ -1,0 +1,28 @@
+2026-10-11T09:42:57.319096+00:00 PROBE: read-only HTTP/WS and unauthenticated MQTT; no credentials, account mutation, or door commands
+2026-10-11T09:42:57.441955+00:00 DNS: ['103.84.155.153', '103.84.155.217', '2403:2500:400:20::25a', '2403:2500:400:20::e8e']
+2026-10-11T09:42:58.490845+00:00 GET /api/v1/health: HTTP 200; body='{"status":"healthy","services":{"api":true,"redis":true,"mqtt":true,"websocket_connections":0},"version":"2.0.0"}'
+2026-10-11T09:42:59.330549+00:00 GET /docs: HTTP 200; body='\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css">\n    <link rel="shortcut icon" href="https://fastapi.tiangolo.com/img/favicon.png">\n    <title>Smart Locker System API - Swagger UI</title>\n    </head>\n    <body>\n    <div id="swagger-ui">\n    </div>\n    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"><'
+2026-10-11T09:43:00.159305+00:00 GET /redoc: HTTP 200; body='\n    <!DOCTYPE html>\n    <html>\n    <head>\n    <title>Smart Locker System API - ReDoc</title>\n    <!-- needed for adaptive design -->\n    <meta charset="utf-8"/>\n    <meta name="viewport" content="width=device-width, initial-scale=1">\n    \n    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">\n    \n    <link rel="shortcut icon" href="https://fastapi.tiangolo.com/img/favicon.png">\n    <'
+2026-10-11T09:43:01.579846+00:00 GET /openapi.json: HTTP 200; bytes=54564; sha256=a1c9394bdcc7ab7046b03fea565834cc10c2429dffbc1e644482d1a9919570b4; paths=50
+2026-10-11T09:43:02.406076+00:00 GET /api/v1/cabinets: HTTP 401; body='{"code":"TOKEN_EXPIRED"}'
+2026-10-11T09:43:03.299203+00:00 GET /api/v1/settings: HTTP 401; body='{"code":"TOKEN_EXPIRED"}'
+2026-10-11T09:43:04.109661+00:00 GET /api/v1/me: HTTP 401; body='{"code":"TOKEN_EXPIRED"}'
+2026-10-11T09:43:04.931280+00:00 GET /api/v1/parcels: HTTP 401; body='{"code":"TOKEN_EXPIRED"}'
+2026-10-11T09:43:05.822474+00:00 GET /api/v1/bookings: HTTP 401; body='{"code":"TOKEN_EXPIRED"}'
+2026-10-11T09:43:06.667422+00:00 GET /api/v1/cabinet/session: HTTP 401; body='{"code":"CABINET_UNKNOWN"}'
+2026-10-11T09:43:07.616955+00:00 GET /api/v1/cabinet/commands: HTTP 401; body='{"code":"CABINET_UNKNOWN"}'
+2026-10-11T09:43:07.617032+00:00 CONTRACT: present=26/26; missing=[]
+2026-10-11T09:43:07.617045+00:00 SCHEMA GoogleSignIn: required=['id_token']; properties=['id_token', 'full_name']
+2026-10-11T09:43:07.617052+00:00 SCHEMA TokenResponse: required=['access_token', 'expires_in', 'user_id']; properties=['access_token', 'token_type', 'expires_in', 'user_id']
+2026-10-11T09:43:07.617056+00:00 SCHEMA BookingRequest: required=['cabinet_ref']; properties=['cabinet_ref', 'size', 'phone_number']
+2026-10-11T09:43:07.617060+00:00 SCHEMA CollectRequest: required=['session_code']; properties=['session_code']
+2026-10-11T09:43:08.572365+00:00 WSS notifications :443: HTTP 101; subprotocol=None
+2026-10-11T09:43:08.797953+00:00 WSS notifications :443 CLOSE: ConnectionClosedError(Close(code=1008, reason='Unauthorized'), Close(code=1008, reason='Unauthorized'), True)
+2026-10-11T09:43:09.855516+00:00 WSS locker :443: HTTP 101; subprotocol=None
+2026-10-11T09:43:10.079403+00:00 WSS locker :443 CLOSE: ConnectionClosedError(Close(code=1008, reason='Unauthorized'), Close(code=1008, reason='Unauthorized'), True)
+2026-10-11T09:43:11.137136+00:00 WSS invalid :443: InvalidStatus(Response(status_code=403, reason_phrase='Forbidden', headers=Headers([('Content-Length', '0'), ('Content-Security-Policy', "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss: *;"), ('Content-Type', 'text/plain'), ('Date', 'Sun, 11 Oct 2026 09:43:09 GMT'), ('Referrer-Policy', 'strict-origin-when-cross-origin'), ('Server', 'nginx/1.31.6'), ('X-Content-Type-Options', 'nosniff'), ('X-Frame-Options', 'SAMEORIGIN'), ('X-Xss-Protection', '1; mode=block')]), body=bytearray(b''), _exception=InvalidStatus(...)))
+2026-10-11T09:43:12.124989+00:00 MQTT WSS :10000: HTTP 101; subprotocol=mqtt
+2026-10-11T09:43:12.358735+00:00 MQTT WSS :10000 RECV: b' \x02\x00\x05'
+2026-10-11T09:43:13.020155+00:00 MQTT TLS :8443: version=TLSv1.3; cert_subject=((('commonName', 'giakhanh.tail2fb87d.ts.net'),),)
+2026-10-11T09:43:13.349172+00:00 MQTT CONNACK :8443: b' \x02\x00\x05'
+2026-10-11T09:44:43.817827+00:00 POST /api/v1/auth/google invalid token (no account creation expected): HTTP 400; body='{"code":"GOOGLE_INVALID"}'
