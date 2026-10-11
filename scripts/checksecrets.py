@@ -297,7 +297,7 @@ def main() -> None:
         inside, addr = search_apk(apk, secrets)
         print(f"  {'FAIL' if inside else 'ok  '} the built APK carries no secret"
               + (f" - {inside}" if inside else ""))
-        print(f"  {'note' if addr else 'ok  '} the built APK's server address is {addr or 'blank'}"
+        print(f"  {'note' if addr else 'ok  '} the built APK's settings.json fallback address is {addr or 'blank'}"
               + (" - a local build, not a shipped one" if addr else ""))
         if inside:
             faults.append(f"the built APK contains {inside[0]}")
